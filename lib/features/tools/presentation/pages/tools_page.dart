@@ -4,7 +4,6 @@ import 'package:ploopy/features/ai/presentation/pages/ai_page.dart';
 import 'package:ploopy/features/todo/presentation/pages/todo_page.dart';
 import 'package:ploopy/features/tools/presentation/pages/compass_page.dart';
 import 'package:ploopy/features/tools/presentation/pages/pomodoro_page.dart';
-import 'package:ploopy/features/tools/presentation/pages/random_picker_page.dart';
 import 'package:ploopy/features/tools/presentation/pages/timezone_converter_page.dart';
 import 'package:ploopy/features/tools/presentation/pages/unit_converter_page.dart';
 import 'package:ploopy/core/constants/tools_dummy_data.dart';
@@ -132,12 +131,6 @@ class ToolsPage extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const CompassPage()),
-        );
-        break;
-      case 'random': // ⭐ ADD
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const RandomPickerPage()),
         );
         break;
       case 'pomodoro': // ⭐ ADD

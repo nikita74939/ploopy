@@ -97,14 +97,6 @@ class ToolsDummyData {
       'description': 'LBS dan device sensor',
       'tools': [
         {
-          'icon': Icons.place_rounded,
-          'label': 'Tempat Belajar',
-          'description': 'Cari cafe & perpus terdekat',
-          'color': Color(0xFFFF6B6B),
-          'route': 'places',
-          'available': false,
-        },
-        {
           'icon': Icons.explore_rounded,
           'label': 'Kompas',
           'description': 'Penunjuk arah mata angin',
@@ -127,28 +119,12 @@ class ToolsDummyData {
       'description': 'Fun & edukasi',
       'tools': [
         {
-          'icon': Icons.quiz_rounded,
-          'label': 'Quiz',
-          'description': 'Kuis edukasi interaktif',
-          'color': Color(0xFFB79CED),
-          'route': 'quiz',
-          'available': false,
-        },
-        {
           'icon': Icons.extension_rounded,
           'label': 'Memory',
           'description': 'Asah otak dengan memory',
           'color': Color(0xFFFF6B6B),
           'route': 'memory',
           'available': false,
-        },
-        {
-          'icon': Icons.casino_rounded,
-          'label': 'Random Pick',
-          'description': 'Pilih secara acak',
-          'color': Color(0xFF6BCB77),
-          'route': 'random',
-          'available': true,
         },
       ],
     },
