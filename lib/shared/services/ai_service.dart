@@ -24,10 +24,7 @@ class AiService {
     }
     _apiKey = key;
 
-    _history.add({
-      'role': 'system',
-      'content': _systemPrompt,
-    });
+    _history.add({'role': 'system', 'content': _systemPrompt});
 
     _initialized = true;
   }
@@ -177,10 +174,7 @@ Response: \`\`\`json { ... } \`\`\`
       throw Exception('AI Service belum di-initialize');
     }
 
-    _history.add({
-      'role': 'user',
-      'content': message,
-    });
+    _history.add({'role': 'user', 'content': message});
 
     try {
       final response = await http.post(
@@ -204,16 +198,11 @@ Response: \`\`\`json { ... } \`\`\`
 
         if (content == null || content.isEmpty) {
           _history.removeLast();
-          return AiAction.none(
-            'Maaf, aku ga bisa kasih jawaban untuk itu 😅',
-          );
+          return AiAction.none('Maaf, aku ga bisa kasih jawaban untuk itu 😅');
         }
 
         // Tambah AI response ke history
-        _history.add({
-          'role': 'assistant',
-          'content': content,
-        });
+        _history.add({'role': 'assistant', 'content': content});
 
         // Parse response
         return _parseResponse(content.trim());
@@ -232,7 +221,9 @@ Response: \`\`\`json { ... } \`\`\`
   /// Parse AI response — detect JSON action or plain text
   AiAction _parseResponse(String content) {
     // Cek apakah ada JSON block
-    final jsonMatch = RegExp(r'```json\s*(\{[\s\S]*?\})\s*```').firstMatch(content);
+    final jsonMatch = RegExp(
+      r'```json\s*(\{[\s\S]*?\})\s*```',
+    ).firstMatch(content);
 
     if (jsonMatch != null) {
       try {
@@ -254,7 +245,8 @@ Response: \`\`\`json { ... } \`\`\`
       final data = jsonDecode(response.body);
       final message = data['error']?['message'] ?? 'Unknown error';
       if (response.statusCode == 401) return 'API key invalid';
-      if (response.statusCode == 429) return 'Rate limit — tunggu 1 menit ya 😅';
+      if (response.statusCode == 429)
+        return 'Rate limit — tunggu 1 menit ya 😅';
       return 'Error: $message';
     } catch (_) {
       return 'Error ${response.statusCode}';

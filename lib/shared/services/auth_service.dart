@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'storage_service.dart';
 
 class AuthService {
-  static const String _baseUrl = 'http://192.168.100.147:3000/api';
+  static const String _baseUrl = 'http://172.16.17.59:3000/api';
 
   // LOGIN
   static Future<Map<String, dynamic>> login({
