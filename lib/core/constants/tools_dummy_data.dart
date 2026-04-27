@@ -20,7 +20,7 @@ class ToolsDummyData {
           'description': 'Scan dokumen ke teks',
           'color': Color(0xFFFF6B6B),
           'route': 'scanner',
-          'available': false,
+          'available': true,
         },
         {
           'icon': Icons.image_search_rounded,

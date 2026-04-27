@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ploopy/features/ai/presentation/pages/ai_page.dart';
+import 'package:ploopy/features/scanner/presentation/pages/scanner_home_page.dart';
 import 'package:ploopy/features/todo/presentation/pages/todo_page.dart';
 import 'package:ploopy/features/tools/presentation/pages/compass_page.dart';
 import 'package:ploopy/features/tools/presentation/pages/pomodoro_page.dart';
@@ -114,6 +115,11 @@ class ToolsPage extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const TimezoneConverterPage()),
+        );
+      case 'scanner': // ⭐ ADD
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ScannerHomePage()),
         );
       case 'unit': // ⭐ ADD
         Navigator.push(
