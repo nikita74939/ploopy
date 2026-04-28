@@ -28,7 +28,7 @@ class ToolsDummyData {
           'description': 'Extract teks dari gambar',
           'color': Color(0xFFB79CED),
           'route': 'pict_to_text',
-          'available': false,
+          'available': true,
         },
       ],
     },

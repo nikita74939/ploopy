@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/services/action_handler_service.dart';
 import '../../../../shared/services/ai_service.dart';
 import '../../domain/ai_action.dart';
@@ -12,7 +11,8 @@ import '../widgets/ai_suggestion_chips.dart';
 import '../widgets/ai_typing_indicator.dart';
 
 class AiPage extends StatefulWidget {
-  const AiPage({super.key});
+  final String? initialPrompt;
+  const AiPage({super.key, this.initialPrompt});
 
   @override
   State<AiPage> createState() => _AiPageState();
@@ -30,6 +30,11 @@ class _AiPageState extends State<AiPage> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialPrompt != null && widget.initialPrompt!.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _sendMessage(widget.initialPrompt!);
+      });
+    }
     _initAi();
   }
 
