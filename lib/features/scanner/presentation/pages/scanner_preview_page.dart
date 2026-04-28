@@ -7,7 +7,6 @@ import 'package:share_plus/share_plus.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/services/scanner_service.dart';
 import '../../domain/scanned_doc_model.dart';
-import '../widgets/scan_action_buttons.dart';
 
 class ScannerPreviewPage extends StatefulWidget {
   final ScannedDoc doc;
