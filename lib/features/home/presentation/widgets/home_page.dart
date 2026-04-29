@@ -1,20 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Dibutuhkan untuk HapticFeedback
-import 'package:ploopy/features/home/presentation/widgets/home_greeting_header.dart';
-import 'package:ploopy/features/home/presentation/widgets/learn_now_banner.dart';
-import 'package:ploopy/features/home/presentation/widgets/mini_calendar.dart';
-import 'package:ploopy/features/home/presentation/widgets/schedule_section.dart';
-import 'package:ploopy/features/notification/presentation/pages/notification_page.dart'; // Import halaman notifikasi
-
 import '../../../../core/constants/schedule_dummy_data.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/services/session_service.dart';
-
-// Note: Hapus import duplikat jika widget berada di folder yang sama
-// import 'home_greeting_header.dart';
-// import 'learn_now_banner.dart';
-// import 'mini_calendar.dart';
-// import 'schedule_timeline.dart';
+import 'home_greeting_header.dart';
+import 'learn_now_banner.dart';
+import 'mini_calendar.dart';
+import 'schedule_timeline.dart';
+import 'package:flutter/services.dart';
+import 'package:ploopy/features/notification/presentation/pages/notification_page.dart';
 
 class HomeBerandaPage extends StatefulWidget {
   const HomeBerandaPage({super.key});
@@ -63,43 +56,20 @@ class _HomeBerandaPageState extends State<HomeBerandaPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             HomeGreetingHeader(
-              name: name,
-              unreadNotifCount: 3,
-              onNotifTap: () {
+              name : name, 
+              unreadNotifCount : 3,
+              onNotifTap :(){
                 HapticFeedback.lightImpact();
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const NotificationPage()),
                 );
-              },
+              }
             ),
             const SizedBox(height: 20),
             MiniCalendar(
               selectedDay: _selectedDay,
               onDaySelected: (day) => setState(() => _selectedDay = day),
-              onOpenCalendar: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_month_rounded,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                        SizedBox(width: 8),
-                        Text('Kalender lengkap segera hadir! 🗓️'),
-                      ],
-                    ),
-                    backgroundColor: Colors.black87,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
-              },
             ),
             const SizedBox(height: 20),
             LearnNowBanner(
@@ -108,17 +78,13 @@ class _HomeBerandaPageState extends State<HomeBerandaPage> {
               },
             ),
             const SizedBox(height: 24),
-            ScheduleSection(
-              scheduleItems: ScheduleDummyData.todayItems,
-              taskItems: ScheduleDummyData.todayTasks,
-              onSeeAllSchedule: () {
-                // TODO: navigate to schedule_page
-              },
-              onSeeAllTask: () {
-                // TODO: navigate to task_page
+            ScheduleTimeline(
+              items: ScheduleDummyData.todayItems,
+              onSeeAll: () {
+                // TODO: navigate to full schedule
               },
             ),
-            const SizedBox(height: 100),
+            const SizedBox(height: 80),
           ],
         ),
       ),
