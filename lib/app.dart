@@ -38,7 +38,7 @@ class _SplashDeciderState extends State<SplashDecider> {
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => isLoggedIn? const HomeScreen(): const AuthScreen()),
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
     );
   }
 

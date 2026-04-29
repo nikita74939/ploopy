@@ -11,6 +11,7 @@ import 'package:ploopy/features/tools/presentation/pages/unit_converter_page.dar
 import 'package:ploopy/core/constants/tools_dummy_data.dart';
 import 'package:ploopy/features/tools/presentation/widgets/tool_category_section.dart';
 import 'currency_converter_page.dart';
+import 'package:ploopy/features/memory_game/presentation/pages/memory_game_page.dart';
 
 class ToolsPage extends StatelessWidget {
   const ToolsPage({super.key});
@@ -156,6 +157,12 @@ class ToolsPage extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const OcrHomePage()),
+        );
+        break;
+      case 'memory_game':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MemoryGamePage()),
         );
         break;
       default:
