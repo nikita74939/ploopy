@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ploopy/features/chat/presentation/pages/chat_page.dart';
 import 'package:ploopy/features/home/presentation/widgets/home_page.dart';
-import '../../../ai/presentation/pages/ai_page.dart';// ⭐ NEW
-import '../../../event/presentation/pages/event_page.dart';             // ⭐ NEW
+import '../../../ai/presentation/pages/ai_page.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 import '../../../social/presentation/pages/social_page.dart';
 import '../../../tools/presentation/pages/tools_page.dart';
@@ -19,19 +17,14 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = const [
-    HomeBerandaPage(),   // 0 - Beranda
-    SocialPage(),        // 1 - Sosial
-    EventPage(),         // 2 - Event ⭐ NEW
-    ChatPage(),          // 3 - Chat ⭐ NEW
-    ToolsPage(),         // 4 - Tools
-    ProfilePage(),       // 5 - Profil
+    HomeBerandaPage(), // 0 - Beranda
+    SocialPage(), // 1 - Sosial
+    ToolsPage(), // 4 - Tools
+    ProfilePage(), // 5 - Profil
   ];
 
   void _openAiAssistant() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const AiPage()),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const AiPage()));
   }
 
   @override
@@ -39,19 +32,20 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       body: _pages[_currentIndex],
-      floatingActionButton: _currentIndex == 0
-          ? FloatingActionButton(
-              onPressed: _openAiAssistant,
-              backgroundColor: Colors.black87,
-              elevation: 4,
-              shape: const CircleBorder(),
-              child: const Icon(
-                Icons.smart_toy_rounded,
-                color: Colors.white,
-                size: 26,
-              ),
-            )
-          : null,
+      floatingActionButton:
+          _currentIndex == 0
+              ? FloatingActionButton(
+                onPressed: _openAiAssistant,
+                backgroundColor: Colors.black87,
+                elevation: 4,
+                shape: const CircleBorder(),
+                child: const Icon(
+                  Icons.smart_toy_rounded,
+                  color: Colors.white,
+                  size: 26,
+                ),
+              )
+              : null,
       bottomNavigationBar: HomeBottomNav(
         currentIndex: _currentIndex,
         onTap: (i) => setState(() => _currentIndex = i),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ploopy/features/home/presentation/pages/home_screen.dart';
+import 'package:ploopy/shared/services/activity_service.dart';
+import 'package:ploopy/shared/services/event_service.dart';
 import 'features/auth/presentation/pages/auth_screen.dart';
 import 'shared/services/session_service.dart';
 import 'core/theme/app_theme.dart';
@@ -30,6 +32,15 @@ class _SplashDeciderState extends State<SplashDecider> {
   void initState() {
     super.initState();
     _checkSession();
+    _initSampleData();
+  }
+
+  Future<void> _initSampleData() async {
+    // Add sample activities
+    await ActivityService.addSampleData();
+
+    // Add sample events
+    await EventService.addSampleData();
   }
 
   Future<void> _checkSession() async {

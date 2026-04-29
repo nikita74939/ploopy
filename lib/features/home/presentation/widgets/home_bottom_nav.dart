@@ -14,8 +14,6 @@ class HomeBottomNav extends StatelessWidget {
   static const List<IconData> _icons = [
     Icons.home_rounded,
     Icons.people_rounded,
-    Icons.event_rounded,
-    Icons.chat_bubble_rounded,
     Icons.construction_rounded,
     Icons.person_rounded,
   ];
@@ -23,8 +21,6 @@ class HomeBottomNav extends StatelessWidget {
   static const List<IconData> _iconsOutlined = [
     Icons.home_outlined,
     Icons.people_outline_rounded,
-    Icons.event_outlined,
-    Icons.chat_bubble_outline_rounded,
     Icons.construction_outlined,
     Icons.person_outline_rounded,
   ];

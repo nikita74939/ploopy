@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/constants/social_dummy_data.dart';
+import 'package:ploopy/features/chat/presentation/pages/chat_page.dart';
+import 'package:ploopy/features/event/presentation/pages/event_detail_page.dart';
+import 'package:ploopy/features/social/presentation/pages/create_activity_page.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../widgets/social_filter_tabs.dart';
-import '../widgets/social_post_card.dart';
+import '../widgets/social_tab_bar.dart';
+import '../widgets/social_activity_tab.dart';
+import '../widgets/social_event_tab.dart';
+import '../widgets/social_preferences_sheet.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});
@@ -13,145 +18,192 @@ class SocialPage extends StatefulWidget {
 }
 
 class _SocialPageState extends State<SocialPage> {
-  int _selectedTab = 0;
+  SocialTab _currentTab = SocialTab.activity;
+
+  void _openSearch() {
+    HapticFeedback.lightImpact();
+    // TODO: Implement search
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Fitur pencarian dalam pengembangan 🔍',
+          style: GoogleFonts.poppins(color: Colors.white, fontSize: 12),
+        ),
+        backgroundColor: Colors.grey.shade800,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  void _openNotifications() {
+    HapticFeedback.lightImpact();
+    // TODO: Implement notifications
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Notifikasi dalam pengembangan 🔔',
+          style: GoogleFonts.poppins(color: Colors.white, fontSize: 12),
+        ),
+        backgroundColor: Colors.grey.shade800,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  void _openChat() {
+    HapticFeedback.lightImpact();
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ChatPage()),
+    );
+  }
+
+  void _openCreateActivity() {
+    HapticFeedback.mediumImpact();
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const CreateActivityPage()),
+    ).then((_) => setState(() {})); // Refresh after creating
+  }
+
+  void _openCreateEvent() {
+    HapticFeedback.mediumImpact();
+    // TODO: Navigate to create event page
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Fitur buat event dalam pengembangan 📅',
+          style: GoogleFonts.poppins(color: Colors.white, fontSize: 12),
+        ),
+        backgroundColor: Colors.grey.shade800,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  void _openPreferences() {
+    HapticFeedback.lightImpact();
+    SocialPreferencesSheet.show(context);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final posts =
-        _selectedTab == 0
-            ? SocialDummyData.forYouPosts
-            : SocialDummyData.friendsPosts;
+    return Scaffold(
+      backgroundColor: Colors.grey.shade50,
+      body: SafeArea(child: _buildBody()),
+    );
+  }
 
-    return SafeArea(
-      child: Column(
-        children: [
-          _buildAppBar(),
-          SocialFilterTabs(
-            selectedIndex: _selectedTab,
-            onChanged: (i) => setState(() => _selectedTab = i),
-          ),
-          Expanded(
-            child:
-                posts.isEmpty
-                    ? _buildEmptyState()
-                    : RefreshIndicator(
-                      color: AppColors.primary,
-                      onRefresh: () async {
-                        await Future.delayed(const Duration(seconds: 1));
-                      },
-                      child: ListView(
-                        padding: const EdgeInsets.fromLTRB(
-                          16,
-                          16,
-                          16,
-                          80,
-                        ), // ⭐ UPDATE
-                        children: [
-                          ...posts.map((p) => SocialPostCard(post: p)).toList(),
-                        ],
-                      ),
-                    ),
-          ),
-        ],
-      ),
+  Widget _buildBody() {
+    return Column(
+      children: [
+        _buildAppBar(),
+        SocialTabBar(
+          selected: _currentTab,
+          onChanged: (tab) => setState(() => _currentTab = tab),
+        ),
+        Expanded(child: _buildContent()),
+      ],
     );
   }
 
   Widget _buildAppBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Colors.grey.shade100, width: 1),
-        ),
-      ),
+      padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
       child: Row(
         children: [
-          Text(
-            'Ploopy',
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: AppColors.primary,
-            ),
-          ),
-          const Spacer(),
-          _iconButton(Icons.search_rounded, () {}),
-          const SizedBox(width: 10),
-          _iconButton(Icons.notifications_outlined, () {}, badge: true),
-        ],
-      ),
-    );
-  }
-
-  Widget _iconButton(IconData icon, VoidCallback onTap, {bool badge = false}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Stack(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: 18, color: Colors.black87),
-          ),
-          if (badge)
-            Positioned(
-              right: 8,
-              top: 8,
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 1.5),
-                ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Social',
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
               ),
             ),
+          ),
+          _buildIconButton(icon: Icons.search_rounded, onTap: _openSearch),
+          _buildIconButton(
+            icon: Icons.notifications_outlined,
+            onTap: _openNotifications,
+            badge: 3, // Contoh badge count
+          ),
+          _buildIconButton(
+            icon: Icons.chat_bubble_outline_rounded,
+            onTap: _openChat,
+          ),
+          _buildIconButton(
+            icon: Icons.more_vert_rounded,
+            onTap: _openPreferences,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              shape: BoxShape.circle,
+  Widget _buildIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    int? badge,
+  }) {
+    return Stack(
+      children: [
+        IconButton(
+          icon: Icon(icon, color: Colors.grey.shade700, size: 22),
+          onPressed: onTap,
+        ),
+        if (badge != null && badge > 0)
+          Positioned(
+            right: 6,
+            top: 6,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.red.shade500,
+                shape: BoxShape.circle,
+              ),
+              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+              child: Text(
+                badge > 9 ? '9+' : '$badge',
+                style: GoogleFonts.poppins(
+                  fontSize: 8,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
-            alignment: Alignment.center,
-            child: const Text('👥', style: TextStyle(fontSize: 36)),
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Belum ada postingan',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Follow temanmu untuk lihat aktivitas mereka',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: Colors.grey.shade500,
-            ),
-          ),
-        ],
-      ),
+      ],
     );
+  }
+
+  Widget _buildContent() {
+    switch (_currentTab) {
+      case SocialTab.activity:
+        return SocialActivityTab(
+          onCreatePost: _openCreateActivity,
+          onTapPost: (activity) {
+            // TODO: Open activity detail
+          },
+        );
+      case SocialTab.event:
+        return SocialEventTab(
+          onTapEvent: (event) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => EventDetailPage(event: event)),
+            );
+          },
+          onCreateEvent: _openCreateEvent,
+        );
+    }
   }
 }
