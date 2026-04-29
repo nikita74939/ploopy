@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:ploopy/core/theme/app_colors.dart';
+import 'package:ploopy/core/theme/app_text_styles.dart';
 
 class GameStatsBar extends StatelessWidget {
   final int moves;
@@ -24,43 +26,37 @@ class GameStatsBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A2F4E),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: const Color(0xFF2D6A9F).withOpacity(0.4),
-        ),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.25),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+      child: Column(
         children: [
-          _StatItem(
-            icon: Icons.touch_app_rounded,
-            label: 'Moves',
-            value: '$moves',
-            color: const Color(0xFF64B5F6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _StatItem(label: 'Moves', value: '$moves', color: Colors.blueAccent),
+              _StatItem(label: 'Matched', value: '$matches/$totalPairs', color: Colors.green),
+              _StatItem(label: 'Time', value: _formattedTime, color: AppColors.primary),
+            ],
           ),
-          _Divider(),
-          _StatItem(
-            icon: Icons.star_rounded,
-            label: 'Matched',
-            value: '$matches/$totalPairs',
-            color: const Color(0xFF4CAF82),
-          ),
-          _Divider(),
-          _StatItem(
-            icon: Icons.timer_rounded,
-            label: 'Time',
-            value: _formattedTime,
-            color: const Color(0xFFFFB74D),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: totalPairs > 0 ? matches / totalPairs : 0,
+              backgroundColor: AppColors.greyLight,
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+              minHeight: 8,
+            ),
           ),
         ],
       ),
@@ -69,53 +65,19 @@ class GameStatsBar extends StatelessWidget {
 }
 
 class _StatItem extends StatelessWidget {
-  final IconData icon;
   final String label;
   final String value;
   final Color color;
 
-  const _StatItem({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-  });
+  const _StatItem({required this.label, required this.value, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            color: color,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.5,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.5),
-            fontSize: 11,
-          ),
-        ),
+        Text(value, style: AppTextStyles.heading.copyWith(color: color, fontSize: 18)),
+        Text(label, style: AppTextStyles.caption),
       ],
-    );
-  }
-}
-
-class _Divider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 1,
-      height: 40,
-      color: Colors.white.withOpacity(0.1),
     );
   }
 }
