@@ -1,6 +1,32 @@
 import 'package:flutter/material.dart';
 
 class ScheduleDummyData {
+  static final List<Map<String, dynamic>> todayTasks = [
+    {
+      'title': 'Latihan Soal Fisika',
+      'subject': 'Fisika - Bab 3',
+      'done': false,
+      'due': 'Hari ini',
+      'icon': Icons.science_rounded,
+      'color': Color(0xFF5C6BC0),
+    },
+    {
+      'title': 'Resume Materi Sejarah',
+      'subject': 'Sejarah Indonesia',
+      'done': true,
+      'due': 'Kemarin',
+      'icon': Icons.history_edu_rounded,
+      'color': Color(0xFF26A69A),
+    },
+    {
+      'title': 'PR Matematika Hal. 45',
+      'subject': 'Matematika',
+      'done': false,
+      'due': 'Besok',
+      'icon': Icons.calculate_rounded,
+      'color': Color(0xFFEF5350),
+    },
+  ];
   static final List<Map<String, dynamic>> todayItems = [
     {
       'time': '06.00',

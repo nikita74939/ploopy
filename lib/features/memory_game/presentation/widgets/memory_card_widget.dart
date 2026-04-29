@@ -1,5 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:ploopy/core/theme/app_colors.dart';
+import 'package:ploopy/core/theme/app_theme.dart';
 
 class MemoryCardWidget extends StatelessWidget {
   final String emoji;
@@ -37,71 +39,63 @@ class MemoryCardWidget extends StatelessWidget {
             },
           );
         },
-        child: isFlipped || isMatched
-            ? _buildFront()
-            : _buildBack(),
+        child: isFlipped || isMatched ? _buildFront() : _buildBack(),
       ),
     );
   }
 
+  // Tampilan saat kartu terbuka
   Widget _buildFront() {
     return Container(
       key: const ValueKey(true),
       decoration: BoxDecoration(
-        color: isMatched
-            ? const Color(0xFF4CAF82)
-            : const Color(0xFF2D6A9F),
-        borderRadius: BorderRadius.circular(14),
+        color: isMatched ? const Color(0xFFE8F5E9) : AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isMatched ? Colors.green.withOpacity(0.5) : AppColors.greyBorder,
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: isMatched
-                ? const Color(0xFF4CAF82).withOpacity(0.4)
-                : const Color(0xFF2D6A9F).withOpacity(0.4),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(
-          color: Colors.white.withOpacity(0.3),
-          width: 1.5,
-        ),
       ),
       child: Center(
         child: Text(
           emoji,
-          style: const TextStyle(fontSize: 36),
+          style: const TextStyle(fontSize: 32),
         ),
       ),
     );
   }
 
+  // Tampilan saat kartu tertutup (Aesthetic White-Orange)
   Widget _buildBack() {
     return Container(
       key: const ValueKey(false),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF1A2F4E), Color(0xFF0F1E33)],
+        color: AppTheme.primaryContainer, // Warna krem oranye sangat lembut[cite: 6]
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.primary.withOpacity(0.3), // Border oranye tipis[cite: 7]
+          width: 2,
         ),
-        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+            color: AppColors.primary.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(
-          color: const Color(0xFF2D6A9F).withOpacity(0.5),
-          width: 1.5,
-        ),
       ),
       child: Center(
         child: Icon(
-          Icons.psychology_rounded,
-          color: const Color(0xFF2D6A9F).withOpacity(0.7),
-          size: 32,
+          Icons.auto_awesome_rounded, // Icon yang lebih estetik
+          color: AppColors.primary.withOpacity(0.6),
+          size: 28,
         ),
       ),
     );
