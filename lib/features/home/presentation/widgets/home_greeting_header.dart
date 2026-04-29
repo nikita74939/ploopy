@@ -5,8 +5,15 @@ import '../../../../core/utils/date_helper.dart';
 
 class HomeGreetingHeader extends StatelessWidget {
   final String name;
+  final int unreadNotifCount;
+  final VoidCallback? onNotifTap;
 
-  const HomeGreetingHeader({super.key, required this.name});
+  const HomeGreetingHeader({
+    super.key,
+    required this.name,
+    this.unreadNotifCount = 0,
+    this.onNotifTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +44,45 @@ class HomeGreetingHeader extends StatelessWidget {
             ],
           ),
         ),
+        // ── Bell Button ──────────────────────
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            IconButton(
+              icon: Icon(
+                Icons.notifications_outlined,
+                color: Colors.grey.shade700,
+                size: 22,
+              ),
+              onPressed: onNotifTap,
+            ),
+            if (unreadNotifCount > 0)
+              Positioned(
+                right: 6,
+                top: 6,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade500,
+                    shape: BoxShape.circle,
+                  ),
+                  constraints:
+                      const BoxConstraints(minWidth: 16, minHeight: 16),
+                  child: Text(
+                    unreadNotifCount > 9 ? '9+' : '$unreadNotifCount',
+                    style: GoogleFonts.poppins(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(width: 4),
+        // ── Avatar ───────────────────────────
         _buildAvatar(),
       ],
     );

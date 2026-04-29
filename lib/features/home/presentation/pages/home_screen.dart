@@ -17,10 +17,10 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = const [
-    HomeBerandaPage(), // 0 - Beranda
-    SocialPage(), // 1 - Sosial
-    ToolsPage(), // 4 - Tools
-    ProfilePage(), // 5 - Profil
+    HomeBerandaPage(),
+    SocialPage(),
+    ToolsPage(),
+    ProfilePage(),
   ];
 
   void _openAiAssistant() {
@@ -35,16 +35,16 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton:
           _currentIndex == 0
               ? FloatingActionButton(
-                onPressed: _openAiAssistant,
-                backgroundColor: Colors.black87,
-                elevation: 4,
-                shape: const CircleBorder(),
-                child: const Icon(
-                  Icons.smart_toy_rounded,
-                  color: Colors.white,
-                  size: 26,
-                ),
-              )
+                  onPressed: _openAiAssistant,
+                  backgroundColor: Colors.black87,
+                  elevation: 4,
+                  shape: const CircleBorder(),
+                  child: const Icon(
+                    Icons.smart_toy_rounded,
+                    color: Colors.white,
+                    size: 26,
+                  ),
+                )
               : null,
       bottomNavigationBar: HomeBottomNav(
         currentIndex: _currentIndex,

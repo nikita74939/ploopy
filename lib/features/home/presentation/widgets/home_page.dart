@@ -6,6 +6,8 @@ import 'home_greeting_header.dart';
 import 'learn_now_banner.dart';
 import 'mini_calendar.dart';
 import 'schedule_timeline.dart';
+import 'package:flutter/services.dart';
+import 'package:ploopy/features/notification/presentation/pages/notification_page.dart';
 
 class HomeBerandaPage extends StatefulWidget {
   const HomeBerandaPage({super.key});
@@ -53,7 +55,17 @@ class _HomeBerandaPageState extends State<HomeBerandaPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            HomeGreetingHeader(name: name),
+            HomeGreetingHeader(
+              name : name, 
+              unreadNotifCount : 3,
+              onNotifTap :(){
+                HapticFeedback.lightImpact();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const NotificationPage()),
+                );
+              }
+            ),
             const SizedBox(height: 20),
             MiniCalendar(
               selectedDay: _selectedDay,

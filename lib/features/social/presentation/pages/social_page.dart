@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ploopy/features/chat/presentation/pages/chat_page.dart';
 import 'package:ploopy/features/event/presentation/pages/event_detail_page.dart';
+import 'package:ploopy/features/notification/presentation/pages/notification_page.dart';
 import 'package:ploopy/features/social/presentation/pages/create_activity_page.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../widgets/social_tab_bar.dart';
@@ -39,18 +40,9 @@ class _SocialPageState extends State<SocialPage> {
 
   void _openNotifications() {
     HapticFeedback.lightImpact();
-    // TODO: Implement notifications
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Notifikasi dalam pengembangan 🔔',
-          style: GoogleFonts.poppins(color: Colors.white, fontSize: 12),
-        ),
-        backgroundColor: Colors.grey.shade800,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-      ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const NotificationPage()),
     );
   }
 
