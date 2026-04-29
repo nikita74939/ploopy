@@ -1,11 +1,27 @@
 class DateHelper {
   static const List<String> dayNames = [
-    'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'
+    'Sen',
+    'Sel',
+    'Rab',
+    'Kam',
+    'Jum',
+    'Sab',
+    'Min',
   ];
 
   static const List<String> monthNames = [
-    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+    'Januari',
+    'Februari',
+    'Maret',
+    'April',
+    'Mei',
+    'Juni',
+    'Juli',
+    'Agustus',
+    'September',
+    'Oktober',
+    'November',
+    'Desember',
   ];
 
   static String formatFullDate(DateTime date) {
@@ -24,5 +40,23 @@ class DateHelper {
     final now = DateTime.now();
     final monday = now.subtract(Duration(days: now.weekday - 1));
     return List.generate(7, (i) => monday.add(Duration(days: i)));
+  }
+
+  static String formatMonthYear(DateTime date) {
+    const months = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ];
+    return '${months[date.month - 1]} ${date.year}';
   }
 }
