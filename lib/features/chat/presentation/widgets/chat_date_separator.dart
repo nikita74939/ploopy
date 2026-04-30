@@ -1,5 +1,7 @@
+// chat/presentation/widgets/chat_date_separator.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class ChatDateSeparator extends StatelessWidget {
   final String date;
@@ -8,22 +10,22 @@ class ChatDateSeparator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 16),
       child: Center(
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.grey.shade200, width: 1),
+            color: AppColors.greyLight,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.greyBorder),
           ),
           child: Text(
             date,
-            style: GoogleFonts.poppins(
-              fontSize: 10,
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              color: AppColors.grey,
               fontWeight: FontWeight.w500,
-              color: Colors.grey.shade600,
             ),
           ),
         ),

@@ -1,3 +1,4 @@
+// chat/presentation/pages/chat_page.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/chat_dummy_data.dart';
@@ -11,7 +12,7 @@ class ChatPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppColors.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -21,18 +22,15 @@ class ChatPage extends StatelessWidget {
               child: ListView.separated(
                 padding: const EdgeInsets.only(bottom: 80),
                 itemCount: ChatDummyData.chats.length,
-                separatorBuilder:
-                    (_, __) => Divider(
-                      height: 1,
-                      color: Colors.grey.shade100,
-                      indent: 80,
-                    ),
-                itemBuilder:
-                    (_, i) => ChatListItem(
-                      chat: ChatDummyData.chats[i],
-                      onTap:
-                          () => _openChatRoom(context, ChatDummyData.chats[i]),
-                    ),
+                separatorBuilder: (_, __) => Divider(
+                  height: 1,
+                  color: AppColors.greyBorder,
+                  indent: 76,
+                ),
+                itemBuilder: (_, i) => ChatListItem(
+                  chat: ChatDummyData.chats[i],
+                  onTap: () => _openChatRoom(context, ChatDummyData.chats[i]),
+                ),
               ),
             ),
           ],
@@ -51,24 +49,24 @@ class ChatPage extends StatelessWidget {
 
   Widget _buildAppBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         border: Border(
-          bottom: BorderSide(color: Colors.grey.shade100, width: 1),
+          bottom: BorderSide(color: AppColors.greyBorder, width: 1),
         ),
       ),
       child: Row(
         children: [
           Text(
             'Chat',
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: Colors.black87,
+              fontWeight: FontWeight.w700,
+              color: AppColors.black,
             ),
           ),
-          Spacer(),
+          const Spacer(),
         ],
       ),
     );
@@ -77,23 +75,24 @@ class ChatPage extends StatelessWidget {
   Widget _buildSearchBar() {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      color: Colors.white,
+      color: AppColors.white,
       child: Container(
-        height: 40,
+        height: 42,
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(14),
+          color: AppColors.greyLight,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.greyBorder),
         ),
         child: Row(
           children: [
-            Icon(Icons.search_rounded, size: 18, color: Colors.grey.shade500),
-            const SizedBox(width: 8),
+            Icon(Icons.search_rounded, size: 18, color: AppColors.grey),
+            const SizedBox(width: 10),
             Text(
               'Cari chat...',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: Colors.grey.shade500,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: AppColors.grey,
               ),
             ),
           ],
@@ -107,10 +106,12 @@ class ChatPage extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8, right: 4),
       child: FloatingActionButton(
         onPressed: () {},
-        backgroundColor: AppColors.primary,
-        elevation: 4,
-        shape: const CircleBorder(),
-        child: const Icon(Icons.edit_rounded, color: Colors.white, size: 22),
+        backgroundColor: AppColors.black,
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: const Icon(Icons.edit_outlined, color: AppColors.white, size: 22),
       ),
     );
   }

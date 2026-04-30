@@ -1,5 +1,7 @@
+// chat/presentation/pages/chat_room_page.dart
 import 'package:flutter/material.dart';
 import '../../../../core/constants/chat_room_dummy_data.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/chat_date_separator.dart';
 import '../widgets/chat_input_bar.dart';
@@ -24,7 +26,6 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     super.initState();
     _messages = List<Map<String, dynamic>>.from(ChatRoomDummyData.messages);
 
-    // Auto scroll ke bawah saat buka chat
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToBottom(animated: false);
     });
@@ -48,8 +49,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     if (text.isEmpty) return;
 
     final now = DateTime.now();
-    final time =
-        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    final time = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
     setState(() {
       _messages.add({
@@ -78,7 +78,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: AppColors.white,
       appBar: ChatRoomAppBar(chat: widget.chat),
       body: Column(
         children: [
@@ -95,7 +95,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   Widget _buildMessageList() {
     return ListView.builder(
       controller: _scrollCtrl,
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
       itemCount: _messages.length,
       itemBuilder: (_, i) {
         final msg = _messages[i];
@@ -104,7 +104,6 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
           return ChatDateSeparator(date: msg['date'] as String);
         }
 
-        // Cek apakah perlu tampilkan waktu (cluster bubble)
         final showTime = _shouldShowTime(i);
 
         return ChatBubble(message: msg, showTime: showTime);
@@ -112,7 +111,6 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     );
   }
 
-  // Cek apakah pesan ini punya waktu berbeda dgn pesan setelahnya (biar clustering rapi)
   bool _shouldShowTime(int index) {
     if (index == _messages.length - 1) return true;
 
