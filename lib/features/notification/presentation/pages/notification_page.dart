@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:ploopy/core/theme/app_colors.dart';
+import 'package:ploopy/core/theme/app_text_styles.dart';
 
-// ─────────────────────────────────────────────
-// Model
-// ─────────────────────────────────────────────
 enum NotifType { social, achievement, event, reminder, system }
 
 class AppNotification {
@@ -14,8 +12,6 @@ class AppNotification {
   final String body;
   final String time;
   final String? avatarLabel;
-  final Color? avatarColor;
-  final String? emoji;
   bool isRead;
 
   AppNotification({
@@ -25,59 +21,49 @@ class AppNotification {
     required this.body,
     required this.time,
     this.avatarLabel,
-    this.avatarColor,
-    this.emoji,
     this.isRead = false,
   });
 }
 
-// ─────────────────────────────────────────────
-// Dummy Data
-// ─────────────────────────────────────────────
 final List<AppNotification> _dummyNotifications = [
   AppNotification(
     id: '1',
     type: NotifType.social,
     title: 'Andi Saputra menyukaimu',
-    body: 'Andi menyukai postingan streak 30 harimu 🔥',
+    body: 'Andi menyukai postingan streak 30 harimu',
     time: '2m lalu',
     avatarLabel: 'A',
-    avatarColor: const Color(0xFF4D96FF),
   ),
   AppNotification(
     id: '2',
     type: NotifType.achievement,
-    title: 'Achievement Baru! 🏆',
-    body: 'Kamu baru saja unlock "Konsisten 7 Hari" — terus semangat!',
+    title: 'Achievement Baru',
+    body: 'Kamu baru saja unlock "Konsisten 7 Hari". Terus semangat!',
     time: '15m lalu',
-    emoji: '🏆',
   ),
   AppNotification(
     id: '3',
     type: NotifType.social,
     title: 'Bella Pratiwi berkomentar',
-    body: '"Keren banget! Aku juga mau coba streak kayak gini 💪"',
+    body: '"Keren banget! Aku juga mau coba streak kayak gini"',
     time: '1j lalu',
     avatarLabel: 'B',
-    avatarColor: const Color(0xFFFF6B6B),
     isRead: true,
   ),
   AppNotification(
     id: '4',
     type: NotifType.reminder,
-    title: 'Waktunya Belajar! ⏰',
+    title: 'Waktunya Belajar',
     body: 'Kamu belum mencatat aktivitas hari ini. Yuk mulai sesi belajarmu!',
     time: '2j lalu',
-    emoji: '⏰',
     isRead: true,
   ),
   AppNotification(
     id: '5',
     type: NotifType.event,
     title: 'Event dimulai besok',
-    body: 'Study Together — Persiapan UAS Kalkulus dimulai besok jam 09.00',
+    body: 'Study Together - Persiapan UAS Kalkulus dimulai besok jam 09.00',
     time: '3j lalu',
-    emoji: '📅',
     isRead: true,
   ),
   AppNotification(
@@ -87,16 +73,14 @@ final List<AppNotification> _dummyNotifications = [
     body: 'Doni mulai mengikuti aktivitasmu',
     time: '5j lalu',
     avatarLabel: 'D',
-    avatarColor: const Color(0xFFB79CED),
     isRead: true,
   ),
   AppNotification(
     id: '7',
     type: NotifType.achievement,
-    title: 'Hampir sampai! 🎯',
+    title: 'Hampir sampai',
     body: 'Tinggal 2 jam lagi untuk unlock "Brain Master 50 Jam"',
     time: '1h lalu',
-    emoji: '🎯',
     isRead: true,
   ),
   AppNotification(
@@ -105,14 +89,10 @@ final List<AppNotification> _dummyNotifications = [
     title: 'Fitur Baru Tersedia',
     body: 'Location-Based Study Buddy kini aktif di sekitarmu. Coba sekarang!',
     time: '1h lalu',
-    emoji: '📍',
     isRead: true,
   ),
 ];
 
-// ─────────────────────────────────────────────
-// Page
-// ─────────────────────────────────────────────
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
 
@@ -123,7 +103,7 @@ class NotificationPage extends StatefulWidget {
 class _NotificationPageState extends State<NotificationPage>
     with SingleTickerProviderStateMixin {
   late final List<AppNotification> _notifications;
-  late TabController _tabController;
+  late final TabController _tabController;
 
   @override
   void initState() {
@@ -143,32 +123,30 @@ class _NotificationPageState extends State<NotificationPage>
   List<AppNotification> get _unread =>
       _notifications.where((n) => !n.isRead).toList();
 
-  List<AppNotification> get _all => _notifications;
-
   void _markAllRead() {
     HapticFeedback.lightImpact();
     setState(() {
-      for (final n in _notifications) {
-        n.isRead = true;
+      for (final notification in _notifications) {
+        notification.isRead = true;
       }
     });
   }
 
-  void _markRead(AppNotification notif) {
-    if (!notif.isRead) {
-      setState(() => notif.isRead = true);
+  void _markRead(AppNotification notification) {
+    if (!notification.isRead) {
+      setState(() => notification.isRead = true);
     }
   }
 
-  void _deleteNotif(AppNotification notif) {
+  void _deleteNotification(AppNotification notification) {
     HapticFeedback.mediumImpact();
-    setState(() => _notifications.remove(notif));
+    setState(() => _notifications.remove(notification));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppColors.greyLighter,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -178,10 +156,7 @@ class _NotificationPageState extends State<NotificationPage>
             Expanded(
               child: TabBarView(
                 controller: _tabController,
-                children: [
-                  _buildList(_all),
-                  _buildList(_unread),
-                ],
+                children: [_buildList(_notifications), _buildList(_unread)],
               ),
             ),
           ],
@@ -190,38 +165,34 @@ class _NotificationPageState extends State<NotificationPage>
     );
   }
 
-  // ── Header ──────────────────────────────────
   Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 10, 12, 10),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-            color: Colors.black87,
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+            color: AppColors.black,
             onPressed: () => Navigator.pop(context),
           ),
-          const SizedBox(width: 4),
           Expanded(
             child: Text(
               'Notifikasi',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Colors.black87,
-              ),
+              style: AppTextStyles.heading.copyWith(fontSize: 18),
             ),
           ),
           if (_unreadCount > 0)
             TextButton(
               onPressed: _markAllRead,
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                minimumSize: const Size(0, 36),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
               child: Text(
                 'Tandai semua',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
+                style: AppTextStyles.link.copyWith(fontWeight: FontWeight.w500),
               ),
             ),
         ],
@@ -229,82 +200,77 @@ class _NotificationPageState extends State<NotificationPage>
     );
   }
 
-  // ── Tab Bar ─────────────────────────────────
   Widget _buildTabBar() {
-  return Container(
-    margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-    decoration: BoxDecoration(
-      color: Colors.grey.shade200,
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: TabBar(
-      controller: _tabController,
-      indicator: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+    return Container(
+      height: 44,
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: AppColors.greyLight,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.greyBorder),
+      ),
+      child: TabBar(
+        controller: _tabController,
+        indicator: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: AppColors.primaryBorder),
+        ),
+        indicatorSize: TabBarIndicatorSize.tab,
+        dividerColor: Colors.transparent,
+        labelColor: AppColors.black,
+        labelStyle: AppTextStyles.tabActive,
+        unselectedLabelColor: AppColors.grey,
+        unselectedLabelStyle: AppTextStyles.tabInactive,
+        tabs: [
+          const Tab(text: 'Semua'),
+          Tab(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Belum Dibaca'),
+                if (_unreadCount > 0) ...[
+                  const SizedBox(width: 6),
+                  _buildUnreadCount(),
+                ],
+              ],
+            ),
           ),
         ],
       ),
-      indicatorSize: TabBarIndicatorSize.tab,
-      dividerColor: Colors.transparent,
-      labelStyle: GoogleFonts.poppins(
-        fontWeight: FontWeight.w600,
-        fontSize: 13,
-      ),
-      unselectedLabelStyle: GoogleFonts.poppins(
-        fontWeight: FontWeight.w500,
-        fontSize: 13,
-      ),
-      labelColor: Colors.black87,
-      unselectedLabelColor: Colors.grey.shade500,
-      tabs: [
-        const Tab(text: 'Semua'),
-        Tab(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Belum Dibaca'),
-              if (_unreadCount > 0) ...[
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 6, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade500,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '$_unreadCount',
-                    style: GoogleFonts.poppins(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
+    );
+  }
 
-  // ── List ────────────────────────────────────
+  Widget _buildUnreadCount() {
+    return Container(
+      constraints: const BoxConstraints(minWidth: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+      decoration: BoxDecoration(
+        color: AppColors.black,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        '$_unreadCount',
+        textAlign: TextAlign.center,
+        style: AppTextStyles.caption.copyWith(
+          color: AppColors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
   Widget _buildList(List<AppNotification> items) {
     if (items.isEmpty) {
       return _buildEmpty();
     }
+
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       itemCount: items.length,
-      itemBuilder: (ctx, i) => _buildItem(items[i]),
+      itemBuilder: (context, index) => _buildItem(items[index]),
     );
   }
 
@@ -313,130 +279,74 @@ class _NotificationPageState extends State<NotificationPage>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('🔔', style: const TextStyle(fontSize: 48)),
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.greyLight,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.greyBorder),
+            ),
+            child: const Icon(
+              Icons.notifications_none_rounded,
+              color: AppColors.grey,
+            ),
+          ),
           const SizedBox(height: 12),
           Text(
             'Tidak ada notifikasi',
-            style: GoogleFonts.poppins(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade600,
-            ),
+            style: AppTextStyles.heading.copyWith(fontSize: 15),
           ),
           const SizedBox(height: 4),
-          Text(
-            'Semua sudah terbaca nih!',
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              color: Colors.grey.shade400,
-            ),
-          ),
+          Text('Semua sudah terbaca nih!', style: AppTextStyles.caption),
         ],
       ),
     );
   }
 
-  // ── Item ─────────────────────────────────────
-  Widget _buildItem(AppNotification notif) {
+  Widget _buildItem(AppNotification notification) {
     return Dismissible(
-      key: Key(notif.id),
+      key: Key(notification.id),
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.only(right: 18),
+        margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
-          color: Colors.red.shade400,
-          borderRadius: BorderRadius.circular(16),
+          color: AppColors.black,
+          borderRadius: BorderRadius.circular(8),
         ),
-        child: const Icon(Icons.delete_outline_rounded,
-            color: Colors.white, size: 24),
+        child: const Icon(
+          Icons.delete_outline_rounded,
+          color: AppColors.white,
+          size: 22,
+        ),
       ),
-      onDismissed: (_) => _deleteNotif(notif),
-      child: GestureDetector(
-        onTap: () => _markRead(notif),
+      onDismissed: (_) => _deleteNotification(notification),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () => _markRead(notification),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          margin: const EdgeInsets.only(bottom: 10),
+          duration: const Duration(milliseconds: 220),
+          margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: notif.isRead ? Colors.white : const Color(0xFFF0F4FF),
-            borderRadius: BorderRadius.circular(16),
+            color:
+                notification.isRead ? AppColors.white : AppColors.primaryLight,
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: notif.isRead
-                  ? Colors.grey.shade100
-                  : const Color(0xFFCBD9FF),
-              width: 1,
+              color:
+                  notification.isRead
+                      ? AppColors.greyBorder
+                      : AppColors.primary,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildAvatar(notif),
+              _buildAvatar(notification),
               const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            notif.title,
-                            style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              fontWeight: notif.isRead
-                                  ? FontWeight.w500
-                                  : FontWeight.w700,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ),
-                        if (!notif.isRead)
-                          Container(
-                            width: 8,
-                            height: 8,
-                            margin: const EdgeInsets.only(left: 6, top: 4),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF4D96FF),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      notif.body,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                        height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        _buildTypeBadge(notif.type),
-                        const Spacer(),
-                        Text(
-                          notif.time,
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            color: Colors.grey.shade400,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              Expanded(child: _buildContent(notification)),
             ],
           ),
         ),
@@ -444,71 +354,119 @@ class _NotificationPageState extends State<NotificationPage>
     );
   }
 
-  Widget _buildAvatar(AppNotification notif) {
-    if (notif.avatarLabel != null) {
-      return Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: notif.avatarColor ?? Colors.grey,
-          shape: BoxShape.circle,
-        ),
-        child: Center(
-          child: Text(
-            notif.avatarLabel!,
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
+  Widget _buildContent(AppNotification notification) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                notification.title,
+                style: AppTextStyles.body.copyWith(
+                  color: AppColors.black,
+                  fontWeight:
+                      notification.isRead ? FontWeight.w500 : FontWeight.w600,
+                ),
+              ),
             ),
-          ),
+            if (!notification.isRead)
+              Container(
+                width: 7,
+                height: 7,
+                margin: const EdgeInsets.only(left: 8, top: 6),
+                decoration: const BoxDecoration(
+                  color: AppColors.black,
+                  shape: BoxShape.circle,
+                ),
+              ),
+          ],
         ),
-      );
-    }
+        const SizedBox(height: 4),
+        Text(
+          notification.body,
+          style: AppTextStyles.subtitle.copyWith(fontSize: 12, height: 1.45),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            _buildTypeBadge(notification.type),
+            const Spacer(),
+            Text(
+              notification.time,
+              style: AppTextStyles.caption.copyWith(fontSize: 11),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAvatar(AppNotification notification) {
+    final isRead = notification.isRead;
+    final foreground = isRead ? AppColors.black : AppColors.white;
+
     return Container(
-      width: 44,
-      height: 44,
+      width: 40,
+      height: 40,
       decoration: BoxDecoration(
-        color: _typeColor(notif.type).withOpacity(0.12),
+        color: isRead ? AppColors.white : AppColors.black,
         shape: BoxShape.circle,
+        border: Border.all(color: AppColors.greyBorder),
       ),
       child: Center(
-        child: Text(notif.emoji ?? '🔔',
-            style: const TextStyle(fontSize: 20)),
+        child:
+            notification.avatarLabel == null
+                ? Icon(
+                  _typeIcon(notification.type),
+                  size: 19,
+                  color: foreground,
+                )
+                : Text(
+                  notification.avatarLabel!,
+                  style: AppTextStyles.body.copyWith(
+                    color: foreground,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
       ),
     );
   }
 
   Widget _buildTypeBadge(NotifType type) {
-    final (label, color) = switch (type) {
-      NotifType.social => ('Sosial', const Color(0xFF4D96FF)),
-      NotifType.achievement => ('Achievement', const Color(0xFFFFB347)),
-      NotifType.event => ('Event', const Color(0xFF6BCB77)),
-      NotifType.reminder => ('Reminder', const Color(0xFFB79CED)),
-      NotifType.system => ('Sistem', Colors.grey),
-    };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(6),
+        color: AppColors.greyLight,
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: AppColors.greyBorder),
       ),
       child: Text(
-        label,
-        style: GoogleFonts.poppins(
+        _typeLabel(type),
+        style: AppTextStyles.caption.copyWith(
+          color: AppColors.greyText,
           fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: color,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );
   }
 
-  Color _typeColor(NotifType type) => switch (type) {
-        NotifType.social => const Color(0xFF4D96FF),
-        NotifType.achievement => const Color(0xFFFFB347),
-        NotifType.event => const Color(0xFF6BCB77),
-        NotifType.reminder => const Color(0xFFB79CED),
-        NotifType.system => Colors.grey,
-      };
+  String _typeLabel(NotifType type) => switch (type) {
+    NotifType.social => 'Sosial',
+    NotifType.achievement => 'Achievement',
+    NotifType.event => 'Event',
+    NotifType.reminder => 'Reminder',
+    NotifType.system => 'Sistem',
+  };
+
+  IconData _typeIcon(NotifType type) => switch (type) {
+    NotifType.social => Icons.person_outline_rounded,
+    NotifType.achievement => Icons.workspace_premium_outlined,
+    NotifType.event => Icons.event_outlined,
+    NotifType.reminder => Icons.schedule_outlined,
+    NotifType.system => Icons.notifications_none_rounded,
+  };
 }
