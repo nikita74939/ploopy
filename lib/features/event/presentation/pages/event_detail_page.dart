@@ -1,348 +1,253 @@
+// event/presentation/pages/event_detail_page.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:ploopy/features/event/presentation/pages/event_route_page.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/event_model.dart';
-import '../../../../shared/services/event_service.dart';
 
-class EventDetailPage extends StatefulWidget {
+class EventDetailPage extends StatelessWidget {
   final Event event;
 
   const EventDetailPage({super.key, required this.event});
 
   @override
-  State<EventDetailPage> createState() => _EventDetailPageState();
-}
-
-class _EventDetailPageState extends State<EventDetailPage> {
-  late Event _event;
-  bool _isJoining = false;
-  double? _distance;
-  String? _distanceText;
-
-  @override
-  void initState() {
-    super.initState();
-    _event = widget.event;
-    _loadEvent();
-    _calculateDistance();
-  }
-
-  Future<void> _loadEvent() async {
-    final updated = await EventService.getById(_event.id);
-    if (updated != null && mounted) {
-      setState(() => _event = updated);
-    }
-  }
-
-  Future<void> _calculateDistance() async {
-    if (_event.latitude == null || _event.longitude == null) return;
-
-    try {
-      final permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        await Geolocator.requestPermission();
-      }
-
-      final position = await Geolocator.getCurrentPosition();
-      final distance = Geolocator.distanceBetween(
-        position.latitude,
-        position.longitude,
-        _event.latitude!,
-        _event.longitude!,
-      );
-
-      if (!mounted) return;
-      setState(() {
-        _distance = distance;
-        _distanceText = _formatDistance(distance);
-      });
-    } catch (e) {
-      print('Error getting location: $e');
-    }
-  }
-
-  String _formatDistance(double meters) {
-    if (meters < 1000) {
-      return '${meters.toStringAsFixed(0)} m';
-    } else {
-      return '${(meters / 1000).toStringAsFixed(1)} km';
-    }
-  }
-
-  Future<void> _openRoute() async {
-    if (_event.latitude == null || _event.longitude == null) {
-      _showSnackbar('Lokasi tidak tersedia', Colors.orange);
-      return;
-    }
-
-    // Buka Google Maps
-    final url = Uri.parse(
-      'https://www.google.com/maps/dir/?api=1&destination=${_event.latitude},${_event.longitude}',
-    );
-
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      _showSnackbar('Tidak bisa membuka Maps', Colors.red);
-    }
-  }
-
-  Future<void> _toggleJoin() async {
-    setState(() => _isJoining = true);
-    HapticFeedback.mediumImpact();
-
-    bool success;
-    if (_event.isJoined) {
-      success = await EventService.leave(_event.id);
-      if (success) {
-        _showSnackbar('Berhasil keluar event', Colors.green);
-      }
-    } else {
-      success = await EventService.join(_event.id);
-      if (success) {
-        _showSnackbar('Berhasil join event! 🎉', Colors.green);
-      } else {
-        _showSnackbar('Event sudah penuh', Colors.red);
-        setState(() => _isJoining = false);
-        return;
-      }
-    }
-
-    if (success) {
-      await _loadEvent();
-    }
-
-    if (mounted) setState(() => _isJoining = false);
-  }
-
-  void _showSnackbar(String message, Color color) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style: GoogleFonts.poppins(color: Colors.white, fontSize: 12),
-        ),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppColors.white,
       body: CustomScrollView(
         slivers: [
-          _buildAppBar(),
+          _buildAppBar(context),
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildEventInfo(),
-                _buildLocationCard(),
-                _buildParticipantsCard(),
-                _buildActionButtons(),
-                const SizedBox(height: 100),
+                _buildPoster(),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildCategoryBadge(),
+                      const SizedBox(height: 12),
+                      _buildTitle(),
+                      const SizedBox(height: 20),
+                      _buildOrganizer(),
+                      const SizedBox(height: 24),
+                      _buildDetailsSection(),
+                      if (event.hasLocation) ...[
+                        const SizedBox(height: 24),
+                        _buildLocationSection(context),
+                        const SizedBox(height: 24),
+                        _buildMap(context),
+                      ],
+                      const SizedBox(height: 24),
+                      _buildDescription(),
+                      const SizedBox(height: 24),
+                      _buildParticipants(),
+                      const SizedBox(height: 100),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
         ],
       ),
+      bottomSheet: _buildBottomBar(context),
     );
   }
 
-  Widget _buildAppBar() {
+  Widget _buildAppBar(BuildContext context) {
     return SliverAppBar(
-      expandedHeight: 180,
-      pinned: true,
-      backgroundColor: Colors.white,
-      leading: IconButton(
-        icon: Container(
+      backgroundColor: AppColors.white,
+      elevation: 0,
+      leading: GestureDetector(
+        onTap: () => Navigator.pop(context),
+        child: Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10),
+            ],
+          ),
+          child: const Icon(
+            Icons.arrow_back_rounded,
+            color: AppColors.black,
+            size: 20,
+          ),
+        ),
+      ),
+      actions: [
+        Container(
+          margin: const EdgeInsets.only(right: 16),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10),
+            ],
+          ),
+          child: IconButton(
+            icon: const Icon(
+              Icons.share_outlined,
+              color: AppColors.black,
+              size: 20,
+            ),
+            onPressed: () {},
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPoster() {
+    if (event.imageUrl != null) {
+      return Container(
+        height: 240,
+        width: double.infinity,
+        color: AppColors.greyLight,
+        child: Image.network(
+          event.imageUrl!,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _buildFallbackPoster(),
+        ),
+      );
+    }
+    return _buildFallbackPoster();
+  }
+
+  Widget _buildFallbackPoster() {
+    return Container(
+      height: 240,
+      width: double.infinity,
+      color: AppColors.greyLight,
+      alignment: Alignment.center,
+      child: Text(
+        event.title.substring(0, 2).toUpperCase(),
+        style: AppTextStyles.heading.copyWith(
+          fontSize: 48,
+          fontWeight: FontWeight.w700,
+          color: AppColors.grey,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.greyLight,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        'Event',
+        style: AppTextStyles.caption.copyWith(
+          color: AppColors.grey,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTitle() {
+    return Text(
+      event.title,
+      style: AppTextStyles.heading.copyWith(
+        fontSize: 24,
+        fontWeight: FontWeight.w700,
+        color: AppColors.black,
+        height: 1.2,
+      ),
+    );
+  }
+
+  Widget _buildOrganizer() {
+    return Row(
+      children: [
+        Container(
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-              ),
-            ],
+            color: AppColors.greyLight,
+            borderRadius: BorderRadius.circular(8),
           ),
-          alignment: Alignment.center,
           child: const Icon(
-            Icons.arrow_back_rounded,
-            color: Colors.black87,
-            size: 18,
+            Icons.person_outline,
+            color: AppColors.grey,
+            size: 20,
           ),
         ),
-        onPressed: () => Navigator.pop(context),
-      ),
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                const Color(0xFFFF6B6B).withOpacity(0.8),
-                const Color(0xFFFF8E53).withOpacity(0.8),
-              ],
+        const SizedBox(width: 10),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Diselenggarakan oleh',
+              style: AppTextStyles.caption.copyWith(color: AppColors.grey),
             ),
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                bottom: 16,
-                left: 20,
-                right: 20,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _event.title,
-                      style: GoogleFonts.poppins(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _event.isUpcoming
-                                ? Colors.green
-                                : Colors.grey,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            _event.isUpcoming ? 'Akan Datang' : 'Selesai',
-                            style: GoogleFonts.poppins(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        if (_event.isJoined)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              '✓ Kamu Terdaftar',
-                              style: GoogleFonts.poppins(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
+            Text(
+              event.organizerName,
+              style: AppTextStyles.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.black,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ),
+      ],
     );
   }
 
-  Widget _buildEventInfo() {
+  Widget _buildDetailsSection() {
     return Container(
-      margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
+        color: AppColors.greyLight,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoRow(
-            Icons.calendar_today_rounded,
-            _formatDate(_event.dateTime),
+          _buildDetailRow(
+            Icons.calendar_today_outlined,
+            _formatDate(event.dateTime),
           ),
-          const SizedBox(height: 10),
-          _buildInfoRow(
-            Icons.access_time_rounded,
-            _formatTime(_event.dateTime),
+          const SizedBox(height: 14),
+          _buildDetailRow(
+            Icons.access_time_outlined,
+            _formatTime(event.dateTime),
           ),
-          const SizedBox(height: 10),
-          _buildInfoRow(
-            Icons.person_rounded,
-            'Oleh ${_event.organizerName}',
-          ),
-          const Divider(height: 24),
-          Text(
-            'Deskripsi',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            _event.description,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: Colors.grey.shade700,
-              height: 1.5,
-            ),
-          ),
+          if (event.location != null) ...[
+            const SizedBox(height: 14),
+            _buildDetailRow(Icons.location_on_outlined, event.location!),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String text) {
+  Widget _buildDetailRow(IconData icon, String text) {
     return Row(
       children: [
         Container(
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
-            shape: BoxShape.circle,
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(8),
           ),
-          alignment: Alignment.center,
-          child: Icon(icon, size: 16, color: AppColors.primary),
+          child: Icon(icon, size: 16, color: AppColors.black),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 12),
         Expanded(
           child: Text(
             text,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: Colors.black87,
+            style: AppTextStyles.body.copyWith(
+              color: AppColors.black,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -351,68 +256,33 @@ class _EventDetailPageState extends State<EventDetailPage> {
     );
   }
 
-  Widget _buildLocationCard() {
-    if (_event.location == null) {
-      return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade100),
+  Widget _buildLocationSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Lokasi',
+          style: AppTextStyles.body.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.black,
+          ),
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: const Icon(Icons.location_off, color: Colors.grey),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Event online / lokasi tidak tersedia',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        const SizedBox(height: 12),
+        GestureDetector(
+          onTap: () => _openRoutePage(context),
+          child: Row(
             children: [
               Container(
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  shape: BoxShape.circle,
+                  color: AppColors.greyLight,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                alignment: Alignment.center,
-                child: Icon(
-                  Icons.location_on_rounded,
-                  color: AppColors.primary,
+                child: const Icon(
+                  Icons.map_outlined,
                   size: 20,
+                  color: AppColors.black,
                 ),
               ),
               const SizedBox(width: 12),
@@ -421,276 +291,319 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _event.location!,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
+                      event.location ?? 'Lokasi tidak tersedia',
+                      style: AppTextStyles.body.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                        color: AppColors.black,
                       ),
                     ),
-                    if (_distanceText != null)
-                      Text(
-                        '$_distanceText dari lokasimu',
-                        style: GoogleFonts.poppins(
-                          fontSize: 10,
-                          color: Colors.grey.shade600,
-                        ),
+                    Text(
+                      'Klik untuk lihat rute',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.grey,
                       ),
+                    ),
                   ],
                 ),
               ),
+              const Icon(Icons.chevron_right, color: AppColors.grey),
             ],
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _openRoute,
-              icon: const Icon(Icons.directions_rounded, size: 16),
-              label: Text(
-                _distanceText != null
-                    ? 'Dapatkan Rute ($_distanceText)'
-                    : 'Dapatkan Rute',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-      )],
         ),
-      );
-    }
+      ],
+    );
+  }
 
-    Widget _buildParticipantsCard() {
-      return Container(
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.all(16),
+  Widget _buildMap(BuildContext context) {
+    final center = LatLng(event.latitude!, event.longitude!);
+
+    return GestureDetector(
+      onTap: () => _openRoutePage(context),
+      child: Container(
+        height: 180,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade100),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.greyBorder),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
           children: [
-            Row(
+            FlutterMap(
+              options: MapOptions(
+                initialCenter: center,
+                initialZoom: 16,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.none,
+                ),
+              ),
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF6BCB77).withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.group_rounded,
-                    color: Color(0xFF6BCB77),
-                    size: 20,
-                  ),
+                TileLayer(
+                  urlTemplate:
+                      'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                  subdomains: const ['a', 'b', 'c'],
+                  userAgentPackageName: 'com.example.app',
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Peserta',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black87,
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: center,
+                      width: 50,
+                      height: 50,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.black,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.location_on,
+                          color: AppColors.white,
+                          size: 30,
                         ),
                       ),
-                      Text(
-                        '${_event.currentParticipants} / ${_event.maxParticipants} orang',
-                        style: GoogleFonts.poppins(
-                          fontSize: 10,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                _buildStatusBadge(),
               ],
             ),
-            const SizedBox(height: 12),
-            // Progress bar
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: _event.currentParticipants / _event.maxParticipants,
-                backgroundColor: Colors.grey.shade200,
-                valueColor: AlwaysStoppedAnimation(
-                  _event.isFull ? Colors.red : const Color(0xFF6BCB77),
+            // Overlay hint
+            Positioned(
+              bottom: 12,
+              right: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
                 ),
-                minHeight: 8,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _event.spotsLeft > 0
-                  ? '${_event.spotsLeft} slot tersisa'
-                  : 'Event penuh',
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                color: _event.isFull ? Colors.red : Colors.grey.shade600,
-                fontWeight: _event.isFull ? FontWeight.w600 : FontWeight.w400,
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.open_in_new,
+                      size: 14,
+                      color: AppColors.black,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Lihat Rute',
+                      style: AppTextStyles.caption.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.black,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
         ),
-      );
-    }
+      ),
+    );
+  }
 
-    Widget _buildStatusBadge() {
-      Color color;
-      String text;
-
-      if (_event.isFull) {
-        color = Colors.red;
-        text = 'Penuh';
-      } else if (_event.isUpcoming) {
-        color = Colors.green;
-        text = 'Terbuka';
-      } else {
-        color = Colors.grey;
-        text = 'Selesai';
-      }
-
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(10),
+  void _openRoutePage(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EventRoutePage(
+          destLat: event.latitude!,
+          destLng: event.longitude!,
+          destinationName: event.location ?? 'Lokasi Event',
         ),
-        child: Text(
-          text,
-          style: GoogleFonts.poppins(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: color,
+      ),
+    );
+  }
+
+  Widget _buildDescription() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Deskripsi',
+          style: AppTextStyles.body.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.black,
           ),
         ),
-      );
-    }
+        const SizedBox(height: 12),
+        Text(
+          event.description,
+          style: AppTextStyles.body.copyWith(
+            color: AppColors.grey,
+            height: 1.6,
+          ),
+        ),
+      ],
+    );
+  }
 
-    Widget _buildActionButtons() {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        child: Row(
+  Widget _buildParticipants() {
+    final percentage = event.currentParticipants / event.maxParticipants;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            Expanded(
-              child: Material(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                child: InkWell(
-                  onTap: _openRoute,
-                  borderRadius: BorderRadius.circular(14),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.primary),
-                    ),
-                    alignment: Alignment.center,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.directions_rounded,
-                          size: 18,
-                          color: AppColors.primary,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Rute',
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+            Text(
+              'Peserta',
+              style: AppTextStyles.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.black,
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              flex: 2,
-              child: Material(
-                color: _event.isJoined ? Colors.grey.shade400 : AppColors.primary,
-                borderRadius: BorderRadius.circular(14),
-                child: InkWell(
-                  onTap: _isJoining ? null : _toggleJoin,
-                  borderRadius: BorderRadius.circular(14),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    alignment: Alignment.center,
-                    child: _isJoining
-                        ? SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: const AlwaysStoppedAnimation(Colors.white),
-                            ),
-                          )
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                _event.isJoined
-                                    ? Icons.exit_to_app_rounded
-                                    : Icons.add_rounded,
-                                size: 18,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                _event.isJoined ? 'Keluar' : 'Ikut Event',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                  ),
-                ),
+            const Spacer(),
+            Text(
+              '${event.currentParticipants}/${event.maxParticipants}',
+              style: AppTextStyles.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.black,
               ),
             ),
           ],
         ),
-      );
-    }
-
-    String _formatDate(DateTime date) {
-      const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-      const months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-        'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'
-      ];
-      return '${days[date.weekday - 1]}, ${date.day} ${months[date.month - 1]} ${date.year}';
-    }
-
-    String _formatTime(DateTime date) {
-      final hour = date.hour.toString().padLeft(2, '0');
-      final minute = date.minute.toString().padLeft(2, '0');
-      return '$hour:$minute WIB';
-    }
+        const SizedBox(height: 12),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: percentage,
+            minHeight: 6,
+            backgroundColor: AppColors.greyLight,
+            valueColor: const AlwaysStoppedAnimation(AppColors.black),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '${event.spotsLeft} spot tersisa',
+          style: AppTextStyles.caption.copyWith(color: AppColors.grey),
+        ),
+        const SizedBox(height: 16),
+        // Participant avatars
+        SizedBox(
+          height: 40,
+          child: Stack(
+            children: List.generate(
+              event.currentParticipants.clamp(0, 5),
+              (index) => Positioned(
+                left: index * 28.0,
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.greyLight,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.white, width: 2),
+                  ),
+                  child: const Icon(Icons.person, size: 18, color: AppColors.grey),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
+
+  Widget _buildBottomBar(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        border: Border(top: BorderSide(color: AppColors.greyBorder)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  event.isFull ? 'Penuh' : 'Tersedia',
+                  style: AppTextStyles.caption.copyWith(color: AppColors.grey),
+                ),
+                if (!event.isFull)
+                  Text(
+                    '${event.spotsLeft} spot tersisa',
+                    style: AppTextStyles.body.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.black,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: event.isJoined ? null : () => _handleJoin(context),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+              decoration: BoxDecoration(
+                color:
+                    event.isJoined
+                        ? AppColors.greyLight
+                        : event.isFull
+                        ? AppColors.grey
+                        : AppColors.black,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                event.isJoined ? 'Joined' : 'Join Event',
+                style: AppTextStyles.body.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: event.isJoined ? AppColors.grey : AppColors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleJoin(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Berhasil join event: ${event.title}'),
+        backgroundColor: AppColors.black,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+    ];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+
+  String _formatTime(DateTime date) {
+    final hour = date.hour.toString().padLeft(2, '0');
+    final minute = date.minute.toString().padLeft(2, '0');
+    return '$hour:$minute WIB';
+  }
+}

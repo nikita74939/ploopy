@@ -9,7 +9,7 @@ class AppTheme {
     colorSchemeSeed: primaryColor,
     useMaterial3: true,
     scaffoldBackgroundColor: const Color(0xFFFAFAFA),
-    textTheme: GoogleFonts.robotoMonoTextTheme(),
+    textTheme: GoogleFonts.interTextTheme(),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         elevation: 0,

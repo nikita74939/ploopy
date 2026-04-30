@@ -1,204 +1,131 @@
 import 'package:flutter/material.dart';
 
 class SocialDummyData {
-  // Stories / Active Users
   static final List<Map<String, dynamic>> activeUsers = [
-    {'name': 'Kamu', 'avatar': 'K', 'color': Color(0xFFFF8C42), 'isMe': true},
+    {'name': 'Kamu', 'avatar': 'K', 'color': Color(0xFF18181B), 'isMe': true},
     {
-      'name': 'Andi',
+      'name': 'Nadia',
+      'avatar': 'N',
+      'color': Color(0xFF3F3F46),
+      'isOnline': true,
+    },
+    {
+      'name': 'Rafi',
+      'avatar': 'R',
+      'color': Color(0xFF52525B),
+      'isOnline': true,
+    },
+    {
+      'name': 'Alya',
       'avatar': 'A',
-      'color': Color(0xFF4D96FF),
-      'isOnline': true,
-    },
-    {
-      'name': 'Bella',
-      'avatar': 'B',
-      'color': Color(0xFFFF6B6B),
-      'isOnline': true,
-    },
-    {
-      'name': 'Cindy',
-      'avatar': 'C',
-      'color': Color(0xFF6BCB77),
+      'color': Color(0xFF71717A),
       'isOnline': false,
     },
     {
-      'name': 'Doni',
+      'name': 'Dimas',
       'avatar': 'D',
-      'color': Color(0xFFB79CED),
-      'isOnline': true,
-    },
-    {
-      'name': 'Erin',
-      'avatar': 'E',
-      'color': Color(0xFFFFD166),
-      'isOnline': false,
-    },
-    {
-      'name': 'Fajar',
-      'avatar': 'F',
-      'color': Color(0xFF4D96FF),
+      'color': Color(0xFF27272A),
       'isOnline': true,
     },
   ];
 
-  // Feed For You (seluruh user)
-
-  // Feed For You (seluruh user)
   static final List<Map<String, dynamic>> forYouPosts = [
     {
-      'authorName': 'Andi Saputra',
-      'authorAvatar': 'A',
-      'authorColor': Color(0xFF4D96FF),
+      'authorName': 'Nadia Putri',
+      'authorAvatar': 'N',
+      'authorAvatarUrl':
+          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=160&h=160&fit=crop&crop=faces',
+      'authorColor': Color(0xFF18181B),
       'isFriend': true,
-      'date': '2h',
+      'date': '2j',
       'fullDate': '2 jam lalu',
-      'location': 'GOR Senayan', // ⭐ NEW
-      'distance': '1.2 km', // ⭐ NEW
+      'location': 'Perpustakaan Kampus',
+      'distance': '300 m',
       'content':
-          'Finally 🔥 streak 30 hari! Konsistensi emang kunci. Yuk semangat terus gengs! 💪',
-      'images': ['https://picsum.photos/seed/fire30/400/300'],
+          'Selesai review materi Metodologi Penelitian. Tinggal rapihin daftar pustaka dan slide presentasi.',
+      'images': [
+        'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=900&h=600&fit=crop',
+      ],
       'achievements': [
-        {'icon': '🔥', 'color': Color(0xFFFFE0E0)},
-        {'icon': '🏆', 'color': Color(0xFFFFF3E0)},
-        {'icon': '⭐', 'color': Color(0xFFE0ECFF)},
+        {'label': 'Task complete', 'color': Color(0xFFF4F4F5)},
       ],
       'info': [
-        {'icon': '📅', 'text': 'Streak 30 hari'},
-        {'icon': '⏱️', 'text': 'Total 85 jam'},
+        {'icon': Icons.check_circle_outline_rounded, 'text': 'Task complete'},
       ],
-      'likes': 42,
+      'likes': 18,
+      'comments': 4,
+      'liked': false,
+    },
+    {
+      'authorName': 'Rafi Ramadhan',
+      'authorAvatar': 'R',
+      'authorAvatarUrl':
+          'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160&h=160&fit=crop&crop=faces',
+      'authorColor': Color(0xFF3F3F46),
+      'isFriend': true,
+      'date': '5j',
+      'fullDate': '5 jam lalu',
+      'location': 'Lab Informatika',
+      'distance': '650 m',
+      'content':
+          'Praktikum Basis Data minggu ini selesai. Catatan query join aku upload malam ini buat teman satu kelompok.',
+      'images': [],
+      'achievements': [
+        {'label': 'Schedule complete', 'color': Color(0xFFF4F4F5)},
+      ],
+      'info': [
+        {'icon': Icons.event_available_outlined, 'text': 'Schedule complete'},
+      ],
+      'likes': 27,
+      'comments': 9,
+      'liked': true,
+    },
+    {
+      'authorName': 'Alya Maharani',
+      'authorAvatar': 'A',
+      'authorAvatarUrl':
+          'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=160&h=160&fit=crop&crop=faces',
+      'authorColor': Color(0xFF52525B),
+      'isFriend': false,
+      'date': '1h',
+      'fullDate': '1 hari lalu',
+      'location': 'Student Center',
+      'distance': '1.1 km',
+      'content':
+          'Butuh 2 orang lagi buat belajar bareng Statistik. Fokus latihan soal regresi linear, jam 19.00.',
+      'images': [
+        'https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=900&h=600&fit=crop',
+      ],
+      'achievements': [],
+      'info': [],
+      'likes': 14,
+      'comments': 15,
+      'liked': false,
+    },
+    {
+      'authorName': 'Dimas Arya',
+      'authorAvatar': 'D',
+      'authorAvatarUrl':
+          'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=160&h=160&fit=crop&crop=faces',
+      'authorColor': Color(0xFF27272A),
+      'isFriend': true,
+      'date': '2h',
+      'fullDate': '2 hari lalu',
+      'content':
+          'Akhirnya submit proposal PKM sebelum deadline. Semoga revisinya tidak terlalu banyak.',
+      'images': [],
+      'achievements': [
+        {'label': 'Achievement', 'color': Color(0xFFF4F4F5)},
+      ],
+      'info': [
+        {'icon': Icons.workspace_premium_outlined, 'text': 'Achievement'},
+      ],
+      'likes': 36,
       'comments': 12,
       'liked': false,
     },
-    {
-      'authorName': 'Bella Pratiwi',
-      'authorAvatar': 'B',
-      'authorColor': Color(0xFFFF6B6B),
-      'isFriend': true,
-      'date': '4h',
-      'fullDate': '4 jam lalu',
-      'location': 'Perpustakaan Pusat', // ⭐ NEW
-      'distance': '350 m', // ⭐ NEW
-      'content':
-          'Study date with my best friends 📚✨ belajar Kalkulus bareng di perpustakaan',
-      'images': [
-        'https://picsum.photos/seed/study2/300/300',
-        'https://picsum.photos/seed/library/300/300',
-      ],
-      'achievements': [
-        {'icon': '📚', 'color': Color(0xFFE0ECFF)},
-        {'icon': '👥', 'color': Color(0xFFE0F5E0)},
-      ],
-      'info': [
-        {'icon': '📖', 'text': '13:00 - 17:00'},
-        {'icon': '📍', 'text': 'Perpus Pusat'},
-      ],
-      'likes': 28,
-      'comments': 5,
-      'liked': true,
-    },
-    {
-      'authorName': 'Cindy Wijaya',
-      'authorAvatar': 'C',
-      'authorColor': Color(0xFF6BCB77),
-      'isFriend': false,
-      'date': '6h',
-      'fullDate': '6 jam lalu',
-      'location': 'Taman Menteng', // ⭐ NEW
-      'distance': '4.5 km', // ⭐ NEW
-      'content':
-          'Morning run completed! 🏃‍♀️ 5km dalam 28 menit. Healthy body, healthy mind 💚',
-      'images': ['https://picsum.photos/seed/run1/400/300'],
-      'achievements': [
-        {'icon': '🏃', 'color': Color(0xFFE0F5E0)},
-        {'icon': '💚', 'color': Color(0xFFE0F5E0)},
-      ],
-      'info': [
-        {'icon': '⏱️', 'text': '28 menit'},
-        {'icon': '📏', 'text': '5.2 km'},
-      ],
-      'likes': 67,
-      'comments': 18,
-      'liked': false,
-    },
-    {
-      'authorName': 'Doni Herlambang',
-      'authorAvatar': 'D',
-      'authorColor': Color(0xFFB79CED),
-      'isFriend': true,
-      'date': '8h',
-      'fullDate': '8 jam lalu',
-      // Tidak ada location (optional)
-      'content':
-          'Baru aja unlock achievement "Brain Master" 🧠 50 jam belajar tercapai!',
-      'images': [],
-      'achievements': [
-        {'icon': '🧠', 'color': Color(0xFFF0E0FF)},
-        {'icon': '🏅', 'color': Color(0xFFFFF3E0)},
-      ],
-      'info': [
-        {'icon': '🎯', 'text': 'Total 50 jam'},
-        {'icon': '🏆', 'text': 'New achievement!'},
-      ],
-      'likes': 35,
-      'comments': 8,
-      'liked': true,
-    },
-    {
-      'authorName': 'Erin Putri',
-      'authorAvatar': 'E',
-      'authorColor': Color(0xFFFFD166),
-      'isFriend': false,
-      'date': '12h',
-      'fullDate': '12 jam lalu',
-      'location': 'Kopi Kenangan Sudirman', // ⭐ NEW
-      'distance': '2.8 km', // ⭐ NEW
-      'content':
-          'Matcha + Study = Vibes 🍵📖 pomodoro session hari ini produktif banget!',
-      'images': [
-        'https://picsum.photos/seed/matcha2/300/300',
-        'https://picsum.photos/seed/note1/300/300',
-        'https://picsum.photos/seed/laptop/300/300',
-      ],
-      'achievements': [
-        {'icon': '🍵', 'color': Color(0xFFE0F5E0)},
-        {'icon': '⏰', 'color': Color(0xFFE0ECFF)},
-      ],
-      'info': [
-        {'icon': '🍅', 'text': '6 pomodoro'},
-        {'icon': '☕', 'text': 'Cozy Cafe'},
-      ],
-      'likes': 89,
-      'comments': 23,
-      'liked': false,
-    },
-    {
-      'authorName': 'Fajar Ramadhan',
-      'authorAvatar': 'F',
-      'authorColor': Color(0xFF4D96FF),
-      'isFriend': true,
-      'date': '1d',
-      'fullDate': '1 hari lalu',
-      // Tidak ada location (optional)
-      'content':
-          'Coding session late night 👨‍💻 akhirnya project Flutter-nya jalan juga!',
-      'images': ['https://picsum.photos/seed/code1/400/300'],
-      'achievements': [
-        {'icon': '💻', 'color': Color(0xFFE0ECFF)},
-        {'icon': '🚀', 'color': Color(0xFFFFE0E0)},
-      ],
-      'info': [
-        {'icon': '🌙', 'text': '22:00 - 02:30'},
-        {'icon': '⌨️', 'text': 'Flutter project'},
-      ],
-      'likes': 54,
-      'comments': 14,
-      'liked': false,
-    },
   ];
 
-  // Filter hanya teman
   static List<Map<String, dynamic>> get friendsPosts =>
       forYouPosts.where((p) => p['isFriend'] == true).toList();
 }

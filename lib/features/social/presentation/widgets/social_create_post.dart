@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class SocialCreatePost extends StatelessWidget {
   final VoidCallback onTap;
@@ -10,68 +10,45 @@ class SocialCreatePost extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(8),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(8),
         child: Container(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.grey.shade100, width: 1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.greyBorder),
           ),
           child: Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 38,
+                height: 38,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
-                  ),
+                  color: AppColors.greyLight,
                   shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child: const Text('👤', style: TextStyle(fontSize: 18)),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    'Buat post baru...',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: Colors.grey.shade500,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.greyBorder),
                 ),
                 alignment: Alignment.center,
                 child: Icon(
-                  Icons.add_photo_alternate_rounded,
+                  Icons.person_outline_rounded,
                   size: 18,
-                  color: AppColors.primary,
+                  color: AppColors.black,
                 ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Bagikan progres kuliahmu...',
+                  style: AppTextStyles.body.copyWith(color: AppColors.grey),
+                ),
+              ),
+              Icon(
+                Icons.add_photo_alternate_outlined,
+                size: 20,
+                color: AppColors.grey,
               ),
             ],
           ),

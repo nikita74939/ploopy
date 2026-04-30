@@ -2,9 +2,11 @@ class Activity {
   final String id;
   final String userId;
   final String userName;
+  final String? userAvatarUrl;
   final String content;
   final String? imageUrl;
   final String? location;
+  final String? activityTag;
   final double? latitude;
   final double? longitude;
   final int likeCount;
@@ -16,9 +18,11 @@ class Activity {
     required this.id,
     required this.userId,
     required this.userName,
+    this.userAvatarUrl,
     required this.content,
     this.imageUrl,
     this.location,
+    this.activityTag,
     this.latitude,
     this.longitude,
     this.likeCount = 0,
@@ -28,9 +32,11 @@ class Activity {
   });
 
   Activity copyWith({
+    String? userAvatarUrl,
     String? content,
     String? imageUrl,
     String? location,
+    String? activityTag,
     double? latitude,
     double? longitude,
     int? likeCount,
@@ -41,9 +47,11 @@ class Activity {
       id: id,
       userId: userId,
       userName: userName,
+      userAvatarUrl: userAvatarUrl ?? this.userAvatarUrl,
       content: content ?? this.content,
       imageUrl: imageUrl ?? this.imageUrl,
       location: location ?? this.location,
+      activityTag: activityTag ?? this.activityTag,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       likeCount: likeCount ?? this.likeCount,
@@ -54,28 +62,32 @@ class Activity {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'userId': userId,
-        'userName': userName,
-        'content': content,
-        'imageUrl': imageUrl,
-        'location': location,
-        'latitude': latitude,
-        'longitude': longitude,
-        'likeCount': likeCount,
-        'commentCount': commentCount,
-        'isLiked': isLiked,
-        'createdAt': createdAt.toIso8601String(),
-      };
+    'id': id,
+    'userId': userId,
+    'userName': userName,
+    'userAvatarUrl': userAvatarUrl,
+    'content': content,
+    'imageUrl': imageUrl,
+    'location': location,
+    'activityTag': activityTag,
+    'latitude': latitude,
+    'longitude': longitude,
+    'likeCount': likeCount,
+    'commentCount': commentCount,
+    'isLiked': isLiked,
+    'createdAt': createdAt.toIso8601String(),
+  };
 
   factory Activity.fromJson(Map<String, dynamic> json) {
     return Activity(
       id: json['id'] as String,
       userId: json['userId'] as String,
       userName: json['userName'] as String,
+      userAvatarUrl: json['userAvatarUrl'] as String?,
       content: json['content'] as String,
       imageUrl: json['imageUrl'] as String?,
       location: json['location'] as String?,
+      activityTag: json['activityTag'] as String?,
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
       likeCount: json['likeCount'] as int? ?? 0,

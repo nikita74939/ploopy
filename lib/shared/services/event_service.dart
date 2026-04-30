@@ -15,11 +15,9 @@ class EventService {
       if (jsonStr == null || jsonStr.isEmpty) return [];
 
       final List<dynamic> list = jsonDecode(jsonStr);
-      final events = list
-          .map((e) => Event.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final events =
+          list.map((e) => Event.fromJson(e as Map<String, dynamic>)).toList();
 
-      // Sort: upcoming first, then by date
       events.sort((a, b) {
         if (a.isUpcoming && !b.isUpcoming) return -1;
         if (!a.isUpcoming && b.isUpcoming) return 1;
@@ -27,8 +25,7 @@ class EventService {
       });
 
       return events;
-    } catch (e) {
-      print('❌ Error loading events: $e');
+    } catch (_) {
       return [];
     }
   }
@@ -68,7 +65,7 @@ class EventService {
         longitude: longitude,
         dateTime: dateTime,
         maxParticipants: maxParticipants,
-        currentParticipants: 1, // Organizer counts as participant
+        currentParticipants: 1,
         participantIds: ['current_user'],
         imageUrl: imageUrl,
         isJoined: true,
@@ -83,8 +80,7 @@ class EventService {
       final saved = await prefs.setString(_storageKey, jsonEncode(jsonList));
 
       return saved ? event : null;
-    } catch (e) {
-      print('❌ Error creating event: $e');
+    } catch (_) {
       return null;
     }
   }
@@ -110,8 +106,7 @@ class EventService {
       final prefs = await SharedPreferences.getInstance();
       final jsonList = list.map((e) => e.toJson()).toList();
       return await prefs.setString(_storageKey, jsonEncode(jsonList));
-    } catch (e) {
-      print('❌ Error joining event: $e');
+    } catch (_) {
       return false;
     }
   }
@@ -136,8 +131,7 @@ class EventService {
       final prefs = await SharedPreferences.getInstance();
       final jsonList = list.map((e) => e.toJson()).toList();
       return await prefs.setString(_storageKey, jsonEncode(jsonList));
-    } catch (e) {
-      print('❌ Error leaving event: $e');
+    } catch (_) {
       return false;
     }
   }
@@ -151,8 +145,7 @@ class EventService {
       final prefs = await SharedPreferences.getInstance();
       final jsonList = list.map((e) => e.toJson()).toList();
       return await prefs.setString(_storageKey, jsonEncode(jsonList));
-    } catch (e) {
-      print('❌ Error deleting event: $e');
+    } catch (_) {
       return false;
     }
   }
@@ -188,97 +181,91 @@ class EventService {
     final samples = [
       Event(
         id: _uuid.v4(),
-        title: 'Study Group Kalkulus',
+        title: 'Study Group Statistik',
         description:
-            'Halo semua! Aku mau bikin study group buat bahas Kalkulus 2, fokus ke integral dan turunan. Yang mau join langsung aja ya!',
+            'Bahas latihan regresi linear dan interpretasi output. Bawa laptop kalau mau ikut ngoding di spreadsheet.',
         organizerId: 'user_1',
-        organizerName: 'Andi Pratama',
-        location: 'Perpustakaan Unpad Lt.2',
+        organizerName: 'Nadia Putri',
+        location: 'Ruang Diskusi Perpus',
         latitude: -6.8895,
         longitude: 107.6108,
-        dateTime: now.add(const Duration(days: 1, hours: 10)),
-        maxParticipants: 10,
-        currentParticipants: 6,
-        participantIds: ['user_1', 'user_2', 'user_3', 'user_4', 'user_5', 'user_6'],
+        dateTime: now.add(const Duration(days: 1, hours: 3)),
+        maxParticipants: 12,
+        currentParticipants: 8,
+        participantIds: ['user_1', 'user_2', 'user_3', 'user_4'],
         isJoined: false,
         createdAt: now.subtract(const Duration(days: 2)),
       ),
       Event(
         id: _uuid.v4(),
-        title: 'Bootcamp Programming',
+        title: 'Review Proposal Skripsi',
         description:
-            'Bootcamp intensif Flutter untuk pemula. Akan membahas widget, state management, dan deployment. Bring your own laptop!',
+            'Sesi kecil untuk saling cek latar belakang, rumusan masalah, dan alur metode penelitian.',
         organizerId: 'user_2',
-        organizerName: 'Siti Rahayu',
-        location: 'Gedung Lab Teknik Informatika',
+        organizerName: 'Rafi Ramadhan',
+        location: 'Student Center',
         latitude: -6.8910,
         longitude: 107.6090,
-        dateTime: now.add(const Duration(days: 3, hours: 14)),
-        maxParticipants: 30,
-        currentParticipants: 18,
-        participantIds: ['user_2', 'user_7', 'user_8'],
+        dateTime: now.add(const Duration(days: 2, hours: 5)),
+        maxParticipants: 8,
+        currentParticipants: 5,
+        participantIds: ['user_2', 'user_5', 'user_6'],
         isJoined: true,
         createdAt: now.subtract(const Duration(days: 1)),
       ),
       Event(
         id: _uuid.v4(),
-        title: 'Mabar Mobile Legends',
+        title: 'Workshop CV & LinkedIn',
         description:
-            'Mabar ML santai, ranking Epic ke Legend. Butuh support sama tank. No rage, have fun! 🎮',
+            'Bikin CV satu halaman dan rapihin profil LinkedIn untuk apply magang semester depan.',
         organizerId: 'user_3',
-        organizerName: 'Budi Santoso',
-        location: 'Online - Discord',
-        latitude: null,
-        longitude: null,
-        dateTime: now.add(const Duration(hours: 6)),
-        maxParticipants: 5,
-        currentParticipants: 4,
-        participantIds: ['user_3', 'user_9', 'user_10', 'user_11'],
+        organizerName: 'Alya Maharani',
+        location: 'Aula Fakultas',
+        latitude: -6.8900,
+        longitude: 107.6110,
+        dateTime: now.add(const Duration(days: 4, hours: 7)),
+        maxParticipants: 50,
+        currentParticipants: 34,
+        participantIds: ['user_3', 'user_7', 'user_8'],
         isJoined: false,
         createdAt: now.subtract(const Duration(hours: 12)),
       ),
       Event(
         id: _uuid.v4(),
-        title: 'Workshop Public Speaking',
+        title: 'Diskusi Project Mobile',
         description:
-            'Workshop gratis tentang dasar-dasar public speaking. Cocok untuk yang mau提高 confidence saat presentasi!',
+            'Check-in progress final project: UI, database lokal, dan integrasi API. Cocok untuk yang lagi stuck.',
         organizerId: 'user_4',
-        organizerName: 'Rina Wulandari',
-        location: 'Aula Utama Student Center',
-        latitude: -6.8900,
-        longitude: 107.6110,
-        dateTime: now.add(const Duration(days: 5, hours: 9)),
-        maxParticipants: 50,
-        currentParticipants: 32,
-        participantIds: ['user_4', 'user_12', 'user_13'],
-        isJoined: false,
+        organizerName: 'Dimas Arya',
+        location: 'Online via Meet',
+        dateTime: now.add(const Duration(days: 5, hours: 2)),
+        maxParticipants: 10,
+        currentParticipants: 6,
+        participantIds: ['user_4', 'user_9'],
+        isJoined: true,
         createdAt: now.subtract(const Duration(days: 3)),
       ),
       Event(
         id: _uuid.v4(),
-        title: 'Temu Alumni 2024',
+        title: 'Simulasi Presentasi UAS',
         description:
-            'Reuni tahunan angkatan 2020. Jangan sampai absen ya! Akan ada games dan doorprize menarik 🎁',
+            'Latihan presentasi 7 menit, feedback dari teman, dan cek slide biar lebih padat.',
         organizerId: 'user_5',
-        organizerName: 'Dewi Kusuma',
-        location: 'Aula Barat Campus Center',
+        organizerName: 'Mira Lestari',
+        location: 'Lab Multimedia',
         latitude: -6.8880,
         longitude: 107.6120,
-        dateTime: now.add(const Duration(days: 14, hours: 18)),
-        maxParticipants: 200,
-        currentParticipants: 87,
-        participantIds: ['user_5', 'user_14'],
+        dateTime: now.add(const Duration(days: 7, hours: 1)),
+        maxParticipants: 15,
+        currentParticipants: 11,
+        participantIds: ['user_5', 'user_10'],
         isJoined: false,
-        createdAt: now.subtract(const Duration(days: 7)),
+        createdAt: now.subtract(const Duration(days: 4)),
       ),
     ];
 
-    for (final event in samples) {
-      final list = await getAll();
-      list.insert(0, event);
-      final prefs = await SharedPreferences.getInstance();
-      final jsonList = list.map((e) => e.toJson()).toList();
-      await prefs.setString(_storageKey, jsonEncode(jsonList));
-    }
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = samples.map((e) => e.toJson()).toList();
+    await prefs.setString(_storageKey, jsonEncode(jsonList));
   }
 }

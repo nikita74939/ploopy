@@ -19,4 +19,17 @@ class AppColors {
 
   // Status
   static const Color error = Color(0xFF3F3F46);
+
+  // Primary Monochromatic
+  static const Color greyDark = Color(0xFF18181B);
+
+  // Background
+  static const Color background = Color(0xFFFAFAFA);
+
+  // Status
+  static const Color success = Color(0xFF22C55E);
+  static const Color warning = Color(0xFFF59E0B);
+
+  // Transparent
+  static const Color transparent = Colors.transparent;
 }

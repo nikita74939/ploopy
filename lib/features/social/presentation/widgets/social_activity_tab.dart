@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:ploopy/features/social/domain/activity_model.dart';
 import 'package:ploopy/features/social/presentation/widgets/social_create_post.dart';
 import 'package:ploopy/shared/services/activity_service.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class SocialActivityTab extends StatelessWidget {
   final VoidCallback onCreatePost;
@@ -36,14 +36,12 @@ class SocialActivityTab extends StatelessWidget {
         }
 
         return RefreshIndicator(
-          onRefresh: () async {
-            // Refresh logic
-          },
+          onRefresh: () async {},
           color: AppColors.primary,
           child: ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-            itemCount: activities.length + 1, // +1 for create button
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemCount: activities.length + 1,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (_, i) {
               if (i == 0) {
                 return SocialCreatePost(onTap: onCreatePost);
@@ -66,25 +64,17 @@ class SocialActivityTab extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('📭', style: TextStyle(fontSize: 56)),
+            Icon(Icons.forum_outlined, size: 44, color: AppColors.greyHint),
             const SizedBox(height: 14),
             Text(
               'Belum ada aktivitas',
-              style: GoogleFonts.poppins(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: Colors.black87,
-              ),
+              style: AppTextStyles.heading.copyWith(color: AppColors.black),
             ),
             const SizedBox(height: 4),
             Text(
-              'Jadilah yang pertama\nmemulai percakapan!',
+              'Mulai dari catatan belajar, tugas selesai, atau agenda kampus.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: Colors.grey.shade500,
-                height: 1.4,
-              ),
+              style: AppTextStyles.small.copyWith(height: 1.4),
             ),
           ],
         ),
@@ -93,35 +83,65 @@ class SocialActivityTab extends StatelessWidget {
   }
 }
 
-class _ActivityCard extends StatelessWidget {
+class _ActivityCard extends StatefulWidget {
   final Activity activity;
   final VoidCallback onTap;
 
-  const _ActivityCard({
-    required this.activity,
-    required this.onTap,
-  });
+  const _ActivityCard({required this.activity, required this.onTap});
+
+  @override
+  State<_ActivityCard> createState() => _ActivityCardState();
+}
+
+class _ActivityCardState extends State<_ActivityCard> {
+  late bool _isLiked;
+  late int _likeCount;
+
+  Activity get activity => widget.activity;
+
+  @override
+  void initState() {
+    super.initState();
+    _isLiked = activity.isLiked;
+    _likeCount = activity.likeCount;
+  }
+
+  void _toggleLike() {
+    setState(() {
+      _isLiked = !_isLiked;
+      _likeCount += _isLiked ? 1 : -1;
+    });
+    ActivityService.toggleLike(activity.id);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(8),
       child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        onTap: widget.onTap,
+        borderRadius: BorderRadius.circular(8),
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.grey.shade100, width: 1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.greyBorder),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               _buildContent(),
+              if (activity.imageUrl != null) ...[
+                const SizedBox(height: 12),
+                _buildImage(activity.imageUrl!),
+              ],
+              if (activity.activityTag != null) ...[
+                const SizedBox(height: 12),
+                _buildActivityTag(activity.activityTag!),
+              ],
               const SizedBox(height: 12),
               _buildActions(),
             ],
@@ -133,30 +153,9 @@ class _ActivityCard extends StatelessWidget {
 
   Widget _buildHeader() {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.primaries[activity.userId.hashCode % Colors.primaries.length],
-                Colors.primaries[
-                    (activity.userId.hashCode + 1) % Colors.primaries.length],
-              ],
-            ),
-            shape: BoxShape.circle,
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            activity.userName.isNotEmpty ? activity.userName[0].toUpperCase() : '👤',
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
-        ),
+        _buildAvatar(),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
@@ -164,100 +163,137 @@ class _ActivityCard extends StatelessWidget {
             children: [
               Text(
                 activity.userName,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
+                style: AppTextStyles.body.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.black,
                 ),
               ),
-              const SizedBox(height: 2),
-              Row(
-                children: [
-                  if (activity.location != null) ...[
-                    Icon(
-                      Icons.location_on_rounded,
-                      size: 11,
-                      color: AppColors.primary,
-                    ),
-                    const SizedBox(width: 2),
-                    Flexible(
-                      child: Text(
-                        activity.location!,
-                        style: GoogleFonts.poppins(
-                          fontSize: 10,
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                  ],
-                  Icon(
-                    Icons.schedule_rounded,
-                    size: 10,
-                    color: Colors.grey.shade500,
-                  ),
-                  const SizedBox(width: 2),
-                  Text(
-                    _formatTime(activity.createdAt),
-                    style: GoogleFonts.poppins(
-                      fontSize: 10,
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 3),
+              Text(
+                _metaText(),
+                style: AppTextStyles.caption,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
         ),
         IconButton(
-          icon: Icon(
-            Icons.more_vert_rounded,
-            color: Colors.grey.shade400,
-            size: 18,
-          ),
+          icon: Icon(Icons.more_horiz_rounded, color: AppColors.grey, size: 20),
           onPressed: () {},
           padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
+          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
         ),
       ],
     );
   }
 
+  Widget _buildAvatar() {
+    final avatarUrl = activity.userAvatarUrl;
+
+    if (avatarUrl != null && avatarUrl.isNotEmpty) {
+      return ClipOval(
+        child: Image.network(
+          avatarUrl,
+          width: 40,
+          height: 40,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _buildInitialAvatar(),
+        ),
+      );
+    }
+
+    return _buildInitialAvatar();
+  }
+
+  Widget _buildInitialAvatar() {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: AppColors.greyLight,
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.greyBorder),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        activity.userName.isNotEmpty ? activity.userName[0].toUpperCase() : '?',
+        style: AppTextStyles.body.copyWith(
+          fontWeight: FontWeight.w700,
+          color: AppColors.black,
+        ),
+      ),
+    );
+  }
+
   Widget _buildContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (activity.content.isNotEmpty)
-          Text(
-            activity.content,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: Colors.black87,
-              height: 1.4,
-            ),
-          ),
-        if (activity.imageUrl != null) ...[
-          const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Container(
-              height: 160,
-              width: double.infinity,
-              color: Colors.grey.shade100,
-              child: const Center(
+    return Text(
+      activity.content,
+      style: AppTextStyles.body.copyWith(color: AppColors.black, height: 1.45),
+    );
+  }
+
+  Widget _buildImage(String url) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: AspectRatio(
+        aspectRatio: 16 / 10,
+        child: Image.network(
+          url,
+          fit: BoxFit.cover,
+          loadingBuilder: (_, child, progress) {
+            if (progress == null) return child;
+            return Container(
+              color: AppColors.greyLight,
+              alignment: Alignment.center,
+              child: const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            );
+          },
+          errorBuilder:
+              (_, __, ___) => Container(
+                color: AppColors.greyLight,
+                alignment: Alignment.center,
                 child: Icon(
-                  Icons.image_rounded,
-                  size: 40,
-                  color: Colors.grey,
+                  Icons.image_not_supported_outlined,
+                  color: AppColors.greyHint,
+                  size: 28,
                 ),
               ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActivityTag(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.greyLighter,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.greyBorder),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.check_circle_outline_rounded,
+            size: 14,
+            color: AppColors.grey,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: AppTextStyles.small.copyWith(
+              color: AppColors.black,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
-      ],
+      ),
     );
   }
 
@@ -265,25 +301,16 @@ class _ActivityCard extends StatelessWidget {
     return Row(
       children: [
         _buildActionButton(
-          icon: activity.isLiked
-              ? Icons.favorite_rounded
-              : Icons.favorite_border_rounded,
-          label: '${activity.likeCount}',
-          color: activity.isLiked ? Colors.red : Colors.grey.shade600,
-          onTap: () {},
+          icon:
+              _isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+          label: '$_likeCount',
+          isActive: _isLiked,
+          onTap: _toggleLike,
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 18),
         _buildActionButton(
           icon: Icons.chat_bubble_outline_rounded,
           label: '${activity.commentCount}',
-          color: Colors.grey.shade600,
-          onTap: () {},
-        ),
-        const Spacer(),
-        _buildActionButton(
-          icon: Icons.share_outlined,
-          label: 'Share',
-          color: Colors.grey.shade600,
           onTap: () {},
         ),
       ],
@@ -293,26 +320,37 @@ class _ActivityCard extends StatelessWidget {
   Widget _buildActionButton({
     required IconData icon,
     required String label,
-    required Color color,
     required VoidCallback onTap,
+    bool isActive = false,
   }) {
+    final color = isActive ? AppColors.black : AppColors.grey;
+
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: Row(
         children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: 4),
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 5),
           Text(
             label,
-            style: GoogleFonts.poppins(
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
+            style: AppTextStyles.small.copyWith(
               color: color,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
       ),
     );
+  }
+
+  String _metaText() {
+    final parts = <String>[];
+    if (activity.location != null && activity.location!.isNotEmpty) {
+      parts.add(activity.location!);
+    }
+    parts.add(_formatTime(activity.createdAt));
+    return parts.join(' · ');
   }
 
   String _formatTime(DateTime time) {

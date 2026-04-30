@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:ploopy/features/chat/presentation/pages/chat_page.dart';
 import 'package:ploopy/features/event/presentation/pages/event_detail_page.dart';
 import 'package:ploopy/features/notification/presentation/pages/notification_page.dart';
 import 'package:ploopy/features/social/presentation/pages/create_activity_page.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../widgets/social_tab_bar.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../widgets/social_activity_tab.dart';
 import '../widgets/social_event_tab.dart';
 import '../widgets/social_preferences_sheet.dart';
+import '../widgets/social_tab_bar.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});
@@ -23,19 +23,7 @@ class _SocialPageState extends State<SocialPage> {
 
   void _openSearch() {
     HapticFeedback.lightImpact();
-    // TODO: Implement search
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Fitur pencarian dalam pengembangan 🔍',
-          style: GoogleFonts.poppins(color: Colors.white, fontSize: 12),
-        ),
-        backgroundColor: Colors.grey.shade800,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
+    _showSnackBar('Fitur pencarian dalam pengembangan');
   }
 
   void _openNotifications() {
@@ -59,24 +47,12 @@ class _SocialPageState extends State<SocialPage> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const CreateActivityPage()),
-    ).then((_) => setState(() {})); // Refresh after creating
+    ).then((_) => setState(() {}));
   }
 
   void _openCreateEvent() {
     HapticFeedback.mediumImpact();
-    // TODO: Navigate to create event page
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Fitur buat event dalam pengembangan 📅',
-          style: GoogleFonts.poppins(color: Colors.white, fontSize: 12),
-        ),
-        backgroundColor: Colors.grey.shade800,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
+    _showSnackBar('Fitur buat event dalam pengembangan');
   }
 
   void _openPreferences() {
@@ -84,10 +60,25 @@ class _SocialPageState extends State<SocialPage> {
     SocialPreferencesSheet.show(context);
   }
 
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: AppTextStyles.small.copyWith(color: AppColors.white),
+        ),
+        backgroundColor: AppColors.black,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppColors.greyLighter,
       body: SafeArea(child: _buildBody()),
     );
   }
@@ -107,17 +98,15 @@ class _SocialPageState extends State<SocialPage> {
 
   Widget _buildAppBar() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
+      padding: const EdgeInsets.fromLTRB(16, 10, 12, 2),
       child: Row(
         children: [
-          const SizedBox(width: 8),
           Expanded(
             child: Text(
               'Social',
-              style: GoogleFonts.poppins(
+              style: AppTextStyles.heading.copyWith(
                 fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Colors.black87,
+                color: AppColors.black,
               ),
             ),
           ),
@@ -125,7 +114,7 @@ class _SocialPageState extends State<SocialPage> {
           _buildIconButton(
             icon: Icons.notifications_outlined,
             onTap: _openNotifications,
-            badge: 3, // Contoh badge count
+            badge: 3,
           ),
           _buildIconButton(
             icon: Icons.chat_bubble_outline_rounded,
@@ -148,26 +137,27 @@ class _SocialPageState extends State<SocialPage> {
     return Stack(
       children: [
         IconButton(
-          icon: Icon(icon, color: Colors.grey.shade700, size: 22),
+          icon: Icon(icon, color: AppColors.grey, size: 21),
           onPressed: onTap,
+          splashRadius: 22,
         ),
         if (badge != null && badge > 0)
           Positioned(
-            right: 6,
-            top: 6,
+            right: 7,
+            top: 7,
             child: Container(
               padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Colors.red.shade500,
+              decoration: const BoxDecoration(
+                color: AppColors.black,
                 shape: BoxShape.circle,
               ),
-              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+              constraints: const BoxConstraints(minWidth: 15, minHeight: 15),
               child: Text(
                 badge > 9 ? '9+' : '$badge',
-                style: GoogleFonts.poppins(
+                style: AppTextStyles.small.copyWith(
                   fontSize: 8,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: AppColors.white,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -182,9 +172,7 @@ class _SocialPageState extends State<SocialPage> {
       case SocialTab.activity:
         return SocialActivityTab(
           onCreatePost: _openCreateActivity,
-          onTapPost: (activity) {
-            // TODO: Open activity detail
-          },
+          onTapPost: (activity) {},
         );
       case SocialTab.event:
         return SocialEventTab(

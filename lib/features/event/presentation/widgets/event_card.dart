@@ -1,97 +1,152 @@
+// event/presentation/widgets/event_card.dart
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class EventCard extends StatelessWidget {
   final Map<String, dynamic> event;
+  final VoidCallback? onTap;
 
-  const EventCard({super.key, required this.event});
+  const EventCard({super.key, required this.event, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final coverColor = event['coverColor'] as Color;
     final joined = event['joined'] as bool;
     final hasDistance = event['distance'] != null;
+    final hasImage = event['imageUrl'] != null;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade100, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildCover(coverColor),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildCategoryBadge(coverColor),
-                const SizedBox(height: 8),
-                Text(
-                  event['title'] as String,
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.greyBorder),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Poster Image
+            if (hasImage)
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(7)),
+                child: Container(
+                  height: 120,
+                  width: double.infinity,
+                  color: AppColors.greyLight,
+                  child: Image.network(
+                    event['imageUrl'] as String,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: event['coverColor'] as Color? ?? AppColors.greyLight,
+                      alignment: Alignment.center,
+                      child: Text(
+                        event['emoji'] as String,
+                        style: AppTextStyles.heading.copyWith(
+                          color: AppColors.white,
+                          fontSize: 24,
+                        ),
+                      ),
+                    ),
+                    loadingBuilder: (_, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        color: AppColors.greyLight,
+                        child: const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      );
+                    },
                   ),
                 ),
-                const SizedBox(height: 10),
-                _buildInfoRow(
-                  Icons.calendar_today_rounded,
-                  '${event['date']} · ${event['time']}',
-                ),
-                const SizedBox(height: 6),
-                _buildInfoRow(
-                  Icons.location_on_rounded,
-                  hasDistance
-                      ? '${event['location']} · ${event['distance']}'
-                      : event['location'] as String,
-                ),
-                const SizedBox(height: 14),
-                _buildFooter(coverColor, joined),
-              ],
+              ),
+            // Content
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      if (!hasImage) _buildCover(),
+                      if (!hasImage) const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildCategoryBadge(),
+                            const SizedBox(height: 4),
+                            Text(
+                              event['title'] as String,
+                              style: AppTextStyles.body.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.black,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildJoinButton(joined),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInfoRow(
+                    Icons.calendar_today_outlined,
+                    '${event['date']} · ${event['time']}',
+                  ),
+                  const SizedBox(height: 7),
+                  _buildInfoRow(
+                    Icons.location_on_outlined,
+                    hasDistance
+                        ? '${event['location']} · ${event['distance']}'
+                        : event['location'] as String,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildFooter(),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildCover(Color color) {
+  Widget _buildCover() {
     return Container(
-      height: 90,
+      width: 48,
+      height: 48,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [color.withOpacity(0.8), color],
-        ),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        color: event['coverColor'] as Color? ?? AppColors.greyLight,
+        borderRadius: BorderRadius.circular(8),
       ),
       alignment: Alignment.center,
       child: Text(
         event['emoji'] as String,
-        style: const TextStyle(fontSize: 44),
+        style: AppTextStyles.small.copyWith(
+          fontWeight: FontWeight.w700,
+          color: AppColors.white,
+        ),
       ),
     );
   }
 
-  Widget _buildCategoryBadge(Color color) {
+  Widget _buildCategoryBadge() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.greyLight,
+        borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
         event['category'] as String,
-        style: GoogleFonts.poppins(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: color,
+        style: AppTextStyles.caption.copyWith(
+          color: AppColors.grey,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );
@@ -100,90 +155,90 @@ class EventCard extends StatelessWidget {
   Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 13, color: Colors.grey.shade500),
-        const SizedBox(width: 6),
+        Icon(icon, size: 14, color: AppColors.grey),
+        const SizedBox(width: 7),
         Expanded(
           child: Text(
             text,
-            style: GoogleFonts.poppins(
-              fontSize: 11,
-              color: Colors.grey.shade600,
-            ),
+            style: AppTextStyles.small.copyWith(color: AppColors.grey),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildFooter(Color color, bool joined) {
+  Widget _buildFooter() {
     final participants = event['participants'] as int;
     final max = event['maxParticipants'] as int;
     final percentage = participants / max;
 
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text('👥', style: GoogleFonts.poppins(fontSize: 12)),
-                  const SizedBox(width: 5),
-                  Text(
-                    '$participants / $max peserta',
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ],
+        Row(
+          children: [
+            Text(
+              '$participants / $max peserta',
+              style: AppTextStyles.small.copyWith(
+                fontWeight: FontWeight.w500,
+                color: AppColors.black,
               ),
-              const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: LinearProgressIndicator(
-                  value: percentage,
-                  minHeight: 4,
-                  backgroundColor: Colors.grey.shade100,
-                  valueColor: AlwaysStoppedAnimation(color),
-                ),
-              ),
-            ],
+            ),
+            const Spacer(),
+            Text(
+              '${(percentage * 100).round()}%',
+              style: AppTextStyles.caption.copyWith(color: AppColors.grey),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: percentage,
+            minHeight: 4,
+            backgroundColor: AppColors.greyLight,
+            valueColor: const AlwaysStoppedAnimation(AppColors.black),
           ),
         ),
-        const SizedBox(width: 12),
-        _buildJoinButton(color, joined),
       ],
     );
   }
 
-  Widget _buildJoinButton(Color color, bool joined) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-      decoration: BoxDecoration(
-        color: joined ? Colors.grey.shade100 : color,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            joined ? Icons.check_rounded : Icons.add_rounded,
-            size: 14,
-            color: joined ? Colors.grey.shade600 : Colors.white,
+  Widget _buildJoinButton(bool joined) {
+    return GestureDetector(
+      onTap: () {
+        // Handle join action
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: joined ? AppColors.greyLight : AppColors.black,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: joined ? AppColors.greyBorder : AppColors.black,
           ),
-          const SizedBox(width: 4),
-          Text(
-            joined ? 'Joined' : 'Join',
-            style: GoogleFonts.poppins(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: joined ? Colors.grey.shade600 : Colors.white,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              joined ? Icons.check_rounded : Icons.add_rounded,
+              size: 14,
+              color: joined ? AppColors.grey : AppColors.white,
             ),
-          ),
-        ],
+            const SizedBox(width: 4),
+            Text(
+              joined ? 'Joined' : 'Join',
+              style: AppTextStyles.caption.copyWith(
+                fontWeight: FontWeight.w600,
+                color: joined ? AppColors.grey : AppColors.white,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

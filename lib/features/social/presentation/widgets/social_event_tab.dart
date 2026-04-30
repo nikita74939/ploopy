@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/services/event_service.dart';
 import '../../../event/domain/event_model.dart';
 
@@ -40,7 +40,7 @@ class SocialEventTab extends StatelessWidget {
           child: ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
             itemCount: events.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (_, i) {
               return _EventCard(
                 event: events[i],
@@ -60,25 +60,21 @@ class SocialEventTab extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('📅', style: TextStyle(fontSize: 56)),
+            Icon(
+              Icons.event_note_outlined,
+              size: 44,
+              color: AppColors.greyHint,
+            ),
             const SizedBox(height: 14),
             Text(
               'Belum ada event',
-              style: GoogleFonts.poppins(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: Colors.black87,
-              ),
+              style: AppTextStyles.heading.copyWith(color: AppColors.black),
             ),
             const SizedBox(height: 4),
             Text(
-              'Buat event untuk\nkumpulkan teman belajar!',
+              'Buat agenda belajar, workshop, atau diskusi kampus.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: Colors.grey.shade500,
-                height: 1.4,
-              ),
+              style: AppTextStyles.small.copyWith(height: 1.4),
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
@@ -86,21 +82,21 @@ class SocialEventTab extends StatelessWidget {
               icon: const Icon(Icons.add_rounded, size: 16),
               label: Text(
                 'Buat Event',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
+                style: AppTextStyles.small.copyWith(
                   fontWeight: FontWeight.w600,
+                  color: AppColors.white,
                 ),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.white,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
+                  horizontal: 18,
                   vertical: 10,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
             ),
@@ -115,33 +111,53 @@ class _EventCard extends StatelessWidget {
   final Event event;
   final VoidCallback onTap;
 
-  const _EventCard({
-    required this.event,
-    required this.onTap,
-  });
+  const _EventCard({required this.event, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(8),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(8),
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.grey.shade100, width: 1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.greyBorder),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(),
               const SizedBox(height: 10),
-              _buildContent(),
+              if (event.description.isNotEmpty)
+                Text(
+                  event.description,
+                  style: AppTextStyles.small.copyWith(height: 1.4),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               const SizedBox(height: 12),
-              _buildFooter(),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _buildInfoChip(
+                    Icons.calendar_today_outlined,
+                    _formatDate(event.dateTime),
+                  ),
+                  _buildInfoChip(
+                    Icons.access_time_rounded,
+                    _formatTime(event.dateTime),
+                  ),
+                  _buildInfoChip(
+                    Icons.group_outlined,
+                    '${event.currentParticipants}/${event.maxParticipants}',
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -153,59 +169,39 @@ class _EventCard extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 44,
-          height: 44,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                const Color(0xFFFF6B6B).withOpacity(0.8),
-                const Color(0xFFFF8E53).withOpacity(0.8),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(10),
+            color: AppColors.greyLight,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.greyBorder),
           ),
-          alignment: Alignment.center,
-          child: const Text('📅', style: TextStyle(fontSize: 22)),
+          child: Icon(
+            Icons.event_note_outlined,
+            size: 20,
+            color: AppColors.black,
+          ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 event.title,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
+                style: AppTextStyles.body.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.black,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 2),
-              Row(
-                children: [
-                  Icon(
-                    Icons.location_on_rounded,
-                    size: 11,
-                    color: AppColors.primary,
-                  ),
-                  const SizedBox(width: 2),
-                  Flexible(
-                    child: Text(
-                      event.location ?? 'Online',
-                      style: GoogleFonts.poppins(
-                        fontSize: 10,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 3),
+              Text(
+                event.location ?? 'Online',
+                style: AppTextStyles.caption,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -216,138 +212,67 @@ class _EventCard extends StatelessWidget {
   }
 
   Widget _buildStatusBadge() {
-    final isUpcoming = event.dateTime.isAfter(DateTime.now());
     final isFull = event.currentParticipants >= event.maxParticipants;
+    final text =
+        isFull
+            ? 'Penuh'
+            : event.isUpcoming
+            ? 'Aktif'
+            : 'Selesai';
 
-    Color color;
-    String text;
-
-    if (isFull) {
-      color = Colors.red.shade400;
-      text = 'Penuh';
-    } else if (!isUpcoming) {
-      color = Colors.grey.shade400;
-      text = 'Selesai';
-    } else {
-      color = Colors.green.shade400;
-      text = 'Aktif';
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        text,
-        style: GoogleFonts.poppins(
-          fontSize: 9,
-          fontWeight: FontWeight.w700,
-          color: color,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (event.description.isNotEmpty)
-          Text(
-            event.description,
-            style: GoogleFonts.poppins(
-              fontSize: 11,
-              color: Colors.grey.shade600,
-              height: 1.4,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            _buildInfoChip(
-              icon: Icons.calendar_today_rounded,
-              text: _formatDate(event.dateTime),
-            ),
-            const SizedBox(width: 8),
-            _buildInfoChip(
-              icon: Icons.access_time_rounded,
-              text: _formatTime(event.dateTime),
-            ),
-            const SizedBox(width: 8),
-            _buildInfoChip(
-              icon: Icons.group_rounded,
-              text: '${event.currentParticipants}/${event.maxParticipants}',
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoChip({required IconData icon, required String text}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: AppColors.greyLighter,
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.greyBorder),
+      ),
+      child: Text(
+        text,
+        style: AppTextStyles.caption.copyWith(
+          color: AppColors.black,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoChip(IconData icon, String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.greyLighter,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.greyBorder),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 10, color: Colors.grey.shade600),
-          const SizedBox(width: 4),
+          Icon(icon, size: 13, color: AppColors.grey),
+          const SizedBox(width: 5),
           Text(
             text,
-            style: GoogleFonts.poppins(
-              fontSize: 9,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey.shade600,
-            ),
+            style: AppTextStyles.caption.copyWith(color: AppColors.grey),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFooter() {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            'Oleh ${event.organizerName}',
-            style: GoogleFonts.poppins(
-              fontSize: 10,
-              color: Colors.grey.shade500,
-            ),
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(
-            'Lihat Detail',
-            style: GoogleFonts.poppins(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   String _formatDate(DateTime date) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Ags',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
     ];
     return '${date.day} ${months[date.month - 1]}';
   }

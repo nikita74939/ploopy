@@ -1,3 +1,4 @@
+// event/domain/event_model.dart
 class Event {
   final String id;
   final String title;
@@ -36,12 +37,16 @@ class Event {
   bool get isFull => currentParticipants >= maxParticipants;
   bool get isUpcoming => dateTime.isAfter(DateTime.now());
   bool get isPast => dateTime.isBefore(DateTime.now());
+  bool get hasLocation => latitude != null && longitude != null;
 
   int get spotsLeft => maxParticipants - currentParticipants;
 
   Event copyWith({
+    String? id,
     String? title,
     String? description,
+    String? organizerId,
+    String? organizerName,
     String? location,
     double? latitude,
     double? longitude,
@@ -51,13 +56,14 @@ class Event {
     List<String>? participantIds,
     String? imageUrl,
     bool? isJoined,
+    DateTime? createdAt,
   }) {
     return Event(
-      id: id,
+      id: id ?? this.id,
       title: title ?? this.title,
       description: description ?? this.description,
-      organizerId: organizerId,
-      organizerName: organizerName,
+      organizerId: organizerId ?? this.organizerId,
+      organizerName: organizerName ?? this.organizerName,
       location: location ?? this.location,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
@@ -67,7 +73,7 @@ class Event {
       participantIds: participantIds ?? this.participantIds,
       imageUrl: imageUrl ?? this.imageUrl,
       isJoined: isJoined ?? this.isJoined,
-      createdAt: createdAt,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 

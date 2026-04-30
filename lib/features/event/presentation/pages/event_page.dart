@@ -1,8 +1,11 @@
+// event/presentation/pages/event_page.dart (dengan BLoC)
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/constants/event_dummy_data.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../bloc/event_bloc.dart';
 import '../widgets/event_card.dart';
+import 'event_detail_page.dart';
 
 class EventPage extends StatefulWidget {
   const EventPage({super.key});
@@ -17,6 +20,12 @@ class _EventPageState extends State<EventPage> {
   final List<String> _filters = ['Semua', 'Terdekat', 'Joined', 'Terbaru'];
 
   @override
+  void initState() {
+    super.initState();
+    context.read<EventBloc>().add(LoadEvents());
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Column(
@@ -24,15 +33,56 @@ class _EventPageState extends State<EventPage> {
           _buildAppBar(),
           _buildFilters(),
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-              children: [
-                _buildBanner(),
-                const SizedBox(height: 16),
-                ...EventDummyData.events
-                    .map((e) => EventCard(event: e))
-                    .toList(),
-              ],
+            child: BlocBuilder<EventBloc, EventState>(
+              builder: (context, state) {
+                if (state is EventLoading) {
+                  return const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  );
+                }
+                
+                if (state is EventError) {
+                  return Center(
+                    child: Text(
+                      'Error: ${state.message}',
+                      style: AppTextStyles.body.copyWith(color: AppColors.grey),
+                    ),
+                  );
+                }
+                
+                if (state is EventLoaded) {
+                  return ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 80),
+                    children: [
+                      _buildBanner(state),
+                      const SizedBox(height: 12),
+                      ...state.filteredEvents.map(
+                        (e) => EventCard(
+                          event: {
+                            'title': e.title,
+                            'category': 'Event',
+                            'date': _formatDate(e.dateTime),
+                            'time': _formatTime(e.dateTime),
+                            'location': e.location,
+                            'distance': e.hasLocation ? '~500m' : null,
+                            'participants': e.currentParticipants,
+                            'maxParticipants': e.maxParticipants,
+                            'coverColor': AppColors.greyDark,
+                            'emoji': e.title.substring(0, 2).toUpperCase(),
+                            'joined': e.isJoined,
+                            'imageUrl': e.imageUrl,
+                            'latitude': e.latitude,
+                            'longitude': e.longitude,
+                          },
+                          onTap: () => _navigateToDetail(e),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+                
+                return const SizedBox();
+              },
             ),
           ),
         ],
@@ -42,42 +92,28 @@ class _EventPageState extends State<EventPage> {
 
   Widget _buildAppBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Colors.grey.shade100, width: 1),
-        ),
+        color: AppColors.white,
+        border: Border(bottom: BorderSide(color: AppColors.greyBorder)),
       ),
       child: Row(
         children: [
           Text(
             'Event',
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: Colors.black87,
+            style: AppTextStyles.heading.copyWith(
+              fontWeight: FontWeight.w700,
+              color: AppColors.black,
             ),
           ),
           const Spacer(),
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.search_rounded, size: 18),
+          IconButton(
+            icon: const Icon(Icons.search_rounded, color: AppColors.black),
+            onPressed: () {},
           ),
-          const SizedBox(width: 10),
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.add, size: 20, color: Colors.white),
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined, color: AppColors.black),
+            onPressed: () {},
           ),
         ],
       ),
@@ -86,83 +122,124 @@ class _EventPageState extends State<EventPage> {
 
   Widget _buildFilters() {
     return Container(
-      height: 52,
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      color: Colors.white,
-      child: ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        border: Border(bottom: BorderSide(color: AppColors.greyBorder)),
+      ),
+      child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: _filters.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (_, i) {
-          final selected = _selectedFilter == i;
-          return GestureDetector(
-            onTap: () => setState(() => _selectedFilter = i),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
-              decoration: BoxDecoration(
-                color: selected ? AppColors.primary : Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                _filters[i],
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: selected ? Colors.white : Colors.grey.shade600,
+        child: Row(
+          children: List.generate(_filters.length, (index) {
+            final isSelected = _selectedFilter == index;
+            return GestureDetector(
+              onTap: () {
+                setState(() => _selectedFilter = index);
+                context.read<EventBloc>().add(FilterEvents(index));
+              },
+              child: Container(
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.black : AppColors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected ? AppColors.black : AppColors.greyBorder,
+                  ),
+                ),
+                child: Text(
+                  _filters[index],
+                  style: AppTextStyles.small.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: isSelected ? AppColors.white : AppColors.grey,
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          }),
+        ),
       ),
     );
   }
 
-  Widget _buildBanner() {
+  Widget _buildBanner(EventLoaded state) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFFF3E9), Color(0xFFFFE8D6)],
-        ),
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.black,
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('🎉', style: TextStyle(fontSize: 36)),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Ada Event Seru!',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Ikut event & ketemu temen baru yang punya interest sama',
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    color: Colors.grey.shade600,
-                    height: 1.3,
-                  ),
-                ),
-              ],
+          Text(
+            'Temukan Event\nyang Tepat Untukmu',
+            style: AppTextStyles.heading.copyWith(
+              color: AppColors.white,
+              fontWeight: FontWeight.w700,
+              height: 1.2,
             ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Ikuti event dan expand networkingmu',
+            style: AppTextStyles.small.copyWith(
+              color: AppColors.greyLight,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _buildBannerStat('${state.events.length}+', 'Event Aktif'),
+              const SizedBox(width: 24),
+              _buildBannerStat(
+                '${state.events.fold<int>(0, (sum, e) => sum + e.currentParticipants)}+',
+                'Peserta',
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildBannerStat(String value, String label) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          value,
+          style: AppTextStyles.heading.copyWith(
+            color: AppColors.white,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        Text(
+          label,
+          style: AppTextStyles.caption.copyWith(color: AppColors.grey),
+        ),
+      ],
+    );
+  }
+
+  void _navigateToDetail(dynamic event) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EventDetailPage(event: event),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+
+  String _formatTime(DateTime date) {
+    final hour = date.hour.toString().padLeft(2, '0');
+    final minute = date.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
   }
 }
