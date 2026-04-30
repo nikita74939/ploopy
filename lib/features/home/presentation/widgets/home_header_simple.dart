@@ -110,10 +110,12 @@ class HomeHeaderSimple extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 20),
-              // Tombol Start (Outlined)
+              // Tombol Start
               GestureDetector(
                 onTap: () {
                   HapticFeedback.mediumImpact();
+                  // Navigate ke study desk
+                  Navigator.pushNamed(context, '/study-desk');
                   onStartTap?.call();
                 },
                 child: Container(

@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:ploopy/features/home/presentation/pages/home_screen.dart';
 import 'package:ploopy/shared/services/activity_service.dart';
 import 'package:ploopy/shared/services/event_service.dart';
-import 'features/auth/presentation/pages/auth_screen.dart';
-import 'shared/services/session_service.dart';
-import 'core/theme/app_theme.dart';
+import 'package:ploopy/features/auth/presentation/pages/auth_screen.dart';
+import 'package:ploopy/shared/services/session_service.dart';
+import 'package:ploopy/core/theme/app_theme.dart';
+import 'package:ploopy/features/study_desk/presentation/pages/study_desk_page.dart';
 
 class PloopyApp extends StatelessWidget {
   const PloopyApp({super.key});
@@ -16,7 +17,18 @@ class PloopyApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
       home: const SplashDecider(),
+      onGenerateRoute: _generateRoute,
     );
+  }
+
+  static Route<dynamic> _generateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case '/study-desk':
+        return MaterialPageRoute(builder: (_) => const StudyDeskPage());
+
+      default:
+        return MaterialPageRoute(builder: (_) => const HomeScreen());
+    }
   }
 }
 
@@ -36,10 +48,7 @@ class _SplashDeciderState extends State<SplashDecider> {
   }
 
   Future<void> _initSampleData() async {
-    // Add sample activities
     await ActivityService.addSampleData();
-
-    // Add sample events
     await EventService.addSampleData();
   }
 
