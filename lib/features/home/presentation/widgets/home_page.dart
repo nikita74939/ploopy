@@ -79,10 +79,11 @@ class _HomeBerandaPageState extends State<HomeBerandaPage> {
             ),
             const SizedBox(height: 24),
             ScheduleTimeline(
-              items: ScheduleDummyData.todayItems,
-              onSeeAll: () {
-                // TODO: navigate to full schedule
-              },
+            scheduleItems: ScheduleDummyData.todayItems,
+            taskItems: ScheduleDummyData.todayTasks,
+             onSeeAll: () {
+    // TODO: navigate to full schedule
+             },
             ),
             const SizedBox(height: 80),
           ],
