@@ -2,21 +2,21 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Primary
-  static const Color primary = Colors.orange;
-  static Color primaryLight = Colors.orange.shade50;
-  static Color primaryBorder = Colors.orange.shade200;
+  static const Color primary = Color(0xFF18181B);
+  static const Color primaryLight = Color(0xFFF4F4F5);
+  static const Color primaryBorder = Color(0xFFD4D4D8);
 
   // Neutral
   static const Color white = Colors.white;
-  static const Color black = Colors.black87;
-  static Color grey = Colors.grey;
-  static Color greyLight = Colors.grey.shade100;
-  static Color greyLighter = Colors.grey.shade50;
-  static Color greyBorder = Colors.grey.shade200;
-  static Color greyHint = Colors.grey.shade400;
-  static Color greyText = Colors.grey.shade500;
-  static Color greyHandle = Colors.grey.shade300;
+  static const Color black = Color(0xFF18181B);
+  static const Color grey = Color(0xFF71717A);
+  static const Color greyLight = Color(0xFFF4F4F5);
+  static const Color greyLighter = Color(0xFFFAFAFA);
+  static const Color greyBorder = Color(0xFFE4E4E7);
+  static const Color greyHint = Color(0xFFA1A1AA);
+  static const Color greyText = Color(0xFF71717A);
+  static const Color greyHandle = Color(0xFFD4D4D8);
 
   // Status
-  static const Color error = Colors.red;
+  static const Color error = Color(0xFF3F3F46);
 }

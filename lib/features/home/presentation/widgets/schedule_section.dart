@@ -45,9 +45,7 @@ class _ScheduleSectionState extends State<ScheduleSection>
       children: [
         _buildTabBar(),
         const SizedBox(height: 14),
-        _tabController.index == 0
-            ? _buildScheduleList()
-            : _buildTaskList(),
+        _tabController.index == 0 ? _buildScheduleList() : _buildTaskList(),
       ],
     );
   }
@@ -68,19 +66,16 @@ class _ScheduleSectionState extends State<ScheduleSection>
         indicatorSize: TabBarIndicatorSize.tab,
         labelColor: Colors.white,
         unselectedLabelColor: Colors.grey.shade500,
-        labelStyle: GoogleFonts.poppins(
+        labelStyle: GoogleFonts.robotoMono(
           fontSize: 13,
           fontWeight: FontWeight.w600,
         ),
-        unselectedLabelStyle: GoogleFonts.poppins(
+        unselectedLabelStyle: GoogleFonts.robotoMono(
           fontSize: 13,
           fontWeight: FontWeight.w400,
         ),
         dividerColor: Colors.transparent,
-        tabs: const [
-          Tab(text: 'Jadwal'),
-          Tab(text: 'Tugas'),
-        ],
+        tabs: const [Tab(text: 'Jadwal'), Tab(text: 'Tugas')],
       ),
     );
   }
@@ -92,10 +87,13 @@ class _ScheduleSectionState extends State<ScheduleSection>
     }
     return Column(
       children: [
-        ...List.generate(items.length, (i) => ScheduleTimelineItem(
-          item: items[i],
-          isLast: i == items.length - 1,
-        )),
+        ...List.generate(
+          items.length,
+          (i) => ScheduleTimelineItem(
+            item: items[i],
+            isLast: i == items.length - 1,
+          ),
+        ),
         const SizedBox(height: 4),
         _buildSeeAllButton(
           label: 'Lihat semua jadwal',
@@ -148,9 +146,10 @@ class _ScheduleSectionState extends State<ScheduleSection>
                 width: 1.5,
               ),
             ),
-            child: isDone
-                ? const Icon(Icons.check, size: 13, color: Colors.white)
-                : null,
+            child:
+                isDone
+                    ? const Icon(Icons.check, size: 13, color: Colors.white)
+                    : null,
           ),
           const SizedBox(width: 12),
           // Icon
@@ -158,7 +157,7 @@ class _ScheduleSectionState extends State<ScheduleSection>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -175,7 +174,7 @@ class _ScheduleSectionState extends State<ScheduleSection>
               children: [
                 Text(
                   item['title'] as String? ?? '',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.robotoMono(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                     color: isDone ? Colors.grey.shade400 : Colors.black87,
@@ -185,7 +184,7 @@ class _ScheduleSectionState extends State<ScheduleSection>
                 if ((item['subject'] as String? ?? '').isNotEmpty)
                   Text(
                     item['subject'] as String,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.robotoMono(
                       fontSize: 11,
                       color: Colors.grey.shade400,
                     ),
@@ -203,7 +202,7 @@ class _ScheduleSectionState extends State<ScheduleSection>
               ),
               child: Text(
                 item['due'] as String,
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.robotoMono(
                   fontSize: 10,
                   color: Colors.grey.shade500,
                   fontWeight: FontWeight.w500,
@@ -215,10 +214,7 @@ class _ScheduleSectionState extends State<ScheduleSection>
     );
   }
 
-  Widget _buildSeeAllButton({
-    required String label,
-    VoidCallback? onTap,
-  }) {
+  Widget _buildSeeAllButton({required String label, VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -234,14 +230,18 @@ class _ScheduleSectionState extends State<ScheduleSection>
           children: [
             Text(
               label,
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.robotoMono(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: Colors.black87,
               ),
             ),
             const SizedBox(width: 4),
-            const Icon(Icons.arrow_forward_rounded, size: 16, color: Colors.black87),
+            const Icon(
+              Icons.arrow_forward_rounded,
+              size: 16,
+              color: Colors.black87,
+            ),
           ],
         ),
       ),
@@ -263,10 +263,7 @@ class _ScheduleSectionState extends State<ScheduleSection>
           const SizedBox(height: 8),
           Text(
             message,
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              color: Colors.grey.shade400,
-            ),
+            style: GoogleFonts.robotoMono(fontSize: 13, color: Colors.grey.shade400),
           ),
         ],
       ),

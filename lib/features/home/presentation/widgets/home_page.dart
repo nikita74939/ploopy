@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/schedule_dummy_data.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/services/session_service.dart';
-import 'home_greeting_header.dart';
-import 'learn_now_banner.dart';
-import 'mini_calendar.dart';
+import 'urgent_schedule_banner.dart';
+import 'urgent_task_banner.dart';
 import 'schedule_timeline.dart';
-import 'package:flutter/services.dart';
-import 'package:ploopy/features/notification/presentation/pages/notification_page.dart';
+import 'home_header_simple.dart';
 
 class HomeBerandaPage extends StatefulWidget {
   const HomeBerandaPage({super.key});
@@ -17,9 +15,7 @@ class HomeBerandaPage extends StatefulWidget {
 }
 
 class _HomeBerandaPageState extends State<HomeBerandaPage> {
-  Map<String, dynamic>? _user;
   bool _loadingUser = true;
-  int _selectedDay = DateTime.now().day;
 
   @override
   void initState() {
@@ -28,12 +24,71 @@ class _HomeBerandaPageState extends State<HomeBerandaPage> {
   }
 
   Future<void> _loadUser() async {
-    final user = await SessionService.getCurrentUser();
+    await SessionService.getCurrentUser();
     if (!mounted) return;
-    setState(() {
-      _user = user;
-      _loadingUser = false;
+    setState(() => _loadingUser = false);
+  }
+
+  String _getDateString() {
+    final now = DateTime.now();
+    final days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${days[now.weekday % 7]}, ${months[now.month - 1]} ${now.day}';
+  }
+
+  String _getStudyTime() {
+    final totalMinutes = ScheduleDummyData.todayItems
+        .where((item) => item['done'] == true)
+        .fold<int>(0, (sum, item) => sum + (item['durationNum'] as int? ?? 0));
+
+    final hours = totalMinutes ~/ 60;
+    final minutes = totalMinutes % 60;
+    final seconds = 0;
+
+    return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  Map<String, dynamic>? _getUpcomingSchedule() {
+    final items = ScheduleDummyData.todayItems;
+    for (final item in items) {
+      if (!(item['done'] as bool? ?? false)) {
+        return item;
+      }
+    }
+    return items.isNotEmpty ? items.first : null;
+  }
+
+  Map<String, dynamic>? _getUrgentTask() {
+    final tasks = ScheduleDummyData.todayTasks;
+    if (tasks.isEmpty) return null;
+
+    final priority = {'Kemarin': 0, 'Hari ini': 1, 'Besok': 2};
+    final uncompleted =
+        tasks.where((t) => !(t['done'] as bool? ?? false)).toList();
+    final listToSort = uncompleted.isNotEmpty ? uncompleted : tasks;
+
+    listToSort.sort((a, b) {
+      final dueA = a['due'] as String? ?? '';
+      final dueB = b['due'] as String? ?? '';
+      final prioA = priority[dueA] ?? 99;
+      final prioB = priority[dueB] ?? 99;
+      return prioA.compareTo(prioB);
     });
+
+    return listToSort.first;
   }
 
   @override
@@ -47,47 +102,92 @@ class _HomeBerandaPageState extends State<HomeBerandaPage> {
       );
     }
 
-    final name = _user?['name'] ?? 'Pengguna';
+    final upcomingSchedule = _getUpcomingSchedule();
+    final urgentTask = _getUrgentTask();
 
     return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            HomeGreetingHeader(
-              name : name, 
-              unreadNotifCount : 3,
-              onNotifTap :(){
-                HapticFeedback.lightImpact();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const NotificationPage()),
-                );
-              }
-            ),
-            const SizedBox(height: 20),
-            MiniCalendar(
-              selectedDay: _selectedDay,
-              onDaySelected: (day) => setState(() => _selectedDay = day),
-            ),
-            const SizedBox(height: 20),
-            LearnNowBanner(
-              onTap: () {
-                // TODO: navigate to desk page
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 10),
+          HomeHeaderSimple(
+            dateString: _getDateString(),
+            studyTime: _getStudyTime(),
+            onCalendarTap: () {
+              // TODO: Navigate to calendar page
+            },
+            onNotificationTap: () {
+              Navigator.pushNamed(context, '/notification');
+            },
+            onStartTap: () {
+              // TODO: Navigate to study desk page
+            },
+          ),
+          Expanded(
+            child: ShaderMask(
+              blendMode: BlendMode.dstIn,
+              shaderCallback: (bounds) {
+                return const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black,
+                    Colors.black,
+                    Colors.transparent,
+                  ],
+                  stops: [0, 0.04, 0.94, 1],
+                ).createShader(bounds);
               },
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 20),
+                    if (upcomingSchedule != null) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: UrgentScheduleBanner(
+                          item: upcomingSchedule,
+                          onTap: () {
+                            // TODO: navigate to schedule detail
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                    ],
+                    if (urgentTask != null) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: UrgentTaskBanner(
+                          item: urgentTask,
+                          onTap: () {
+                            // TODO: navigate to task detail
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: ScheduleTimeline(
+                        scheduleItems: ScheduleDummyData.todayItems,
+                        taskItems: ScheduleDummyData.todayTasks,
+                        onSeeAll: () {
+                          // TODO: navigate to full schedule
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 80),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 24),
-            ScheduleTimeline(
-            scheduleItems: ScheduleDummyData.todayItems,
-            taskItems: ScheduleDummyData.todayTasks,
-             onSeeAll: () {
-    // TODO: navigate to full schedule
-             },
-            ),
-            const SizedBox(height: 80),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

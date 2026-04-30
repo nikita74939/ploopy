@@ -41,10 +41,9 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
     _slideAnim = Tween<Offset>(
       begin: const Offset(0, 0.06),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animController!,
-      curve: Curves.easeOutCubic,
-    ));
+    ).animate(
+      CurvedAnimation(parent: _animController!, curve: Curves.easeOutCubic),
+    );
     _animController!.forward();
   }
 
@@ -77,22 +76,22 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
           opacity: _fadeAnim ?? const AlwaysStoppedAnimation(1.0),
           child: SlideTransition(
             position: _slideAnim ?? const AlwaysStoppedAnimation(Offset.zero),
-            child: items.isEmpty
-                ? _buildEmpty()
-                : _showSchedule
+            child:
+                items.isEmpty
+                    ? _buildEmpty()
+                    : _showSchedule
                     ? Column(
-                        children: List.generate(items.length, (i) {
-                          return ScheduleTimelineItem(
-                            item: items[i],
-                            isLast: i == items.length - 1,
-                          );
-                        }),
-                      )
+                      children: List.generate(items.length, (i) {
+                        return ScheduleTimelineItem(
+                          item: items[i],
+                          isLast: i == items.length - 1,
+                        );
+                      }),
+                    )
                     : Column(
-                        children: items
-                            .map((task) => _buildTaskItem(task))
-                            .toList(),
-                      ),
+                      children:
+                          items.map((task) => _buildTaskItem(task)).toList(),
+                    ),
           ),
         ),
         const SizedBox(height: 4),
@@ -102,6 +101,7 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
   }
 
   // ── Header ───────────────────────────────────────
+  // Di dalam _buildHeader(), ubah padding atas:
   Widget _buildHeader() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -114,10 +114,10 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
               alignment: Alignment.centerLeft,
               child: Text(
                 _showSchedule ? 'Jadwal Hari Ini' : 'Tugas',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.robotoMono(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: Colors.black87,
+                  color: AppColors.black,
                 ),
               ),
             ),
@@ -137,15 +137,15 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.grey.shade100),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.greyBorder),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               'Lihat semua',
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.robotoMono(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.primary,
@@ -170,8 +170,8 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200, width: 1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.greyBorder, width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -209,16 +209,7 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
         padding: const EdgeInsets.symmetric(vertical: 5),
         decoration: BoxDecoration(
           color: active ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(9),
-          boxShadow: active
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.10),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : [],
+          borderRadius: BorderRadius.circular(6),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -226,15 +217,15 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
             Icon(
               icon,
               size: 13,
-              color: active ? Colors.black87 : Colors.grey.shade400,
+              color: active ? AppColors.black : AppColors.greyHint,
             ),
             const SizedBox(width: 5),
             Text(
               label,
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.robotoMono(
                 fontSize: 12,
                 fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-                color: active ? Colors.black87 : Colors.grey.shade400,
+                color: active ? AppColors.black : AppColors.greyHint,
               ),
             ),
           ],
@@ -250,24 +241,17 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
       padding: const EdgeInsets.symmetric(vertical: 36),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.greyBorder),
       ),
       child: Column(
         children: [
           Text(
-            _showSchedule ? '📅' : '✅',
-            style: const TextStyle(fontSize: 34),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _showSchedule
-                ? 'Tidak ada jadwal hari ini'
-                : 'Semua tugas selesai!',
-            style: GoogleFonts.poppins(
+            _showSchedule ? 'Tidak ada jadwal' : 'Tidak ada tugas',
+            style: GoogleFonts.robotoMono(
               fontSize: 13,
-              color: Colors.grey.shade400,
-              fontWeight: FontWeight.w500,
+              color: AppColors.greyHint,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -287,14 +271,14 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
       dueColor = Colors.grey.shade400;
       dueBg = Colors.grey.shade100;
     } else if (due == 'Kemarin') {
-      dueColor = Colors.red.shade400;
-      dueBg = Colors.red.shade50;
+      dueColor = AppColors.black;
+      dueBg = AppColors.greyLight;
     } else if (due == 'Besok') {
-      dueColor = Colors.orange.shade700;
-      dueBg = Colors.orange.shade50;
+      dueColor = AppColors.greyText;
+      dueBg = AppColors.greyLighter;
     } else {
-      dueColor = Colors.green.shade600;
-      dueBg = Colors.green.shade50;
+      dueColor = AppColors.black;
+      dueBg = AppColors.primaryLight;
     }
 
     return GestureDetector(
@@ -308,20 +292,11 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
         decoration: BoxDecoration(
-          color: done ? Colors.grey.shade50 : Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          color: done ? AppColors.greyLighter : Colors.white,
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: done ? Colors.grey.shade200 : Colors.grey.shade100,
+            color: done ? AppColors.greyBorder : AppColors.greyBorder,
           ),
-          boxShadow: done
-              ? []
-              : [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
         ),
         child: Row(
           children: [
@@ -330,10 +305,11 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: done
-                    ? Colors.grey.shade200
-                    : itemColor.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(11),
+                color:
+                    done
+                        ? AppColors.greyLight
+                        : itemColor.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 task['icon'] as IconData,
@@ -348,13 +324,14 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
                 children: [
                   AnimatedDefaultTextStyle(
                     duration: const Duration(milliseconds: 250),
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.robotoMono(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: done ? Colors.grey.shade400 : Colors.black87,
-                      decoration: done
-                          ? TextDecoration.lineThrough
-                          : TextDecoration.none,
+                      color: done ? AppColors.greyHint : AppColors.black,
+                      decoration:
+                          done
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
                       decorationColor: Colors.grey.shade400,
                     ),
                     child: Text(task['title'] ?? ''),
@@ -362,9 +339,9 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
                   const SizedBox(height: 2),
                   Text(
                     task['subject'] ?? '',
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.robotoMono(
                       fontSize: 11,
-                      color: Colors.grey.shade500,
+                      color: AppColors.greyText,
                     ),
                   ),
                 ],
@@ -380,7 +357,7 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
               ),
               child: Text(
                 due,
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.robotoMono(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
                   color: dueColor,
@@ -395,16 +372,20 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
               height: 24,
               decoration: BoxDecoration(
                 color: done ? AppColors.primary : Colors.transparent,
-                borderRadius: BorderRadius.circular(7),
+                borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: done ? AppColors.primary : Colors.grey.shade300,
+                  color: done ? AppColors.primary : AppColors.greyBorder,
                   width: 1.8,
                 ),
               ),
-              child: done
-                  ? const Icon(Icons.check_rounded,
-                      color: Colors.white, size: 14)
-                  : null,
+              child:
+                  done
+                      ? const Icon(
+                        Icons.check_rounded,
+                        color: Colors.white,
+                        size: 14,
+                      )
+                      : null,
             ),
           ],
         ),

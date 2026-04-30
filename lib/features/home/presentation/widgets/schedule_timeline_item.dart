@@ -1,5 +1,7 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 
@@ -18,19 +20,108 @@ class ScheduleTimelineItem extends StatefulWidget {
 }
 
 class _ScheduleTimelineItemState extends State<ScheduleTimelineItem> {
-  late bool _isDone;
+  late _ScheduleStatus _status;
+  Timer? _statusTimer;
 
   @override
   void initState() {
     super.initState();
-    _isDone = widget.item['done'] as bool;
+    _status = _getStatus();
+    _syncDoneValue();
+    _scheduleStatusRefresh();
   }
 
-  void _toggle() {
-    HapticFeedback.lightImpact();
-    setState(() {
-      _isDone = !_isDone;
-      widget.item['done'] = _isDone;
+  @override
+  void didUpdateWidget(covariant ScheduleTimelineItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.item != widget.item) {
+      _status = _getStatus();
+      _syncDoneValue();
+      _scheduleStatusRefresh();
+    }
+  }
+
+  @override
+  void dispose() {
+    _statusTimer?.cancel();
+    super.dispose();
+  }
+
+  bool get _isDone => _status == _ScheduleStatus.done;
+  bool get _isOngoing => _status == _ScheduleStatus.ongoing;
+
+  _ScheduleStatus _getStatus() {
+    final start = _startTime;
+    final duration = _durationMinutes;
+    if (start == null || duration == null) {
+      return (widget.item['done'] as bool? ?? false)
+          ? _ScheduleStatus.done
+          : _ScheduleStatus.upcoming;
+    }
+
+    final now = DateTime.now();
+    final end = start.add(Duration(minutes: duration));
+    if (now.isBefore(start)) return _ScheduleStatus.upcoming;
+    if (now.isBefore(end)) return _ScheduleStatus.ongoing;
+    return _ScheduleStatus.done;
+  }
+
+  DateTime? get _startTime {
+    final rawTime = widget.item['time'] as String?;
+    if (rawTime == null) return null;
+
+    final match = RegExp(r'^(\d{1,2})[.:](\d{2})$').firstMatch(rawTime);
+    if (match == null) return null;
+
+    final hour = int.tryParse(match.group(1)!);
+    final minute = int.tryParse(match.group(2)!);
+    if (hour == null || minute == null) return null;
+
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day, hour, minute);
+  }
+
+  int? get _durationMinutes {
+    final durationNum = widget.item['durationNum'];
+    if (durationNum is int) return durationNum;
+
+    final durationText = widget.item['duration'] as String?;
+    if (durationText == null) return null;
+
+    final match = RegExp(r'\d+').firstMatch(durationText);
+    return match == null ? null : int.tryParse(match.group(0)!);
+  }
+
+  void _syncDoneValue() {
+    widget.item['done'] = _status == _ScheduleStatus.done;
+  }
+
+  void _scheduleStatusRefresh() {
+    _statusTimer?.cancel();
+
+    final start = _startTime;
+    final duration = _durationMinutes;
+    if (start == null || duration == null) return;
+
+    final now = DateTime.now();
+    final end = start.add(Duration(minutes: duration));
+    DateTime? nextChange;
+
+    if (now.isBefore(start)) {
+      nextChange = start;
+    } else if (now.isBefore(end)) {
+      nextChange = end;
+    }
+
+    if (nextChange == null) return;
+
+    _statusTimer = Timer(nextChange.difference(now), () {
+      if (!mounted) return;
+      setState(() {
+        _status = _getStatus();
+        _syncDoneValue();
+      });
+      _scheduleStatusRefresh();
     });
   }
 
@@ -56,7 +147,7 @@ class _ScheduleTimelineItemState extends State<ScheduleTimelineItem> {
         children: [
           Text(
             widget.item['time'],
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.robotoMono(
               fontSize: 11,
               color: Colors.grey.shade500,
               fontWeight: FontWeight.w500,
@@ -67,7 +158,8 @@ class _ScheduleTimelineItemState extends State<ScheduleTimelineItem> {
             child: Center(
               child: Container(
                 width: 1.5,
-                color: widget.isLast ? Colors.transparent : Colors.grey.shade200,
+                color:
+                    widget.isLast ? Colors.transparent : AppColors.greyBorder,
               ),
             ),
           ),
@@ -80,24 +172,38 @@ class _ScheduleTimelineItemState extends State<ScheduleTimelineItem> {
     return Column(
       children: [
         const SizedBox(height: 2),
-        GestureDetector(
-          onTap: _toggle,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              color: _isDone ? AppColors.primary : Colors.white,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: _isDone ? AppColors.primary : Colors.grey.shade300,
-                width: 1.5,
-              ),
-            ),
-            child: _isDone
-                ? const Icon(Icons.check, size: 12, color: Colors.white)
-                : null,
-          ),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          child:
+              _isOngoing
+                  ? CustomPaint(
+                    key: const ValueKey('ongoing'),
+                    size: const Size(20, 20),
+                    painter: _DashedCirclePainter(color: AppColors.black),
+                  )
+                  : AnimatedContainer(
+                    key: ValueKey(_isDone),
+                    duration: const Duration(milliseconds: 200),
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: _isDone ? AppColors.primary : Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color:
+                            _isDone ? AppColors.primary : AppColors.greyBorder,
+                        width: 1.5,
+                      ),
+                    ),
+                    child:
+                        _isDone
+                            ? const Icon(
+                              Icons.check,
+                              size: 12,
+                              color: Colors.white,
+                            )
+                            : null,
+                  ),
         ),
       ],
     );
@@ -106,29 +212,23 @@ class _ScheduleTimelineItemState extends State<ScheduleTimelineItem> {
   Widget _buildCard() {
     final color = widget.item['color'] as Color;
 
-    return GestureDetector(
-      onTap: _toggle,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: _isDone ? Colors.grey.shade50 : Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: _isDone ? Colors.grey.shade200 : Colors.grey.shade100,
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            _buildIcon(color),
-            const SizedBox(width: 12),
-            Expanded(child: _buildInfo()),
-            const SizedBox(width: 8),
-            _buildDuration(),
-          ],
-        ),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: _isDone ? AppColors.greyLighter : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.greyBorder, width: 1),
+      ),
+      child: Row(
+        children: [
+          _buildIcon(color),
+          const SizedBox(width: 12),
+          Expanded(child: _buildInfo()),
+          const SizedBox(width: 8),
+          _buildDuration(),
+        ],
       ),
     );
   }
@@ -139,9 +239,7 @@ class _ScheduleTimelineItemState extends State<ScheduleTimelineItem> {
       width: 38,
       height: 38,
       decoration: BoxDecoration(
-        color: _isDone
-            ? Colors.grey.shade200
-            : color.withOpacity(0.15),
+        color: _isDone ? AppColors.greyLight : color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Icon(
@@ -158,11 +256,12 @@ class _ScheduleTimelineItemState extends State<ScheduleTimelineItem> {
       children: [
         AnimatedDefaultTextStyle(
           duration: const Duration(milliseconds: 200),
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.robotoMono(
             fontSize: 13,
             fontWeight: FontWeight.w500,
             color: _isDone ? Colors.grey.shade400 : Colors.black87,
-            decoration: _isDone ? TextDecoration.lineThrough : TextDecoration.none,
+            decoration:
+                _isDone ? TextDecoration.lineThrough : TextDecoration.none,
             decorationColor: Colors.grey.shade400,
           ),
           child: Text(widget.item['title']),
@@ -170,7 +269,7 @@ class _ScheduleTimelineItemState extends State<ScheduleTimelineItem> {
         if ((widget.item['streak'] as String).isNotEmpty)
           Text(
             'Streak ${widget.item['streak']}',
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.robotoMono(
               fontSize: 11,
               color: Colors.grey.shade400,
             ),
@@ -186,12 +285,45 @@ class _ScheduleTimelineItemState extends State<ScheduleTimelineItem> {
         const SizedBox(width: 3),
         Text(
           widget.item['duration'],
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.robotoMono(
             fontSize: 11,
             color: Colors.grey.shade400,
           ),
         ),
       ],
     );
+  }
+}
+
+enum _ScheduleStatus { upcoming, ongoing, done }
+
+class _DashedCirclePainter extends CustomPainter {
+  final Color color;
+
+  const _DashedCirclePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint =
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.7
+          ..strokeCap = StrokeCap.round;
+
+    final rect = Offset.zero & size;
+    const dashCount = 9;
+    const gapRadians = 0.23;
+    final dashRadians = (math.pi * 2 / dashCount) - gapRadians;
+
+    for (var i = 0; i < dashCount; i++) {
+      final startAngle = i * math.pi * 2 / dashCount;
+      canvas.drawArc(rect.deflate(1), startAngle, dashRadians, false, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedCirclePainter oldDelegate) {
+    return oldDelegate.color != color;
   }
 }
