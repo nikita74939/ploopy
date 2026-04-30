@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ploopy/core/theme/app_colors.dart';
 import '../../domain/ocr_result_model.dart';
 
 class OcrHistoryItem extends StatelessWidget {
@@ -15,28 +16,113 @@ class OcrHistoryItem extends StatelessWidget {
     required this.onDelete,
   });
 
+  String _formatDate(DateTime date) {
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+    ];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.grey.shade100, width: 1),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildThumbnail(),
-              const SizedBox(width: 12),
-              Expanded(child: _buildContent()),
-              _buildMoreButton(context),
+    return Dismissible(
+      key: ValueKey(result.id),
+      direction: DismissDirection.endToStart,
+      onDismissed: (_) => onDelete(),
+      confirmDismiss: (_) async {
+        return await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            surfaceTintColor: Colors.transparent,
+            title: Text(
+              'Hapus hasil?',
+              style: GoogleFonts.robotoMono(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppColors.black,
+              ),
+            ),
+            content: Text(
+              '"${result.title}" akan dihapus permanen',
+              style: GoogleFonts.robotoMono(
+                fontSize: 12,
+                color: AppColors.greyText,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(
+                  'Batal',
+                  style: GoogleFonts.robotoMono(color: AppColors.greyText),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => Navigator.pop(ctx, true),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade400,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Hapus',
+                    style: GoogleFonts.robotoMono(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
             ],
+          ),
+        );
+      },
+      background: Container(
+        decoration: BoxDecoration(
+          color: Colors.red.shade400,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        child: const Icon(
+          Icons.delete_outline_rounded,
+          color: Colors.white,
+        ),
+      ),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.greyBorder),
+            ),
+            child: Row(
+              children: [
+                _buildThumbnail(),
+                const SizedBox(width: 12),
+                Expanded(child: _buildInfo()),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 22,
+                                  color: AppColors.greyBorder,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -44,52 +130,55 @@ class OcrHistoryItem extends StatelessWidget {
   }
 
   Widget _buildThumbnail() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        width: 50,
-        height: 50,
-        color: Colors.grey.shade100,
-        child: result.imagePath != null && File(result.imagePath!).existsSync()
-            ? Image.file(
-                File(result.imagePath!),
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _fallbackIcon(),
-              )
-            : _fallbackIcon(),
+    return Container(
+      width: 56,
+      height: 64,
+      decoration: BoxDecoration(
+        color: AppColors.greyLighter,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: File(result.imagePath).existsSync()
+          ? Image.file(
+              File(result.imagePath),
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _buildPlaceholder(),
+            )
+          : _buildPlaceholder(),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Center(
+      child: Icon(
+        Icons.image_outlined,
+        size: 22,
+        color: AppColors.greyHint,
       ),
     );
   }
 
-  Widget _fallbackIcon() {
-    return Container(
-      color: const Color(0xFFE0F2FE),
-      alignment: Alignment.center,
-      child: const Text('📝', style: TextStyle(fontSize: 22)),
-    );
-  }
-
-  Widget _buildContent() {
+  Widget _buildInfo() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           result.title,
-          style: GoogleFonts.poppins(
-            fontSize: 12,
+          style: GoogleFonts.robotoMono(
+            fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: AppColors.black,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 4),
         Text(
-          result.preview.isEmpty ? '(Teks kosong)' : result.preview,
-          style: GoogleFonts.poppins(
-            fontSize: 10,
-            color: Colors.grey.shade600,
-            height: 1.4,
+          result.extractedText,
+          style: GoogleFonts.robotoMono(
+            fontSize: 11,
+            color: AppColors.greyText,
+            height: 1.3,
           ),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -97,119 +186,36 @@ class OcrHistoryItem extends StatelessWidget {
         const SizedBox(height: 6),
         Row(
           children: [
-            _buildStat(
-              icon: Icons.format_list_bulleted_rounded,
-              text: '${result.wordCount} kata',
+            Icon(
+              Icons.calendar_today_outlined,
+              size: 10,
+              color: AppColors.greyHint,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              _formatDate(result.createdAt),
+              style: GoogleFonts.robotoMono(
+                fontSize: 10,
+                color: AppColors.greyHint,
+              ),
             ),
             const SizedBox(width: 10),
-            _buildStat(
-              icon: Icons.schedule_rounded,
-              text: _formatDate(result.createdAt),
+            Icon(
+              Icons.text_fields_rounded,
+              size: 10,
+              color: AppColors.greyHint,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              '${result.wordCount} kata',
+              style: GoogleFonts.robotoMono(
+                fontSize: 10,
+                color: AppColors.greyHint,
+              ),
             ),
           ],
         ),
       ],
     );
-  }
-
-  Widget _buildStat({required IconData icon, required String text}) {
-    return Row(
-      children: [
-        Icon(icon, size: 10, color: Colors.grey.shade500),
-        const SizedBox(width: 3),
-        Text(
-          text,
-          style: GoogleFonts.poppins(
-            fontSize: 9,
-            color: Colors.grey.shade500,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMoreButton(BuildContext context) {
-    return IconButton(
-      icon: Icon(
-        Icons.more_vert_rounded,
-        color: Colors.grey.shade600,
-        size: 20,
-      ),
-      onPressed: () => _showOptions(context),
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
-    );
-  }
-
-  void _showOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 42,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.visibility_rounded),
-              title: Text(
-                'Lihat Hasil',
-                style: GoogleFonts.poppins(fontSize: 13),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                onTap();
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.delete_outline_rounded,
-                color: Colors.red.shade400,
-              ),
-              title: Text(
-                'Hapus',
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: Colors.red.shade400,
-                ),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                onDelete();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final diff = now.difference(date);
-
-    if (diff.inSeconds < 60) return 'Baru saja';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m lalu';
-    if (diff.inHours < 24) return '${diff.inHours}j lalu';
-    if (diff.inDays < 7) return '${diff.inDays}h lalu';
-
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'
-    ];
-    return '${date.day} ${months[date.month - 1]}';
   }
 }

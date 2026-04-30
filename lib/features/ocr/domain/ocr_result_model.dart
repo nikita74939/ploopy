@@ -2,63 +2,62 @@ class OcrResult {
   final String id;
   final String title;
   final String extractedText;
-  final String? imagePath;
-  final int blockCount; // jumlah block teks terdeteksi
+  final int wordCount;
+  final int blockCount;
+  final String imagePath;
   final DateTime createdAt;
 
   OcrResult({
     required this.id,
     required this.title,
     required this.extractedText,
-    this.imagePath,
+    required this.wordCount,
     required this.blockCount,
+    required this.imagePath,
     required this.createdAt,
   });
-
-  int get wordCount {
-    if (extractedText.trim().isEmpty) return 0;
-    return extractedText.trim().split(RegExp(r'\s+')).length;
-  }
-
-  int get charCount => extractedText.length;
-
-  String get preview {
-    final clean = extractedText.trim().replaceAll(RegExp(r'\s+'), ' ');
-    if (clean.length <= 80) return clean;
-    return '${clean.substring(0, 80)}...';
-  }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'extractedText': extractedText,
-        'imagePath': imagePath,
-        'blockCount': blockCount,
-        'createdAt': createdAt.toIso8601String(),
-      };
 
   factory OcrResult.fromJson(Map<String, dynamic> json) {
     return OcrResult(
       id: json['id'] as String,
       title: json['title'] as String,
       extractedText: json['extractedText'] as String,
-      imagePath: json['imagePath'] as String?,
-      blockCount: json['blockCount'] as int? ?? 0,
+      wordCount: json['wordCount'] as int,
+      blockCount: json['blockCount'] as int,
+      imagePath: json['imagePath'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'extractedText': extractedText,
+      'wordCount': wordCount,
+      'blockCount': blockCount,
+      'imagePath': imagePath,
+      'createdAt': createdAt.toIso8601String(),
+    };
+  }
+
   OcrResult copyWith({
+    String? id,
     String? title,
     String? extractedText,
+    int? wordCount,
+    int? blockCount,
+    String? imagePath,
+    DateTime? createdAt,
   }) {
     return OcrResult(
-      id: id,
+      id: id ?? this.id,
       title: title ?? this.title,
       extractedText: extractedText ?? this.extractedText,
-      imagePath: imagePath,
-      blockCount: blockCount,
-      createdAt: createdAt,
+      wordCount: wordCount ?? this.wordCount,
+      blockCount: blockCount ?? this.blockCount,
+      imagePath: imagePath ?? this.imagePath,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }

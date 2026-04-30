@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:ploopy/core/theme/app_colors.dart';
 
 class ScanEmptyState extends StatelessWidget {
   final VoidCallback onScan;
@@ -11,112 +11,73 @@ class ScanEmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(40),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 100,
-              height: 100,
+              width: 90,
+              height: 90,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFFFFE8D6), Color(0xFFFFD9B3)],
-                ),
+                color: AppColors.greyLighter,
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
-              child: const Text('📄', style: TextStyle(fontSize: 48)),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Belum ada scan',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Scan dokumen, catatan, atau\nmateri kuliahmu dengan mudah!',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: Colors.grey.shade600,
-                height: 1.5,
+              child: Icon(
+                Icons.document_scanner_outlined,
+                size: 40,
+                color: AppColors.greyHint,
               ),
             ),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: onScan,
-              icon: const Icon(Icons.document_scanner_rounded, size: 18),
-              label: Text(
-                'Mulai Scan',
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
+            Text(
+              'Belum ada scan',
+              style: GoogleFonts.robotoMono(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.black,
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 28,
-                  vertical: 14,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Arahkan kamera ke dokumen untuk memulai scan',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.robotoMono(
+                fontSize: 12,
+                color: AppColors.greyText,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 28),
+            GestureDetector(
+              onTap: onScan,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                decoration: BoxDecoration(
+                  color: AppColors.black,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.document_scanner_outlined, 
+                        color: Colors.white, size: 18),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Mulai Scan',
+                      style: GoogleFonts.robotoMono(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            _buildFeatureChips(),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildFeatureChips() {
-    final features = [
-      {'emoji': '✂️', 'label': 'Auto-crop'},
-      {'emoji': '📐', 'label': 'Koreksi miring'},
-      {'emoji': '📑', 'label': 'Multi halaman'},
-      {'emoji': '📤', 'label': 'Export PDF'},
-    ];
-
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      alignment: WrapAlignment.center,
-      children: features.map((f) {
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.grey.shade200, width: 1),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(f['emoji']!, style: const TextStyle(fontSize: 12)),
-              const SizedBox(width: 4),
-              Text(
-                f['label']!,
-                style: GoogleFonts.poppins(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey.shade700,
-                ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
     );
   }
 }

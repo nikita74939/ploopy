@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ploopy/core/theme/app_colors.dart';
 import 'tool_card.dart';
 
 class ToolCategorySection extends StatelessWidget {
@@ -43,18 +44,18 @@ class ToolCategorySection extends StatelessWidget {
         children: [
           Text(
             category['title'] as String,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.robotoMono(
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: Colors.black87,
+              color: AppColors.black,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             category['description'] as String,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.robotoMono(
               fontSize: 11,
-              color: Colors.grey.shade500,
+              color: AppColors.greyText,
             ),
           ),
         ],

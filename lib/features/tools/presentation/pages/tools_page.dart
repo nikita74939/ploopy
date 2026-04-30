@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:ploopy/features/ai/presentation/pages/ai_page.dart';
 import 'package:ploopy/features/ocr/presentation/pages/ocr_home_page.dart';
 import 'package:ploopy/features/scanner/presentation/pages/scanner_home_page.dart';
 import 'package:ploopy/features/todo/presentation/pages/todo_page.dart';
-import 'package:ploopy/features/tools/presentation/pages/compass_page.dart';
-import 'package:ploopy/features/tools/presentation/pages/pomodoro_page.dart';
 import 'package:ploopy/features/tools/presentation/pages/timezone_converter_page.dart';
 import 'package:ploopy/features/tools/presentation/pages/unit_converter_page.dart';
 import 'package:ploopy/core/constants/tools_dummy_data.dart';
+import 'package:ploopy/core/theme/app_colors.dart';
 import 'package:ploopy/features/tools/presentation/widgets/tool_category_section.dart';
 import 'currency_converter_page.dart';
 import 'package:ploopy/features/memory_game/presentation/pages/memory_game_page.dart';
@@ -52,7 +50,7 @@ class ToolsPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(
-          bottom: BorderSide(color: Colors.grey.shade100, width: 1),
+          bottom: BorderSide(color: AppColors.greyBorder, width: 1),
         ),
       ),
       child: Row(
@@ -62,17 +60,18 @@ class ToolsPage extends StatelessWidget {
             children: [
               Text(
                 'Tools',
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.black87,
+                style: GoogleFonts.robotoMono(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.black,
                 ),
               ),
+              const SizedBox(height: 2),
               Text(
                 'Alat bantu buat produktivitasmu',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.robotoMono(
                   fontSize: 11,
-                  color: Colors.grey.shade500,
+                  color: AppColors.greyText,
                 ),
               ),
             ],
@@ -82,13 +81,13 @@ class ToolsPage extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: AppColors.greyLight,
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.search_rounded,
               size: 18,
-              color: Colors.grey.shade700,
+              color: AppColors.greyText,
             ),
           ),
         ],
@@ -107,53 +106,35 @@ class ToolsPage extends StatelessWidget {
     }
 
     switch (route) {
-      case 'currency': // ⭐ ADD
+      case 'currency':
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const CurrencyConverterPage()),
         );
         break;
-      case 'timezone': // ⭐ ADD
+      case 'timezone':
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const TimezoneConverterPage()),
         );
-      case 'scanner': // ⭐ ADD
+      case 'scanner':
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const ScannerHomePage()),
         );
-      case 'unit': // ⭐ ADD
+      case 'unit':
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const UnitConverterPage()),
         );
         break;
-      case 'ai_assistant': // ⭐ UPDATE
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const AiPage()),
-        );
-        break;
-      case 'compass': // ⭐ ADD
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const CompassPage()),
-        );
-        break;
-      case 'pomodoro': // ⭐ ADD
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const PomodoroPage()),
-        );
-        break;
-      case 'todo': // ⭐ ADD
+      case 'todo':
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const TodoPage()),
         );
         break;
-      case 'pict_to_text': // ⭐ ADD
+      case 'pict_to_text':
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const OcrHomePage()),
@@ -180,12 +161,15 @@ class ToolsPage extends StatelessWidget {
             Expanded(
               child: Text(
                 '$toolName — Coming soon!',
-                style: GoogleFonts.poppins(color: Colors.white, fontSize: 12),
+                style: GoogleFonts.robotoMono(
+                  color: Colors.white,
+                  fontSize: 12,
+                ),
               ),
             ),
           ],
         ),
-        backgroundColor: Colors.black87,
+        backgroundColor: AppColors.black,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),

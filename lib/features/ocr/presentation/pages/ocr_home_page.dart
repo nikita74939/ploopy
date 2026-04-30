@@ -27,6 +27,10 @@ class _OcrHomePageState extends State<OcrHomePage> {
     _loadResults();
   }
 
+  // =====================
+  // LOGIC METHODS (UNCHANGED)
+  // =====================
+
   Future<void> _loadResults() async {
     final results = await OcrService.getAll();
     if (!mounted) return;
@@ -39,7 +43,6 @@ class _OcrHomePageState extends State<OcrHomePage> {
   Future<void> _startOcr() async {
     if (_isProcessing) return;
 
-    // Tampilkan picker Camera/Gallery
     final source = await OcrSourcePicker.show(context);
     if (source == null) return;
 
@@ -47,7 +50,6 @@ class _OcrHomePageState extends State<OcrHomePage> {
     HapticFeedback.mediumImpact();
 
     try {
-      // 1. Pick image
       String? imagePath;
       if (source == OcrSource.camera) {
         imagePath = await OcrService.pickFromCamera();
@@ -60,15 +62,13 @@ class _OcrHomePageState extends State<OcrHomePage> {
         return;
       }
 
-      // 2. Show processing dialog
       if (!mounted) return;
       _showProcessingDialog();
 
-      // 3. Extract text
       final ocrResult = await OcrService.extractText(imagePath);
 
       if (!mounted) return;
-      Navigator.pop(context); // Tutup dialog
+      Navigator.pop(context);
 
       if (ocrResult == null) {
         _showSnackbar('Gagal ekstrak teks', Colors.red.shade400);
@@ -76,16 +76,15 @@ class _OcrHomePageState extends State<OcrHomePage> {
         return;
       }
 
-      if (ocrResult.text.isEmpty) {
+      if (ocrResult.extractedText.isEmpty) {
         _showSnackbar('Tidak ada teks terdeteksi', Colors.orange.shade400);
         setState(() => _isProcessing = false);
         return;
       }
 
-      // 4. Save result
       final saved = await OcrService.save(
         title: 'OCR ${DateTime.now().day}/${DateTime.now().month}',
-        extractedText: ocrResult.text,
+        extractedText: ocrResult.extractedText,
         blockCount: ocrResult.blockCount,
         imagePath: imagePath,
       );
@@ -97,7 +96,6 @@ class _OcrHomePageState extends State<OcrHomePage> {
           Colors.green.shade600,
         );
 
-        // Buka result page
         if (!mounted) return;
         Navigator.push(
           context,
@@ -108,7 +106,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
       }
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context); // Tutup dialog kalau masih terbuka
+        Navigator.pop(context);
         _showSnackbar('Error: $e', Colors.red.shade400);
       }
     } finally {
@@ -120,100 +118,120 @@ class _OcrHomePageState extends State<OcrHomePage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => PopScope(
-        canPop: false,
-        child: AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+      builder:
+          (_) => PopScope(
+            canPop: false,
+            child: AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              surfaceTintColor: Colors.transparent,
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: AppColors.greyLighter,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation(AppColors.black),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Menganalisis Gambar...',
+                    style: GoogleFonts.robotoMono(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'AI sedang mengekstrak teks',
+                    style: GoogleFonts.robotoMono(
+                      fontSize: 11,
+                      color: AppColors.greyText,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child: CircularProgressIndicator(
-                  strokeWidth: 3,
-                  valueColor: AlwaysStoppedAnimation(AppColors.primary),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Menganalisis Gambar...',
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'AI sedang mengekstrak teks',
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
   Future<void> _deleteResult(OcrResult result) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-        ),
-        title: Text(
-          'Hapus hasil?',
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        content: Text(
-          '"${result.title}" akan dihapus permanen',
-          style: GoogleFonts.poppins(fontSize: 12),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(
-              'Batal',
-              style: GoogleFonts.poppins(color: Colors.grey.shade600),
+      builder:
+          (ctx) => AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade400,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+            surfaceTintColor: Colors.transparent,
+            title: Text(
+              'Hapus hasil?',
+              style: GoogleFonts.robotoMono(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppColors.black,
               ),
             ),
-            child: Text(
-              'Hapus',
-              style: GoogleFonts.poppins(color: Colors.white),
+            content: Text(
+              '"${result.title}" akan dihapus permanen',
+              style: GoogleFonts.robotoMono(
+                fontSize: 12,
+                color: AppColors.greyText,
+              ),
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(
+                  'Batal',
+                  style: GoogleFonts.robotoMono(color: AppColors.greyText),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => Navigator.pop(ctx, true),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade400,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Hapus',
+                    style: GoogleFonts.robotoMono(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
 
     if (confirm == true) {
       await OcrService.delete(result.id);
       await _loadResults();
-      _showSnackbar('Hasil dihapus 🗑️', Colors.grey.shade800);
+      _showSnackbar('Hasil dihapus', Colors.grey.shade800);
     }
   }
 
@@ -223,23 +241,25 @@ class _OcrHomePageState extends State<OcrHomePage> {
       SnackBar(
         content: Text(
           message,
-          style: GoogleFonts.poppins(color: Colors.white, fontSize: 12),
+          style: GoogleFonts.robotoMono(color: Colors.white, fontSize: 12),
         ),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 2),
       ),
     );
   }
 
+  // =====================
+  // UI WIDGETS (REDESIGNED)
+  // =====================
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: _buildAppBar(),
       body: SafeArea(child: _buildBody()),
       floatingActionButton: _results.isNotEmpty ? _buildFab() : null,
@@ -248,18 +268,23 @@ class _OcrHomePageState extends State<OcrHomePage> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Colors.white,
       elevation: 0,
+      surfaceTintColor: Colors.transparent,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_rounded, color: Colors.black87),
+        icon: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          size: 20,
+          color: AppColors.black,
+        ),
         onPressed: () => Navigator.pop(context),
       ),
       title: Text(
         'Picture to Text',
-        style: GoogleFonts.poppins(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: Colors.black87,
+        style: GoogleFonts.robotoMono(
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          color: AppColors.black,
         ),
       ),
       centerTitle: true,
@@ -268,9 +293,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(strokeWidth: 2),
-      );
+      return const Center(child: CircularProgressIndicator(strokeWidth: 2));
     }
 
     if (_isProcessing) {
@@ -290,33 +313,37 @@ class _OcrHomePageState extends State<OcrHomePage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 80,
-            height: 80,
+            width: 70,
+            height: 70,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.greyLighter,
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: CircularProgressIndicator(
-              strokeWidth: 3,
-              valueColor: AlwaysStoppedAnimation(AppColors.primary),
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation(AppColors.black),
+              ),
             ),
           ),
           const SizedBox(height: 20),
           Text(
             'Memproses...',
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.robotoMono(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: AppColors.black,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             'AI sedang menganalisis gambar',
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.robotoMono(
               fontSize: 11,
-              color: Colors.grey.shade600,
+              color: AppColors.greyText,
             ),
           ),
         ],
@@ -333,11 +360,11 @@ class _OcrHomePageState extends State<OcrHomePage> {
         Expanded(
           child: RefreshIndicator(
             onRefresh: _loadResults,
-            color: AppColors.primary,
+            color: AppColors.black,
             child: ListView.separated(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
               itemCount: _results.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (_, i) {
                 final result = _results[i];
                 return OcrHistoryItem(
@@ -365,12 +392,9 @@ class _OcrHomePageState extends State<OcrHomePage> {
       margin: const EdgeInsets.all(20),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFE0F2FE), Color(0xFFBAE6FD)],
-        ),
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.greyBorder),
       ),
       child: Row(
         children: [
@@ -378,11 +402,15 @@ class _OcrHomePageState extends State<OcrHomePage> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.7),
+              color: AppColors.greyLighter,
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: const Text('🔍', style: TextStyle(fontSize: 22)),
+            child: Icon(
+              Icons.document_scanner_outlined,
+              color: AppColors.black,
+              size: 20,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -391,52 +419,39 @@ class _OcrHomePageState extends State<OcrHomePage> {
               children: [
                 Text(
                   'Riwayat Ekstraksi',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.robotoMono(
                     fontSize: 11,
-                    color: Colors.grey.shade700,
+                    color: AppColors.greyText,
                   ),
                 ),
+                const SizedBox(height: 2),
                 Text(
                   '${_results.length} hasil · $totalWords kata',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.robotoMono(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+                    color: AppColors.black,
                   ),
                 ),
               ],
             ),
           ),
-          Icon(
-            Icons.auto_awesome_rounded,
-            color: AppColors.primary,
-            size: 20,
-          ),
+          Icon(Icons.auto_awesome_rounded, color: AppColors.greyText, size: 20),
         ],
       ),
     );
   }
 
   Widget _buildFab() {
-    return FloatingActionButton.extended(
+    return FloatingActionButton(
       onPressed: _startOcr,
-      backgroundColor: AppColors.primary,
-      elevation: 6,
-      icon: const Icon(
+      backgroundColor: AppColors.black,
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: const Icon(
         Icons.text_fields_rounded,
         color: Colors.white,
-        size: 20,
-      ),
-      label: Text(
-        'Ekstrak',
-        style: GoogleFonts.poppins(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: Colors.white,
-        ),
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        size: 22,
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ploopy/core/theme/app_colors.dart';
 
 class ToolCard extends StatelessWidget {
   final Map<String, dynamic> tool;
@@ -13,27 +14,26 @@ class ToolCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = tool['color'] as Color;
     final available = tool['available'] as bool;
 
     return Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade100, width: 1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.greyBorder, width: 1),
           ),
           child: Row(
             children: [
-              _buildIcon(color, available),
+              _buildIcon(available),
               const SizedBox(width: 14),
               Expanded(child: _buildInfo(available)),
-              _buildTrailing(available, color),
+              _buildTrailing(available),
             ],
           ),
         ),
@@ -41,18 +41,18 @@ class ToolCard extends StatelessWidget {
     );
   }
 
-  Widget _buildIcon(Color color, bool available) {
+  Widget _buildIcon(bool available) {
     return Container(
-      width: 46,
-      height: 46,
+      width: 40,
+      height: 40,
       decoration: BoxDecoration(
-        color: available ? color.withOpacity(0.12) : Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
+        color: available ? AppColors.greyLight : Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Icon(
         tool['icon'] as IconData,
-        color: available ? color : Colors.grey.shade400,
-        size: 22,
+        color: available ? AppColors.black : Colors.grey.shade400,
+        size: 20,
       ),
     );
   }
@@ -64,18 +64,18 @@ class ToolCard extends StatelessWidget {
       children: [
         Text(
           tool['label'] as String,
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.robotoMono(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: available ? Colors.black87 : Colors.grey.shade500,
+            color: available ? AppColors.black : AppColors.greyHint,
           ),
         ),
         const SizedBox(height: 2),
         Text(
           tool['description'] as String,
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.robotoMono(
             fontSize: 11,
-            color: Colors.grey.shade500,
+            color: AppColors.greyText,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -84,20 +84,20 @@ class ToolCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTrailing(bool available, Color color) {
+  Widget _buildTrailing(bool available) {
     if (!available) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(8),
+          color: AppColors.greyLight,
+          borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
           'Soon',
-          style: GoogleFonts.poppins(
-            fontSize: 9,
+          style: GoogleFonts.robotoMono(
+            fontSize: 10,
             fontWeight: FontWeight.w600,
-            color: Colors.grey.shade500,
+            color: AppColors.greyText,
           ),
         ),
       );
@@ -106,7 +106,7 @@ class ToolCard extends StatelessWidget {
     return Icon(
       Icons.chevron_right_rounded,
       size: 22,
-      color: Colors.grey.shade300,
+      color: AppColors.greyBorder,
     );
   }
 }
