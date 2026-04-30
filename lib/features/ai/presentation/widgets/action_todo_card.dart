@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class ActionTodoCard extends StatelessWidget {
   final Map<String, dynamic> data;
@@ -12,34 +13,30 @@ class ActionTodoCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildRow(
-          icon: Icons.check_circle_rounded,
-          color: const Color(0xFF6BCB77),
+          icon: Icons.check_circle_outline,
           label: 'Task',
           value: data['title'] as String? ?? '-',
         ),
-        if (data['description'] != null && (data['description'] as String).isNotEmpty)
+        if (data['description'] != null &&
+            (data['description'] as String).isNotEmpty)
           _buildRow(
-            icon: Icons.notes_rounded,
-            color: Colors.grey.shade600,
+            icon: Icons.notes_outlined,
             label: 'Deskripsi',
             value: data['description'] as String,
           ),
         _buildRow(
-          icon: Icons.calendar_today_rounded,
-          color: const Color(0xFF4D96FF),
+          icon: Icons.calendar_today_outlined,
           label: 'Tanggal',
           value: _formatDate(data['date'] as String?),
         ),
         _buildRow(
-          icon: Icons.access_time_rounded,
-          color: const Color(0xFFFF8C42),
+          icon: Icons.access_time_outlined,
           label: 'Waktu',
           value: data['time'] as String? ?? '-',
         ),
         if (data['duration'] != null)
           _buildRow(
-            icon: Icons.timer_rounded,
-            color: const Color(0xFFB79CED),
+            icon: Icons.timer_outlined,
             label: 'Durasi',
             value: '${data['duration']} menit',
           ),
@@ -50,7 +47,6 @@ class ActionTodoCard extends StatelessWidget {
 
   Widget _buildRow({
     required IconData icon,
-    required Color color,
     required String label,
     required String value,
   }) {
@@ -58,36 +54,13 @@ class ActionTodoCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            alignment: Alignment.center,
-            child: Icon(icon, size: 14, color: color),
-          ),
+          _buildIcon(icon),
           const SizedBox(width: 10),
-          SizedBox(
-            width: 70,
-            child: Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                color: Colors.grey.shade500,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
+          SizedBox(width: 70, child: Text(label, style: AppTextStyles.caption)),
           Expanded(
             child: Text(
               value,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
+              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -97,20 +70,16 @@ class ActionTodoCard extends StatelessWidget {
 
   Widget _buildPriority() {
     final priority = data['priority'] as String? ?? 'medium';
-    Color color;
-    String label;
+    late final String label;
 
     switch (priority.toLowerCase()) {
       case 'high':
-        color = Colors.red.shade400;
         label = 'Tinggi';
         break;
       case 'low':
-        color = Colors.green.shade400;
         label = 'Rendah';
         break;
       default:
-        color = Colors.orange.shade400;
         label = 'Sedang';
     }
 
@@ -118,45 +87,43 @@ class ActionTodoCard extends StatelessWidget {
       padding: const EdgeInsets.only(top: 6),
       child: Row(
         children: [
-          Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            alignment: Alignment.center,
-            child: Icon(Icons.flag_rounded, size: 14, color: color),
-          ),
+          _buildIcon(Icons.flag_outlined),
           const SizedBox(width: 10),
           SizedBox(
             width: 70,
-            child: Text(
-              'Prioritas',
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                color: Colors.grey.shade500,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+            child: Text('Prioritas', style: AppTextStyles.caption),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
+              color: AppColors.greyLight,
               borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.greyBorder),
             ),
             child: Text(
               label,
-              style: GoogleFonts.poppins(
-                fontSize: 10,
+              style: AppTextStyles.small.copyWith(
+                color: AppColors.black,
                 fontWeight: FontWeight.w700,
-                color: color,
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildIcon(IconData icon) {
+    return Container(
+      width: 28,
+      height: 28,
+      decoration: BoxDecoration(
+        color: AppColors.greyLight,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.greyBorder),
+      ),
+      alignment: Alignment.center,
+      child: Icon(icon, size: 14, color: AppColors.black),
     );
   }
 
@@ -169,8 +136,18 @@ class ActionTodoCard extends StatelessWidget {
       final month = int.parse(parts[1]);
       final day = int.parse(parts[2]);
       const months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-        'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'Mei',
+        'Jun',
+        'Jul',
+        'Ags',
+        'Sep',
+        'Okt',
+        'Nov',
+        'Des',
       ];
       return '$day ${months[month - 1]} $year';
     } catch (_) {

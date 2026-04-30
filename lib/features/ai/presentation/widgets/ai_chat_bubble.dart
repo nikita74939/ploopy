@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class AiChatBubble extends StatelessWidget {
   final String text;
@@ -24,10 +24,7 @@ class AiChatBubble extends StatelessWidget {
             isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!isUser) ...[
-            _buildAiAvatar(),
-            const SizedBox(width: 8),
-          ],
+          if (!isUser) ...[_buildAiAvatar(), const SizedBox(width: 8)],
           Flexible(child: _buildBubble(context)),
         ],
       ),
@@ -38,14 +35,17 @@ class AiChatBubble extends StatelessWidget {
     return Container(
       width: 32,
       height: 32,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFFF8C42), Color(0xFFFF6B42)],
-        ),
+      decoration: BoxDecoration(
+        color: AppColors.white,
         shape: BoxShape.circle,
+        border: Border.all(color: AppColors.greyBorder),
       ),
       alignment: Alignment.center,
-      child: const Text('🤖', style: TextStyle(fontSize: 16)),
+      child: const Icon(
+        Icons.smart_toy_outlined,
+        size: 17,
+        color: AppColors.black,
+      ),
     );
   }
 
@@ -54,38 +54,30 @@ class AiChatBubble extends StatelessWidget {
       constraints: BoxConstraints(
         maxWidth: MediaQuery.of(context).size.width * 0.78,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       decoration: BoxDecoration(
-        color: isUser
-            ? AppColors.primary
-            : (isError ? Colors.red.shade50 : Colors.white),
-        borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(18),
-          topRight: const Radius.circular(18),
-          bottomLeft: Radius.circular(isUser ? 18 : 4),
-          bottomRight: Radius.circular(isUser ? 4 : 18),
-        ),
-        border: isUser
-            ? null
-            : Border.all(
-                color: isError ? Colors.red.shade200 : Colors.grey.shade100,
-                width: 1,
-              ),
+        color: isUser ? AppColors.primary : AppColors.white,
+        borderRadius: BorderRadius.circular(8),
+        border:
+            isUser
+                ? null
+                : Border.all(
+                  color:
+                      isError ? AppColors.primaryBorder : AppColors.greyBorder,
+                  width: 1,
+                ),
       ),
-      child: isUser
-          ? _buildUserText()
-          : (isError ? _buildErrorText() : _buildAiMarkdown()),
+      child:
+          isUser
+              ? _buildUserText()
+              : (isError ? _buildErrorText() : _buildAiMarkdown()),
     );
   }
 
   Widget _buildUserText() {
     return Text(
       text,
-      style: GoogleFonts.poppins(
-        fontSize: 13,
-        color: Colors.white,
-        height: 1.5,
-      ),
+      style: AppTextStyles.body.copyWith(color: AppColors.white, height: 1.5),
     );
   }
 
@@ -93,14 +85,17 @@ class AiChatBubble extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.error_outline_rounded, size: 16, color: Colors.red.shade400),
+        const Icon(
+          Icons.error_outline_rounded,
+          size: 16,
+          color: AppColors.grey,
+        ),
         const SizedBox(width: 8),
         Flexible(
           child: Text(
             text,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: Colors.red.shade700,
+            style: AppTextStyles.small.copyWith(
+              color: AppColors.black,
               height: 1.5,
             ),
           ),
@@ -110,59 +105,36 @@ class AiChatBubble extends StatelessWidget {
   }
 
   Widget _buildAiMarkdown() {
+    final base = AppTextStyles.body.copyWith(
+      color: AppColors.black,
+      height: 1.5,
+    );
+
     return MarkdownBody(
       data: text,
       selectable: true,
       styleSheet: MarkdownStyleSheet(
-        p: GoogleFonts.poppins(
-          fontSize: 13,
-          color: Colors.black87,
-          height: 1.5,
-        ),
-        h1: GoogleFonts.poppins(
-          fontSize: 17,
-          fontWeight: FontWeight.w700,
-          color: Colors.black87,
-        ),
-        h2: GoogleFonts.poppins(
-          fontSize: 15,
-          fontWeight: FontWeight.w700,
-          color: Colors.black87,
-        ),
-        h3: GoogleFonts.poppins(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: Colors.black87,
-        ),
-        strong: GoogleFonts.poppins(
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: Colors.black87,
-        ),
-        em: GoogleFonts.poppins(
-          fontSize: 13,
-          fontStyle: FontStyle.italic,
-          color: Colors.black87,
-        ),
-        code: GoogleFonts.firaCode(
-          fontSize: 12,
-          color: AppColors.primary,
-          backgroundColor: Colors.grey.shade100,
+        p: base,
+        h1: AppTextStyles.heading.copyWith(fontSize: 17),
+        h2: AppTextStyles.heading.copyWith(fontSize: 15),
+        h3: AppTextStyles.heading.copyWith(fontSize: 14),
+        strong: base.copyWith(fontWeight: FontWeight.w700),
+        em: base.copyWith(fontStyle: FontStyle.italic),
+        code: AppTextStyles.small.copyWith(
+          color: AppColors.black,
+          backgroundColor: AppColors.greyLight,
         ),
         codeblockDecoration: BoxDecoration(
-          color: Colors.grey.shade900,
+          color: AppColors.greyLight,
           borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.greyBorder),
         ),
         codeblockPadding: const EdgeInsets.all(12),
-        blockquote: GoogleFonts.poppins(
-          fontSize: 13,
-          color: Colors.grey.shade600,
+        blockquote: base.copyWith(
+          color: AppColors.grey,
           fontStyle: FontStyle.italic,
         ),
-        listBullet: GoogleFonts.poppins(
-          fontSize: 13,
-          color: Colors.black87,
-        ),
+        listBullet: base,
       ),
     );
   }

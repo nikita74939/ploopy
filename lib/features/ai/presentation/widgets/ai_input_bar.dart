@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class AiInputBar extends StatefulWidget {
   final TextEditingController controller;
@@ -43,11 +43,9 @@ class _AiInputBarState extends State<AiInputBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.grey.shade100, width: 1),
-        ),
+      decoration: const BoxDecoration(
+        color: AppColors.white,
+        border: Border(top: BorderSide(color: AppColors.greyBorder, width: 1)),
       ),
       child: SafeArea(
         top: false,
@@ -69,10 +67,11 @@ class _AiInputBarState extends State<AiInputBar> {
   Widget _buildTextField() {
     return Container(
       constraints: const BoxConstraints(minHeight: 44, maxHeight: 140),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(22),
+        color: AppColors.greyLight,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.greyBorder),
       ),
       child: TextField(
         controller: widget.controller,
@@ -80,19 +79,10 @@ class _AiInputBarState extends State<AiInputBar> {
         minLines: 1,
         enabled: !widget.isLoading,
         textCapitalization: TextCapitalization.sentences,
-        style: GoogleFonts.poppins(
-          fontSize: 13,
-          color: Colors.black87,
-          height: 1.4,
-        ),
+        style: AppTextStyles.body.copyWith(color: AppColors.black, height: 1.4),
         decoration: InputDecoration(
-          hintText: widget.isLoading
-              ? 'AI lagi ngetik...'
-              : 'Tanya apapun... 🤔',
-          hintStyle: GoogleFonts.poppins(
-            fontSize: 13,
-            color: Colors.grey.shade500,
-          ),
+          hintText: widget.isLoading ? 'AI lagi ngetik...' : 'Tanya apapun...',
+          hintStyle: AppTextStyles.hint,
           border: InputBorder.none,
           isDense: true,
           contentPadding: const EdgeInsets.symmetric(vertical: 11),
@@ -109,32 +99,36 @@ class _AiInputBarState extends State<AiInputBar> {
       width: 44,
       height: 44,
       decoration: BoxDecoration(
-        color: canSend ? AppColors.primary : Colors.grey.shade200,
-        shape: BoxShape.circle,
+        color: canSend ? AppColors.primary : AppColors.greyLight,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: canSend ? AppColors.primary : AppColors.greyBorder,
+        ),
       ),
       child: Material(
         color: Colors.transparent,
-        shape: const CircleBorder(),
+        borderRadius: BorderRadius.circular(8),
         child: InkWell(
-          customBorder: const CircleBorder(),
+          borderRadius: BorderRadius.circular(8),
           onTap: canSend ? widget.onSend : null,
-          child: widget.isLoading
-              ? const Padding(
-                  padding: EdgeInsets.all(12),
-                  child: SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
+          child:
+              widget.isLoading
+                  ? const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.black,
+                      ),
                     ),
+                  )
+                  : Icon(
+                    Icons.arrow_upward_rounded,
+                    size: 20,
+                    color: canSend ? AppColors.white : AppColors.greyHint,
                   ),
-                )
-              : Icon(
-                  Icons.arrow_upward_rounded,
-                  size: 20,
-                  color: canSend ? Colors.white : Colors.grey.shade400,
-                ),
         ),
       ),
     );

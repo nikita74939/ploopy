@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class ActionPostCard extends StatelessWidget {
   final Map<String, dynamic> data;
@@ -9,26 +10,25 @@ class ActionPostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = data['content'] as String? ?? '';
-    final mood = data['mood'] as String? ?? '😊';
     final achievements = (data['achievements'] as List?) ?? [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildPreviewPost(content, mood, achievements),
+        _buildPreviewPost(content, achievements),
         const SizedBox(height: 10),
         _buildMetadata(achievements),
       ],
     );
   }
 
-  Widget _buildPreviewPost(String content, String mood, List achievements) {
+  Widget _buildPreviewPost(String content, List achievements) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade100, width: 1),
+        color: AppColors.greyLighter,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.greyBorder, width: 1),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,11 +37,16 @@ class ActionPostCard extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFFFFE89E),
+              color: AppColors.white,
               shape: BoxShape.circle,
+              border: Border.all(color: AppColors.greyBorder),
             ),
             alignment: Alignment.center,
-            child: Text(mood, style: const TextStyle(fontSize: 20)),
+            child: const Icon(
+              Icons.person_outline,
+              size: 20,
+              color: AppColors.black,
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -49,33 +54,36 @@ class ActionPostCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (achievements.isNotEmpty) ...[
-                  Row(
-                    children: achievements.take(5).map<Widget>((a) {
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 4),
-                        child: Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            a.toString(),
-                            style: const TextStyle(fontSize: 11),
-                          ),
-                        ),
-                      );
-                    }).toList(),
+                  Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
+                    children:
+                        achievements.take(5).map<Widget>((a) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.greyBorder),
+                            ),
+                            child: Text(
+                              a.toString(),
+                              style: AppTextStyles.caption.copyWith(
+                                color: AppColors.black,
+                              ),
+                            ),
+                          );
+                        }).toList(),
                   ),
                   const SizedBox(height: 6),
                 ],
                 Text(
                   content,
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    color: Colors.black87,
+                  style: AppTextStyles.small.copyWith(
+                    color: AppColors.black,
                     height: 1.4,
                   ),
                 ),
@@ -90,33 +98,23 @@ class ActionPostCard extends StatelessWidget {
   Widget _buildMetadata(List achievements) {
     return Row(
       children: [
-        Icon(
-          Icons.public_rounded,
-          size: 12,
-          color: Colors.grey.shade500,
-        ),
+        const Icon(Icons.public_outlined, size: 12, color: AppColors.grey),
         const SizedBox(width: 4),
-        Text(
-          'Akan di-post ke feed kamu',
-          style: GoogleFonts.poppins(
-            fontSize: 10,
-            color: Colors.grey.shade500,
-          ),
-        ),
+        Text('Akan di-post ke feed kamu', style: AppTextStyles.caption),
         const Spacer(),
         if (achievements.isNotEmpty)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: Colors.amber.shade50,
+              color: AppColors.greyLight,
               borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.greyBorder),
             ),
             child: Text(
-              '🏆 ${achievements.length} achievement',
-              style: GoogleFonts.poppins(
-                fontSize: 9,
+              '${achievements.length} achievement',
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.black,
                 fontWeight: FontWeight.w600,
-                color: Colors.amber.shade700,
               ),
             ),
           ),

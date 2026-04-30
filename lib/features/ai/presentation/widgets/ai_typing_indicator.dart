@@ -24,11 +24,13 @@ class _AiTypingIndicatorState extends State<AiTypingIndicator>
       ),
     );
 
-    _animations = _controllers.map((c) {
-      return Tween<double>(begin: 0.3, end: 1.0).animate(
-        CurvedAnimation(parent: c, curve: Curves.easeInOut),
-      );
-    }).toList();
+    _animations =
+        _controllers.map((c) {
+          return Tween<double>(
+            begin: 0.3,
+            end: 1.0,
+          ).animate(CurvedAnimation(parent: c, curve: Curves.easeInOut));
+        }).toList();
 
     _startAnimations();
   }
@@ -60,16 +62,11 @@ class _AiTypingIndicatorState extends State<AiTypingIndicator>
           _buildAiAvatar(),
           const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(18),
-                topRight: Radius.circular(18),
-                bottomLeft: Radius.circular(4),
-                bottomRight: Radius.circular(18),
-              ),
-              border: Border.all(color: Colors.grey.shade100, width: 1),
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.greyBorder, width: 1),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -78,16 +75,17 @@ class _AiTypingIndicatorState extends State<AiTypingIndicator>
                   padding: EdgeInsets.only(right: i == 2 ? 0 : 4),
                   child: AnimatedBuilder(
                     animation: _animations[i],
-                    builder: (_, __) => Container(
-                      width: 7,
-                      height: 7,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(
-                          _animations[i].value,
+                    builder:
+                        (_, __) => Container(
+                          width: 7,
+                          height: 7,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(
+                              alpha: _animations[i].value,
+                            ),
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
                   ),
                 );
               }),
@@ -103,13 +101,16 @@ class _AiTypingIndicatorState extends State<AiTypingIndicator>
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFF8C42), Color(0xFFFF6B42)],
-        ),
+        color: AppColors.white,
         shape: BoxShape.circle,
+        border: Border.all(color: AppColors.greyBorder),
       ),
       alignment: Alignment.center,
-      child: const Text('🤖', style: TextStyle(fontSize: 16)),
+      child: const Icon(
+        Icons.smart_toy_outlined,
+        size: 17,
+        color: AppColors.black,
+      ),
     );
   }
 }

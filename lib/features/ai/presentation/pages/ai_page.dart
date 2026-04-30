@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/services/action_handler_service.dart';
 import '../../../../shared/services/ai_service.dart';
 import '../../domain/ai_action.dart';
@@ -84,10 +85,8 @@ class _AiPageState extends State<AiPage> {
 
       setState(() {
         if (action.type == AiActionType.none) {
-          // Plain text response
           _messages.add(_ChatItem.ai(action.message));
         } else {
-          // Action with preview card
           _messages.add(_ChatItem.action(action));
         }
         _isLoading = false;
@@ -123,7 +122,6 @@ class _AiPageState extends State<AiPage> {
         }
       });
 
-      // Show success feedback
       if (result.success && mounted) {
         _showSuccessSnackbar(result.message);
       }
@@ -149,19 +147,19 @@ class _AiPageState extends State<AiPage> {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white),
+            const Icon(Icons.check_circle_outline, color: AppColors.white),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 message,
-                style: GoogleFonts.poppins(color: Colors.white, fontSize: 12),
+                style: AppTextStyles.small.copyWith(color: AppColors.white),
               ),
             ),
           ],
         ),
-        backgroundColor: Colors.green.shade600,
+        backgroundColor: AppColors.primary,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 3),
       ),
@@ -174,40 +172,31 @@ class _AiPageState extends State<AiPage> {
       builder:
           (ctx) => AlertDialog(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(8),
             ),
-            title: Text(
-              'Reset Chat?',
-              style: GoogleFonts.poppins(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+            title: Text('Reset Chat?', style: AppTextStyles.heading),
             content: Text(
               'Semua riwayat chat akan dihapus. Yakin?',
-              style: GoogleFonts.poppins(fontSize: 12),
+              style: AppTextStyles.body,
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
                 child: Text(
                   'Batal',
-                  style: GoogleFonts.poppins(color: Colors.grey.shade600),
+                  style: AppTextStyles.body.copyWith(color: AppColors.grey),
                 ),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.shade400,
+                  backgroundColor: AppColors.primary,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Text(
-                  'Reset',
-                  style: GoogleFonts.poppins(color: Colors.white),
-                ),
+                child: Text('Reset', style: AppTextStyles.buttonPrimary),
               ),
             ],
           ),
@@ -222,7 +211,7 @@ class _AiPageState extends State<AiPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppColors.greyLighter,
       appBar: _buildAppBar(),
       body: SafeArea(
         child: Column(
@@ -242,10 +231,10 @@ class _AiPageState extends State<AiPage> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_rounded, color: Colors.black87),
+        icon: const Icon(Icons.arrow_back_rounded, color: AppColors.black),
         onPressed: () => Navigator.pop(context),
       ),
       title: Row(
@@ -253,46 +242,36 @@ class _AiPageState extends State<AiPage> {
           Container(
             width: 34,
             height: 34,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFFFF8C42), Color(0xFFFF6B42)],
-              ),
+            decoration: BoxDecoration(
+              color: AppColors.white,
               shape: BoxShape.circle,
+              border: Border.all(color: AppColors.greyBorder),
             ),
             alignment: Alignment.center,
-            child: const Text('🤖', style: TextStyle(fontSize: 16)),
+            child: const Icon(
+              Icons.smart_toy_outlined,
+              size: 18,
+              color: AppColors.black,
+            ),
           ),
           const SizedBox(width: 10),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'Ploopy AI',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                ),
-              ),
+              Text('Ploopy AI', style: AppTextStyles.heading),
               Row(
                 children: [
                   Container(
                     width: 6,
                     height: 6,
                     decoration: const BoxDecoration(
-                      color: Colors.green,
+                      color: AppColors.black,
                       shape: BoxShape.circle,
                     ),
                   ),
                   const SizedBox(width: 4),
-                  Text(
-                    'Online · Agentic Mode',
-                    style: GoogleFonts.poppins(
-                      fontSize: 10,
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
+                  Text('Online - Agentic Mode', style: AppTextStyles.caption),
                 ],
               ),
             ],
@@ -302,12 +281,14 @@ class _AiPageState extends State<AiPage> {
       actions: [
         if (_messages.isNotEmpty && _initError == null)
           IconButton(
-            icon: Icon(Icons.refresh_rounded, color: Colors.grey.shade700),
+            icon: const Icon(Icons.refresh_rounded, color: AppColors.grey),
             onPressed: _resetChat,
             tooltip: 'Reset Chat',
           ),
       ],
-      shape: Border(bottom: BorderSide(color: Colors.grey.shade100, width: 1)),
+      shape: const Border(
+        bottom: BorderSide(color: AppColors.greyBorder, width: 1),
+      ),
     );
   }
 
@@ -335,17 +316,14 @@ class _AiPageState extends State<AiPage> {
 
         final item = _messages[i];
 
-        // User message
         if (item.isUser) {
           return AiChatBubble(text: item.text, isUser: true);
         }
 
-        // Error message
         if (item.isError) {
           return AiChatBubble(text: item.text, isUser: false, isError: true);
         }
 
-        // AI action (preview card)
         if (item.action != null) {
           return AiActionPreviewCard(
             action: item.action!,
@@ -357,7 +335,6 @@ class _AiPageState extends State<AiPage> {
           );
         }
 
-        // AI plain text
         return AiChatBubble(text: item.text, isUser: false);
       },
     );
@@ -370,23 +347,26 @@ class _AiPageState extends State<AiPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('😢', style: TextStyle(fontSize: 48)),
-            const SizedBox(height: 16),
-            Text(
-              'AI belum siap',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppColors.greyLight,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.greyBorder),
+              ),
+              child: const Icon(
+                Icons.cloud_off_outlined,
+                color: AppColors.black,
               ),
             ),
+            const SizedBox(height: 16),
+            Text('AI belum siap', style: AppTextStyles.heading),
             const SizedBox(height: 6),
             Text(
               _initError ?? 'Unknown error',
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: Colors.grey.shade600,
-              ),
+              style: AppTextStyles.small,
             ),
           ],
         ),
@@ -400,18 +380,15 @@ class _ChatItem {
   final bool isError;
   final String text;
   final AiAction? action;
-  bool isProcessing;
-  bool isExecuted;
-  bool isCancelled;
+  bool isProcessing = false;
+  bool isExecuted = false;
+  bool isCancelled = false;
 
   _ChatItem({
     required this.isUser,
     required this.isError,
     required this.text,
     this.action,
-    this.isProcessing = false,
-    this.isExecuted = false,
-    this.isCancelled = false,
   });
 
   factory _ChatItem.user(String text) =>

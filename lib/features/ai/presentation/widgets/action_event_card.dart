@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class ActionEventCard extends StatelessWidget {
   final Map<String, dynamic> data;
@@ -12,41 +13,36 @@ class ActionEventCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildRow(
-          icon: Icons.event_rounded,
-          color: const Color(0xFFFF8C42),
+          icon: Icons.event_outlined,
           label: 'Event',
           value: data['title'] as String? ?? '-',
         ),
-        if (data['description'] != null && (data['description'] as String).isNotEmpty)
+        if (data['description'] != null &&
+            (data['description'] as String).isNotEmpty)
           _buildRow(
-            icon: Icons.notes_rounded,
-            color: Colors.grey.shade600,
+            icon: Icons.notes_outlined,
             label: 'Deskripsi',
             value: data['description'] as String,
           ),
         _buildRow(
-          icon: Icons.calendar_today_rounded,
-          color: const Color(0xFF4D96FF),
+          icon: Icons.calendar_today_outlined,
           label: 'Tanggal',
           value: _formatDate(data['date'] as String?),
         ),
         _buildRow(
-          icon: Icons.access_time_rounded,
-          color: const Color(0xFFFF8C42),
+          icon: Icons.access_time_outlined,
           label: 'Waktu',
           value: data['time'] as String? ?? '-',
         ),
         if (data['location'] != null)
           _buildRow(
-            icon: Icons.location_on_rounded,
-            color: const Color(0xFFFF6B6B),
+            icon: Icons.location_on_outlined,
             label: 'Lokasi',
             value: data['location'] as String,
           ),
         if (data['category'] != null)
           _buildRow(
-            icon: Icons.category_rounded,
-            color: const Color(0xFFB79CED),
+            icon: Icons.category_outlined,
             label: 'Kategori',
             value: data['category'] as String,
           ),
@@ -56,7 +52,6 @@ class ActionEventCard extends StatelessWidget {
 
   Widget _buildRow({
     required IconData icon,
-    required Color color,
     required String label,
     required String value,
   }) {
@@ -69,25 +64,19 @@ class ActionEventCard extends StatelessWidget {
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
+              color: AppColors.greyLight,
               borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.greyBorder),
             ),
             alignment: Alignment.center,
-            child: Icon(icon, size: 14, color: color),
+            child: Icon(icon, size: 14, color: AppColors.black),
           ),
           const SizedBox(width: 10),
           SizedBox(
             width: 70,
             child: Padding(
               padding: const EdgeInsets.only(top: 6),
-              child: Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 10,
-                  color: Colors.grey.shade500,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              child: Text(label, style: AppTextStyles.caption),
             ),
           ),
           Expanded(
@@ -95,11 +84,7 @@ class ActionEventCard extends StatelessWidget {
               padding: const EdgeInsets.only(top: 6),
               child: Text(
                 value,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
+                style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
               ),
             ),
           ),
@@ -117,8 +102,18 @@ class ActionEventCard extends StatelessWidget {
       final month = int.parse(parts[1]);
       final day = int.parse(parts[2]);
       const months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-        'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'Mei',
+        'Jun',
+        'Jul',
+        'Ags',
+        'Sep',
+        'Okt',
+        'Nov',
+        'Des',
       ];
       return '$day ${months[month - 1]} $year';
     } catch (_) {

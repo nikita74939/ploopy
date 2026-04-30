@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/ai_action.dart';
 import 'action_event_card.dart';
 import 'action_post_card.dart';
@@ -48,53 +48,39 @@ class _AiActionPreviewCardState extends State<AiActionPreviewCard> {
     return Container(
       width: 32,
       height: 32,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFFF8C42), Color(0xFFFF6B42)],
-        ),
+      decoration: BoxDecoration(
+        color: AppColors.white,
         shape: BoxShape.circle,
+        border: Border.all(color: AppColors.greyBorder),
       ),
       alignment: Alignment.center,
-      child: const Text('🤖', style: TextStyle(fontSize: 16)),
+      child: const Icon(
+        Icons.smart_toy_outlined,
+        size: 17,
+        color: AppColors.black,
+      ),
     );
   }
 
   Widget _buildCard() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(18),
-          topRight: Radius.circular(18),
-          bottomLeft: Radius.circular(4),
-          bottomRight: Radius.circular(18),
-        ),
-        border: Border.all(
-          color: _getBorderColor(),
-          width: 1.5,
-        ),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _getBorderColor(), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // AI message
           if (widget.action.message.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
               child: Text(
                 widget.action.message,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: Colors.black87,
-                  height: 1.4,
-                ),
+                style: AppTextStyles.body.copyWith(height: 1.4),
               ),
             ),
-
-          // Status banner (if executed/cancelled)
           if (widget.isExecuted || widget.isCancelled) _buildStatusBanner(),
-
-          // Preview card
           if (!widget.isCancelled) ...[
             _buildPreviewHeader(),
             Padding(
@@ -102,8 +88,6 @@ class _AiActionPreviewCardState extends State<AiActionPreviewCard> {
               child: _buildActionContent(),
             ),
           ],
-
-          // Action buttons (hanya tampil kalau belum di-execute/cancel)
           if (!widget.isExecuted && !widget.isCancelled) _buildButtons(),
         ],
       ),
@@ -111,38 +95,36 @@ class _AiActionPreviewCardState extends State<AiActionPreviewCard> {
   }
 
   Color _getBorderColor() {
-    if (widget.isExecuted) return Colors.green.shade300;
-    if (widget.isCancelled) return Colors.grey.shade300;
-    return AppColors.primary.withOpacity(0.3);
+    if (widget.isExecuted) return AppColors.primaryBorder;
+    if (widget.isCancelled) return AppColors.greyBorder;
+    return AppColors.greyBorder;
   }
 
   Widget _buildStatusBanner() {
     final isExec = widget.isExecuted;
-    final color = isExec ? Colors.green : Colors.grey;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.shade50,
+      decoration: const BoxDecoration(
+        color: AppColors.greyLight,
         border: Border(
-          bottom: BorderSide(color: color.shade100, width: 1),
+          bottom: BorderSide(color: AppColors.greyBorder, width: 1),
         ),
       ),
       child: Row(
         children: [
           Icon(
-            isExec ? Icons.check_circle_rounded : Icons.cancel_rounded,
+            isExec ? Icons.check_circle_outline : Icons.cancel_outlined,
             size: 14,
-            color: color.shade600,
+            color: AppColors.black,
           ),
           const SizedBox(width: 6),
           Text(
             isExec ? 'Berhasil ditambahkan' : 'Dibatalkan',
-            style: GoogleFonts.poppins(
-              fontSize: 11,
+            style: AppTextStyles.small.copyWith(
+              color: AppColors.black,
               fontWeight: FontWeight.w600,
-              color: color.shade700,
             ),
           ),
         ],
@@ -154,35 +136,42 @@ class _AiActionPreviewCardState extends State<AiActionPreviewCard> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.06),
+      decoration: const BoxDecoration(
+        color: AppColors.greyLight,
         border: Border(
-          top: BorderSide(
-            color: AppColors.primary.withOpacity(0.1),
-            width: 1,
-          ),
-          bottom: BorderSide(
-            color: AppColors.primary.withOpacity(0.1),
-            width: 1,
-          ),
+          top: BorderSide(color: AppColors.greyBorder, width: 1),
+          bottom: BorderSide(color: AppColors.greyBorder, width: 1),
         ),
       ),
       child: Row(
         children: [
-          Text(widget.action.emoji, style: const TextStyle(fontSize: 14)),
+          Icon(_getActionIcon(), size: 14, color: AppColors.black),
           const SizedBox(width: 6),
           Text(
-            'PREVIEW: ${widget.action.title.toUpperCase()}',
-            style: GoogleFonts.poppins(
-              fontSize: 10,
+            'Preview ${widget.action.title}',
+            style: AppTextStyles.small.copyWith(
+              color: AppColors.black,
               fontWeight: FontWeight.w700,
-              color: AppColors.primary,
-              letterSpacing: 0.5,
             ),
           ),
         ],
       ),
     );
+  }
+
+  IconData _getActionIcon() {
+    switch (widget.action.type) {
+      case AiActionType.todo:
+        return Icons.check_circle_outline;
+      case AiActionType.event:
+        return Icons.event_outlined;
+      case AiActionType.post:
+        return Icons.edit_note_outlined;
+      case AiActionType.pomodoro:
+        return Icons.timer_outlined;
+      case AiActionType.none:
+        return Icons.info_outline;
+    }
   }
 
   Widget _buildActionContent() {
@@ -206,20 +195,17 @@ class _AiActionPreviewCardState extends State<AiActionPreviewCard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildInfoRow(
-          Icons.timer_rounded,
-          const Color(0xFFFF8C42),
+          Icons.timer_outlined,
           'Durasi',
           '${data['duration_minutes'] ?? 25} menit',
         ),
         _buildInfoRow(
-          Icons.task_alt_rounded,
-          const Color(0xFF6BCB77),
+          Icons.task_alt_outlined,
           'Task',
           data['task'] as String? ?? '-',
         ),
         _buildInfoRow(
-          Icons.coffee_rounded,
-          const Color(0xFFB79CED),
+          Icons.coffee_outlined,
           'Istirahat',
           '${data['breaks'] ?? 5} menit',
         ),
@@ -227,7 +213,7 @@ class _AiActionPreviewCardState extends State<AiActionPreviewCard> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, Color color, String label, String value) {
+  Widget _buildInfoRow(IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -236,32 +222,19 @@ class _AiActionPreviewCardState extends State<AiActionPreviewCard> {
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
+              color: AppColors.greyLight,
               borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.greyBorder),
             ),
             alignment: Alignment.center,
-            child: Icon(icon, size: 14, color: color),
+            child: Icon(icon, size: 14, color: AppColors.black),
           ),
           const SizedBox(width: 10),
-          SizedBox(
-            width: 70,
-            child: Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                color: Colors.grey.shade500,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
+          SizedBox(width: 70, child: Text(label, style: AppTextStyles.caption)),
           Expanded(
             child: Text(
               value,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
+              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -274,14 +247,9 @@ class _AiActionPreviewCardState extends State<AiActionPreviewCard> {
       padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
       child: Row(
         children: [
-          Expanded(
-            child: _buildCancelButton(),
-          ),
+          Expanded(child: _buildCancelButton()),
           const SizedBox(width: 8),
-          Expanded(
-            flex: 2,
-            child: _buildConfirmButton(),
-          ),
+          Expanded(flex: 2, child: _buildConfirmButton()),
         ],
       ),
     );
@@ -289,28 +257,27 @@ class _AiActionPreviewCardState extends State<AiActionPreviewCard> {
 
   Widget _buildCancelButton() {
     return Material(
-      color: Colors.grey.shade100,
-      borderRadius: BorderRadius.circular(12),
+      color: AppColors.greyLight,
+      borderRadius: BorderRadius.circular(8),
       child: InkWell(
         onTap: widget.isProcessing ? null : widget.onCancel,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.greyBorder),
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.close_rounded,
-                size: 14,
-                color: Colors.grey.shade700,
-              ),
+              const Icon(Icons.close_rounded, size: 14, color: AppColors.grey),
               const SizedBox(width: 4),
               Text(
                 'Batal',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
+                style: AppTextStyles.small.copyWith(
+                  color: AppColors.grey,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade700,
                 ),
               ),
             ],
@@ -323,54 +290,51 @@ class _AiActionPreviewCardState extends State<AiActionPreviewCard> {
   Widget _buildConfirmButton() {
     return Material(
       color: AppColors.primary,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(8),
       child: InkWell(
         onTap: widget.isProcessing ? null : widget.onConfirm,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
-          child: widget.isProcessing
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+          child:
+              widget.isProcessing
+                  ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.white,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Memproses...',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                      const SizedBox(width: 8),
+                      Text(
+                        'Memproses...',
+                        style: AppTextStyles.buttonPrimary.copyWith(
+                          fontSize: 12,
+                        ),
                       ),
-                    ),
-                  ],
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.check_rounded,
-                      size: 16,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      _getConfirmText(),
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                    ],
+                  )
+                  : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.check_rounded,
+                        size: 16,
+                        color: AppColors.white,
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _getConfirmText(),
+                        style: AppTextStyles.buttonPrimary.copyWith(
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
         ),
       ),
     );
