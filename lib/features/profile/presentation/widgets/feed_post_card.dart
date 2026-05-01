@@ -38,7 +38,7 @@ class FeedPostCard extends StatelessWidget {
             children: [
               Text(
                 post['date'] as String,
-                style: GoogleFonts.robotoMono(
+                style: GoogleFonts.poppins(
                   fontSize: 10,
                   color: AppColors.greyHint,
                 ),
@@ -84,7 +84,7 @@ class FeedPostCard extends StatelessWidget {
           alignment: Alignment.center,
           child: Text(
             authorName.substring(0, 1).toUpperCase(),
-            style: GoogleFonts.robotoMono(
+            style: GoogleFonts.poppins(
               fontSize: 11,
               fontWeight: FontWeight.w700,
               color: AppColors.black,
@@ -94,7 +94,7 @@ class FeedPostCard extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           authorName,
-          style: GoogleFonts.robotoMono(
+          style: GoogleFonts.poppins(
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: AppColors.black,
@@ -103,10 +103,7 @@ class FeedPostCard extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           post['date'] as String,
-          style: GoogleFonts.robotoMono(
-            fontSize: 10,
-            color: AppColors.greyHint,
-          ),
+          style: GoogleFonts.poppins(fontSize: 10, color: AppColors.greyHint),
         ),
       ],
     );
@@ -115,7 +112,7 @@ class FeedPostCard extends StatelessWidget {
   Widget _buildContent() {
     return Text(
       post['content'] as String,
-      style: GoogleFonts.robotoMono(
+      style: GoogleFonts.poppins(
         fontSize: 12,
         color: AppColors.black,
         height: 1.5,
@@ -131,20 +128,21 @@ class FeedPostCard extends StatelessWidget {
       );
     }
     return Row(
-      children: images.take(3).map((img) {
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(right: img == images.last ? 0 : 6),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: _buildImage(img as String, double.infinity, null),
+      children:
+          images.take(3).map((img) {
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(right: img == images.last ? 0 : 6),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: _buildImage(img as String, double.infinity, null),
+                  ),
+                ),
               ),
-            ),
-          ),
-        );
-      }).toList(),
+            );
+          }).toList(),
     );
   }
 
@@ -167,14 +165,15 @@ class FeedPostCard extends StatelessWidget {
           ),
         );
       },
-      errorBuilder: (_, __, ___) => Container(
-        color: AppColors.greyLight,
-        child: const Icon(
-          Icons.broken_image_outlined,
-          color: AppColors.greyHint,
-          size: 22,
-        ),
-      ),
+      errorBuilder:
+          (_, __, ___) => Container(
+            color: AppColors.greyLight,
+            child: const Icon(
+              Icons.broken_image_outlined,
+              color: AppColors.greyHint,
+              size: 22,
+            ),
+          ),
     );
   }
 }

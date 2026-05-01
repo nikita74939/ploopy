@@ -32,7 +32,7 @@ class OcrEmptyState extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               'Belum ada hasil',
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: AppColors.black,
@@ -42,7 +42,7 @@ class OcrEmptyState extends StatelessWidget {
             Text(
               'Ambil foto atau pilih gambar untuk\nmengubah teks menjadi teks aktif',
               textAlign: TextAlign.center,
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 12,
                 color: AppColors.greyText,
                 height: 1.5,
@@ -71,7 +71,7 @@ class OcrEmptyState extends StatelessWidget {
                     const SizedBox(width: 10),
                     Text(
                       'Ambil Gambar',
-                      style: GoogleFonts.robotoMono(
+                      style: GoogleFonts.poppins(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,

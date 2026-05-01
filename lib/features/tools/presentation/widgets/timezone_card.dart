@@ -29,9 +29,10 @@ class TimezoneCard extends StatelessWidget {
         color: highlighted ? AppColors.primary.withOpacity(0.06) : Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: highlighted
-              ? AppColors.primary.withOpacity(0.3)
-              : Colors.grey.shade100,
+          color:
+              highlighted
+                  ? AppColors.primary.withOpacity(0.3)
+                  : Colors.grey.shade100,
           width: highlighted ? 1.5 : 1,
         ),
       ),
@@ -98,10 +99,7 @@ class TimezoneCard extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              tz?['flag'] ?? '🏳️',
-              style: const TextStyle(fontSize: 20),
-            ),
+            Text(tz?['flag'] ?? '🏳️', style: const TextStyle(fontSize: 20)),
             const SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,15 +183,32 @@ class TimezoneCard extends StatelessWidget {
 
   Widget _buildDateDisplay() {
     const days = [
-      'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+      'Minggu',
     ];
     const months = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
     ];
 
     final dayName = days[dateTime.weekday - 1];
-    final dateStr = '${dateTime.day} ${months[dateTime.month - 1]} ${dateTime.year}';
+    final dateStr =
+        '${dateTime.day} ${months[dateTime.month - 1]} ${dateTime.year}';
 
     return Row(
       children: [
@@ -205,10 +220,7 @@ class TimezoneCard extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           '$dayName, $dateStr',
-          style: GoogleFonts.poppins(
-            fontSize: 11,
-            color: Colors.grey.shade500,
-          ),
+          style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500),
         ),
       ],
     );

@@ -137,10 +137,7 @@ class UnitCategorySheet extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               alignment: Alignment.center,
-              child: Text(
-                cat.emoji,
-                style: const TextStyle(fontSize: 22),
-              ),
+              child: Text(cat.emoji, style: const TextStyle(fontSize: 22)),
             ),
             const SizedBox(height: 8),
             Text(

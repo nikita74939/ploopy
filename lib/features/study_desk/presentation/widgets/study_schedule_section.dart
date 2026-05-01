@@ -73,9 +73,10 @@ class _StudyScheduleSectionState extends State<StudyScheduleSection>
         // Content with fade animation
         FadeTransition(
           opacity: _fadeAnim,
-          child: items.isEmpty
-              ? _buildEmpty()
-              : _showSchedule
+          child:
+              items.isEmpty
+                  ? _buildEmpty()
+                  : _showSchedule
                   ? _buildScheduleList()
                   : _buildTaskList(),
         ),
@@ -100,7 +101,7 @@ class _StudyScheduleSectionState extends State<StudyScheduleSection>
               alignment: Alignment.centerLeft,
               child: Text(
                 _showSchedule ? 'Jadwal Hari Ini' : 'Tugas',
-                style: GoogleFonts.robotoMono(
+                style: GoogleFonts.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: AppColors.black,
@@ -159,15 +160,16 @@ class _StudyScheduleSectionState extends State<StudyScheduleSection>
         decoration: BoxDecoration(
           color: active ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
-          boxShadow: active
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 2,
-                    offset: const Offset(0, 1),
-                  ),
-                ]
-              : null,
+          boxShadow:
+              active
+                  ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 2,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]
+                  : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -180,7 +182,7 @@ class _StudyScheduleSectionState extends State<StudyScheduleSection>
             const SizedBox(width: 5),
             Text(
               label,
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 11,
                 fontWeight: active ? FontWeight.w600 : FontWeight.w400,
                 color: active ? AppColors.black : AppColors.greyHint,
@@ -195,7 +197,10 @@ class _StudyScheduleSectionState extends State<StudyScheduleSection>
   Widget _buildScheduleList() {
     return Column(
       children: List.generate(widget.scheduleItems.length, (i) {
-        return _buildScheduleItem(widget.scheduleItems[i], i == widget.scheduleItems.length - 1);
+        return _buildScheduleItem(
+          widget.scheduleItems[i],
+          i == widget.scheduleItems.length - 1,
+        );
       }),
     );
   }
@@ -215,7 +220,7 @@ class _StudyScheduleSectionState extends State<StudyScheduleSection>
               children: [
                 Text(
                   item['time'] as String,
-                  style: GoogleFonts.robotoMono(
+                  style: GoogleFonts.poppins(
                     fontSize: 10,
                     color: AppColors.greyText,
                     fontWeight: FontWeight.w500,
@@ -250,9 +255,10 @@ class _StudyScheduleSectionState extends State<StudyScheduleSection>
                     width: 1.5,
                   ),
                 ),
-                child: isDone
-                    ? const Icon(Icons.check, size: 11, color: Colors.white)
-                    : null,
+                child:
+                    isDone
+                        ? const Icon(Icons.check, size: 11, color: Colors.white)
+                        : null,
               ),
             ],
           ),
@@ -278,9 +284,10 @@ class _StudyScheduleSectionState extends State<StudyScheduleSection>
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: isDone
-                          ? AppColors.greyLight
-                          : color.withValues(alpha: 0.10),
+                      color:
+                          isDone
+                              ? AppColors.greyLight
+                              : color.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -297,13 +304,13 @@ class _StudyScheduleSectionState extends State<StudyScheduleSection>
                       children: [
                         Text(
                           item['title'] as String,
-                          style: GoogleFonts.robotoMono(
+                          style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: isDone ? AppColors.greyHint : AppColors.black,
-                            decoration: isDone
-                                ? TextDecoration.lineThrough
-                                : null,
+                            color:
+                                isDone ? AppColors.greyHint : AppColors.black,
+                            decoration:
+                                isDone ? TextDecoration.lineThrough : null,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -317,7 +324,7 @@ class _StudyScheduleSectionState extends State<StudyScheduleSection>
                             const SizedBox(width: 3),
                             Text(
                               item['duration'] as String,
-                              style: GoogleFonts.robotoMono(
+                              style: GoogleFonts.poppins(
                                 fontSize: 10,
                                 color: AppColors.greyHint,
                               ),
@@ -392,9 +399,14 @@ class _StudyScheduleSectionState extends State<StudyScheduleSection>
                   width: 1.5,
                 ),
               ),
-              child: done
-                  ? const Icon(Icons.check_rounded, color: Colors.white, size: 14)
-                  : null,
+              child:
+                  done
+                      ? const Icon(
+                        Icons.check_rounded,
+                        color: Colors.white,
+                        size: 14,
+                      )
+                      : null,
             ),
             const SizedBox(width: 10),
             // Icon
@@ -403,9 +415,10 @@ class _StudyScheduleSectionState extends State<StudyScheduleSection>
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: done
-                    ? AppColors.greyLight
-                    : itemColor.withValues(alpha: 0.10),
+                color:
+                    done
+                        ? AppColors.greyLight
+                        : itemColor.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -422,7 +435,7 @@ class _StudyScheduleSectionState extends State<StudyScheduleSection>
                 children: [
                   Text(
                     task['title'] as String,
-                    style: GoogleFonts.robotoMono(
+                    style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                       color: done ? AppColors.greyHint : AppColors.black,
@@ -432,7 +445,7 @@ class _StudyScheduleSectionState extends State<StudyScheduleSection>
                   if ((task['subject'] as String? ?? '').isNotEmpty)
                     Text(
                       task['subject'] as String,
-                      style: GoogleFonts.robotoMono(
+                      style: GoogleFonts.poppins(
                         fontSize: 10,
                         color: AppColors.greyText,
                       ),
@@ -451,7 +464,7 @@ class _StudyScheduleSectionState extends State<StudyScheduleSection>
                 ),
                 child: Text(
                   due,
-                  style: GoogleFonts.robotoMono(
+                  style: GoogleFonts.poppins(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
                     color: dueColor,
@@ -480,7 +493,7 @@ class _StudyScheduleSectionState extends State<StudyScheduleSection>
           children: [
             Text(
               'Lihat semua',
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: AppColors.primary,
@@ -513,10 +526,7 @@ class _StudyScheduleSectionState extends State<StudyScheduleSection>
           const SizedBox(height: 8),
           Text(
             _showSchedule ? 'Tidak ada jadwal' : 'Tidak ada tugas',
-            style: GoogleFonts.robotoMono(
-              fontSize: 12,
-              color: AppColors.greyHint,
-            ),
+            style: GoogleFonts.poppins(fontSize: 12, color: AppColors.greyHint),
           ),
         ],
       ),

@@ -32,7 +32,7 @@ class ScanEmptyState extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               'Belum ada scan',
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: AppColors.black,
@@ -42,7 +42,7 @@ class ScanEmptyState extends StatelessWidget {
             Text(
               'Arahkan kamera ke dokumen untuk memulai scan',
               textAlign: TextAlign.center,
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 12,
                 color: AppColors.greyText,
                 height: 1.5,
@@ -52,7 +52,10 @@ class ScanEmptyState extends StatelessWidget {
             GestureDetector(
               onTap: onScan,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.black,
                   borderRadius: BorderRadius.circular(12),
@@ -60,12 +63,15 @@ class ScanEmptyState extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.document_scanner_outlined, 
-                        color: Colors.white, size: 18),
+                    const Icon(
+                      Icons.document_scanner_outlined,
+                      color: Colors.white,
+                      size: 18,
+                    ),
                     const SizedBox(width: 10),
                     Text(
                       'Mulai Scan',
-                      style: GoogleFonts.robotoMono(
+                      style: GoogleFonts.poppins(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,

@@ -54,7 +54,7 @@ class _ProfilePageState extends State<ProfilePage> {
             backgroundColor: Colors.white,
             title: Text(
               'Keluar?',
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
                 color: AppColors.black,
@@ -62,7 +62,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             content: Text(
               'Kamu yakin mau keluar dari akunmu?',
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 12,
                 color: AppColors.greyText,
               ),
@@ -72,14 +72,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 onPressed: () => Navigator.pop(ctx, false),
                 child: Text(
                   'Batal',
-                  style: GoogleFonts.robotoMono(color: AppColors.greyText),
+                  style: GoogleFonts.poppins(color: AppColors.greyText),
                 ),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 child: Text(
                   'Keluar',
-                  style: GoogleFonts.robotoMono(
+                  style: GoogleFonts.poppins(
                     color: Colors.red.shade500,
                     fontWeight: FontWeight.w600,
                   ),
@@ -196,10 +196,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return Center(
       child: Text(
         'Ploopy v1.0.0',
-        style: GoogleFonts.robotoMono(
-          fontSize: 10,
-          color: AppColors.greyHandle,
-        ),
+        style: GoogleFonts.poppins(fontSize: 10, color: AppColors.greyHandle),
       ),
     );
   }
@@ -268,7 +265,7 @@ class _ProfileTopSection extends StatelessWidget {
           // Name
           Text(
             name,
-            style: GoogleFonts.robotoMono(
+            style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w700,
               color: AppColors.black,
@@ -277,10 +274,7 @@ class _ProfileTopSection extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             email,
-            style: GoogleFonts.robotoMono(
-              fontSize: 11,
-              color: AppColors.greyText,
-            ),
+            style: GoogleFonts.poppins(fontSize: 11, color: AppColors.greyText),
           ),
           const SizedBox(height: 4),
           Row(
@@ -293,7 +287,7 @@ class _ProfileTopSection extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 'Bergabung $joinYear',
-                style: GoogleFonts.robotoMono(
+                style: GoogleFonts.poppins(
                   fontSize: 11,
                   color: AppColors.greyHint,
                 ),
@@ -332,7 +326,7 @@ class _ProfileTopSection extends StatelessWidget {
       alignment: Alignment.center,
       child: Text(
         name.isNotEmpty ? name[0].toUpperCase() : '?',
-        style: GoogleFonts.robotoMono(
+        style: GoogleFonts.poppins(
           fontSize: 26,
           fontWeight: FontWeight.w700,
           color: AppColors.black,
@@ -366,7 +360,7 @@ class _StatChip extends StatelessWidget {
         children: [
           Text(
             value,
-            style: GoogleFonts.robotoMono(
+            style: GoogleFonts.poppins(
               fontSize: 13,
               fontWeight: FontWeight.w700,
               color: accent ? Colors.white : AppColors.black,
@@ -375,7 +369,7 @@ class _StatChip extends StatelessWidget {
           const SizedBox(height: 1),
           Text(
             label,
-            style: GoogleFonts.robotoMono(
+            style: GoogleFonts.poppins(
               fontSize: 10,
               color: accent ? Colors.white70 : AppColors.greyText,
             ),
@@ -446,7 +440,7 @@ class _MonthlyHeatmap extends StatelessWidget {
           children: [
             Text(
               'Aktivitas Bulan Ini',
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.black,
@@ -454,7 +448,7 @@ class _MonthlyHeatmap extends StatelessWidget {
             ),
             Text(
               _monthName(now.month),
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 11,
                 color: AppColors.greyText,
               ),
@@ -492,7 +486,7 @@ class _MonthlyHeatmap extends StatelessWidget {
               alignment: Alignment.center,
               child: Text(
                 '$day',
-                style: GoogleFonts.robotoMono(
+                style: GoogleFonts.poppins(
                   fontSize: 8,
                   color: minutes >= 120 ? Colors.white : AppColors.greyText,
                 ),
@@ -516,7 +510,7 @@ class _MonthlyHeatmap extends StatelessWidget {
       children: [
         Text(
           'Waktu belajar: ',
-          style: GoogleFonts.robotoMono(fontSize: 9, color: AppColors.greyHint),
+          style: GoogleFonts.poppins(fontSize: 9, color: AppColors.greyHint),
         ),
         ...levels.map(
           (l) => Padding(
@@ -535,7 +529,7 @@ class _MonthlyHeatmap extends StatelessWidget {
                 const SizedBox(width: 2),
                 Text(
                   l.label,
-                  style: GoogleFonts.robotoMono(
+                  style: GoogleFonts.poppins(
                     fontSize: 9,
                     color: AppColors.greyHint,
                   ),
@@ -613,7 +607,7 @@ class _SettingsSheet extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
               'Pengaturan',
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: AppColors.black,
@@ -687,7 +681,7 @@ class _SheetItem extends StatelessWidget {
             Expanded(
               child: Text(
                 label,
-                style: GoogleFonts.robotoMono(
+                style: GoogleFonts.poppins(
                   fontSize: 13,
                   color: color,
                   fontWeight: isDestructive ? FontWeight.w500 : FontWeight.w400,

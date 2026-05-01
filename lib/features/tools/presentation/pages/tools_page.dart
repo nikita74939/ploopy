@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ploopy/features/ocr/presentation/pages/ocr_home_page.dart';
 import 'package:ploopy/features/scanner/presentation/pages/scanner_home_page.dart';
-import 'package:ploopy/features/todo/presentation/pages/todo_page.dart';
 import 'package:ploopy/features/tools/presentation/pages/timezone_converter_page.dart';
 import 'package:ploopy/features/tools/presentation/pages/unit_converter_page.dart';
 import 'package:ploopy/core/constants/tools_dummy_data.dart';
@@ -60,7 +59,7 @@ class ToolsPage extends StatelessWidget {
             children: [
               Text(
                 'Tools',
-                style: GoogleFonts.robotoMono(
+                style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: AppColors.black,
@@ -69,7 +68,7 @@ class ToolsPage extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 'Alat bantu buat produktivitasmu',
-                style: GoogleFonts.robotoMono(
+                style: GoogleFonts.poppins(
                   fontSize: 11,
                   color: AppColors.greyText,
                 ),
@@ -128,12 +127,6 @@ class ToolsPage extends StatelessWidget {
           MaterialPageRoute(builder: (_) => const UnitConverterPage()),
         );
         break;
-      case 'todo':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const TodoPage()),
-        );
-        break;
       case 'pict_to_text':
         Navigator.push(
           context,
@@ -161,10 +154,7 @@ class ToolsPage extends StatelessWidget {
             Expanded(
               child: Text(
                 '$toolName — Coming soon!',
-                style: GoogleFonts.robotoMono(
-                  color: Colors.white,
-                  fontSize: 12,
-                ),
+                style: GoogleFonts.poppins(color: Colors.white, fontSize: 12),
               ),
             ),
           ],

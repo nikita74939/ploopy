@@ -48,6 +48,41 @@ class ChatPage extends StatelessWidget {
     );
   }
 
+  //   Widget _buildHeader() {
+  //   return Padding(
+  //     padding: const EdgeInsets.fromLTRB(8, 10, 12, 10),
+  //     child: Row(
+  //       children: [
+  //         IconButton(
+  //           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+  //           color: AppColors.black,
+  //           onPressed: () => Navigator.pop(context),
+  //         ),
+  //         Expanded(
+  //           child: Text(
+  //             'Chat',
+  //             style: AppTextStyles.heading.copyWith(fontSize: 18),
+  //           ),
+  //         ),
+  //         Container(
+  //           width: 32,
+  //           height: 32,
+  //           decoration: BoxDecoration(
+  //             color: AppColors.greyLight,
+  //             borderRadius: BorderRadius.circular(8),
+  //             border: Border.all(color: AppColors.greyBorder),
+  //           ),
+  //           child: const Icon(
+  //             Icons.filter_list_rounded,
+  //             size: 16,
+  //             color: AppColors.grey,
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
   Widget _buildAppBar() {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),

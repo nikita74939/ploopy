@@ -33,7 +33,7 @@ class StudyTimerDisplay extends StatelessWidget {
               children: [
                 Text(
                   'belajar',
-                  style: GoogleFonts.robotoMono(
+                  style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
                     color: AppColors.greyText,
@@ -42,7 +42,7 @@ class StudyTimerDisplay extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   totalTime,
-                  style: GoogleFonts.robotoMono(
+                  style: GoogleFonts.poppins(
                     fontSize: 32,
                     fontWeight: FontWeight.w700,
                     color: AppColors.black,

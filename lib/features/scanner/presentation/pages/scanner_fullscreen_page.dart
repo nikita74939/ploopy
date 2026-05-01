@@ -2,10 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:ploopy/features/scanner/domain/scanned_doc_model.dart';
+import 'package:ploopy/features/scanner/domain/models/scanned_doc_isar_model.dart';
 
 class ScannerFullscreenPage extends StatefulWidget {
-  final ScannedDoc doc;
+  final ScannedDocIsar doc;
   final int initialPage;
 
   const ScannerFullscreenPage({
@@ -63,11 +63,12 @@ class _ScannerFullscreenPageState extends State<ScannerFullscreenPage> {
                     child: Image.file(
                       File(path),
                       fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Icon(
-                        Icons.broken_image_outlined,
-                        size: 64,
-                        color: Colors.white.withOpacity(0.3),
-                      ),
+                      errorBuilder:
+                          (_, __, ___) => Icon(
+                            Icons.broken_image_outlined,
+                            size: 64,
+                            color: Colors.white.withOpacity(0.3),
+                          ),
                     ),
                   ),
                 );
@@ -97,16 +98,17 @@ class _ScannerFullscreenPageState extends State<ScannerFullscreenPage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Colors.black.withOpacity(0.7),
-              Colors.transparent,
-            ],
+            colors: [Colors.black.withOpacity(0.7), Colors.transparent],
           ),
         ),
         child: Row(
           children: [
             IconButton(
-              icon: const Icon(Icons.close_rounded, color: Colors.white, size: 26),
+              icon: const Icon(
+                Icons.close_rounded,
+                color: Colors.white,
+                size: 26,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
             const Spacer(),
@@ -118,7 +120,7 @@ class _ScannerFullscreenPageState extends State<ScannerFullscreenPage> {
               ),
               child: Text(
                 '${_currentPage + 1} / ${widget.doc.imagePaths.length}',
-                style: GoogleFonts.robotoMono(
+                style: GoogleFonts.poppins(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
@@ -149,10 +151,7 @@ class _ScannerFullscreenPageState extends State<ScannerFullscreenPage> {
           gradient: LinearGradient(
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
-            colors: [
-              Colors.black.withOpacity(0.7),
-              Colors.transparent,
-            ],
+            colors: [Colors.black.withOpacity(0.7), Colors.transparent],
           ),
         ),
         child: Row(
@@ -160,7 +159,7 @@ class _ScannerFullscreenPageState extends State<ScannerFullscreenPage> {
           children: [
             Text(
               widget.doc.title,
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 12,
                 color: Colors.white.withOpacity(0.8),
               ),

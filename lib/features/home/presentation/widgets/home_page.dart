@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:ploopy/features/schedule/presentation/add_schedule_page.dart';
+import 'package:ploopy/features/schedule/presentation/schedule_detail_page.dart';
+import 'package:ploopy/features/schedule/presentation/add_task_page.dart';
 import '../../../../core/constants/schedule_dummy_data.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/services/session_service.dart';
@@ -91,6 +95,16 @@ class _HomeBerandaPageState extends State<HomeBerandaPage> {
     return listToSort.first;
   }
 
+  void _onScheduleTap(Map<String, dynamic> item) {
+    HapticFeedback.lightImpact();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ScheduleDetailPage(schedule: item),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loadingUser) {
@@ -114,7 +128,7 @@ class _HomeBerandaPageState extends State<HomeBerandaPage> {
             dateString: _getDateString(),
             studyTime: _getStudyTime(),
             onCalendarTap: () {
-              // TODO: Navigate to calendar page
+              Navigator.pushNamed(context, '/calendar');
             },
             onNotificationTap: () {
               Navigator.pushNamed(context, '/notification');
@@ -176,8 +190,27 @@ class _HomeBerandaPageState extends State<HomeBerandaPage> {
                       child: ScheduleTimeline(
                         scheduleItems: ScheduleDummyData.todayItems,
                         taskItems: ScheduleDummyData.todayTasks,
+                        onScheduleTap: _onScheduleTap,
                         onSeeAll: () {
-                          // TODO: navigate to full schedule
+                          // navigasi ke halaman lihat semua
+                          Navigator.pushNamed(context, '/calendar');
+                        },
+                        // ── TAMBAHAN ──
+                        onAddSchedule: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AddSchedulePage(),
+                            ),
+                          );
+                        },
+                        onAddTask: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AddTaskPage(),
+                            ),
+                          );
                         },
                       ),
                     ),

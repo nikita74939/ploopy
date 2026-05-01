@@ -36,10 +36,7 @@ class _SocialPostCardState extends State<SocialPostCard> {
       margin: const EdgeInsets.only(bottom: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (hasLocation) _buildLocationHeader(),
-          _buildCard(),
-        ],
+        children: [if (hasLocation) _buildLocationHeader(), _buildCard()],
       ),
     );
   }

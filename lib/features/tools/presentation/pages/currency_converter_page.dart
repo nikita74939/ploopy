@@ -120,22 +120,23 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
       backgroundColor: Colors.grey.shade50,
       appBar: _buildAppBar(),
       body: SafeArea(
-        child: _error != null
-            ? _buildErrorState()
-            : SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    _buildRateInfoCard(),
-                    const SizedBox(height: 20),
-                    _buildConverterCards(),
-                    const SizedBox(height: 16),
-                    _buildPopularRates(),
-                    const SizedBox(height: 16),
-                    _buildLastUpdate(),
-                  ],
+        child:
+            _error != null
+                ? _buildErrorState()
+                : SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      _buildRateInfoCard(),
+                      const SizedBox(height: 20),
+                      _buildConverterCards(),
+                      const SizedBox(height: 16),
+                      _buildPopularRates(),
+                      const SizedBox(height: 16),
+                      _buildLastUpdate(),
+                    ],
+                  ),
                 ),
-              ),
       ),
     );
   }
@@ -212,21 +213,21 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
                 const SizedBox(height: 2),
                 _loading
                     ? Container(
-                        height: 16,
-                        width: 120,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.25),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      )
-                    : Text(
-                        _getRateInfo(),
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
+                      height: 16,
+                      width: 120,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.25),
+                        borderRadius: BorderRadius.circular(4),
                       ),
+                    )
+                    : Text(
+                      _getRateInfo(),
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
               ],
             ),
           ),
@@ -273,10 +274,15 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
   Widget _buildPopularRates() {
     if (_rates == null || _loading) return const SizedBox.shrink();
 
-    final popular = ['USD', 'EUR', 'GBP', 'JPY', 'SGD', 'IDR']
-        .where((c) => c != _fromCode)
-        .take(5)
-        .toList();
+    final popular =
+        [
+          'USD',
+          'EUR',
+          'GBP',
+          'JPY',
+          'SGD',
+          'IDR',
+        ].where((c) => c != _fromCode).take(5).toList();
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -366,18 +372,11 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
-          Icons.access_time_rounded,
-          size: 11,
-          color: Colors.grey.shade400,
-        ),
+        Icon(Icons.access_time_rounded, size: 11, color: Colors.grey.shade400),
         const SizedBox(width: 4),
         Text(
           'Update: ${_formatUpdateTime(_lastUpdate!)}',
-          style: GoogleFonts.poppins(
-            fontSize: 10,
-            color: Colors.grey.shade400,
-          ),
+          style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey.shade400),
         ),
       ],
     );

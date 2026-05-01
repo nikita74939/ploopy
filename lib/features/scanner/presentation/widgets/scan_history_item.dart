@@ -2,10 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ploopy/core/theme/app_colors.dart';
-import 'package:ploopy/features/scanner/domain/scanned_doc_model.dart';
+import 'package:ploopy/features/scanner/domain/models/scanned_doc_isar_model.dart';
 
 class ScanHistoryItem extends StatelessWidget {
-  final ScannedDoc doc;
+  final ScannedDocIsar doc;
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
@@ -17,8 +17,20 @@ class ScanHistoryItem extends StatelessWidget {
   });
 
   String _formatDate(DateTime date) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-                    'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
+    ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
@@ -31,51 +43,58 @@ class ScanHistoryItem extends StatelessWidget {
       confirmDismiss: (_) async {
         return await showDialog<bool>(
           context: context,
-          builder: (ctx) => AlertDialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            surfaceTintColor: Colors.transparent,
-            title: Text(
-              'Hapus scan?',
-              style: GoogleFonts.robotoMono(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: AppColors.black,
-              ),
-            ),
-            content: Text(
-              '"${doc.title}" akan dihapus permanen',
-              style: GoogleFonts.robotoMono(fontSize: 12, color: AppColors.greyText),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text(
-                  'Batal',
-                  style: GoogleFonts.robotoMono(color: AppColors.greyText),
+          builder:
+              (ctx) => AlertDialog(
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ),
-              GestureDetector(
-                onTap: () => Navigator.pop(ctx, true),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade400,
-                    borderRadius: BorderRadius.circular(8),
+                surfaceTintColor: Colors.transparent,
+                title: Text(
+                  'Hapus scan?',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.black,
                   ),
-                  child: Text(
-                    'Hapus',
-                    style: GoogleFonts.robotoMono(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+                ),
+                content: Text(
+                  '"${doc.title}" akan dihapus permanen',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppColors.greyText,
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: Text(
+                      'Batal',
+                      style: GoogleFonts.poppins(color: AppColors.greyText),
                     ),
                   ),
-                ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(ctx, true),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade400,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Hapus',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
         );
       },
       background: Container(
@@ -131,13 +150,14 @@ class ScanHistoryItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         clipBehavior: Clip.antiAlias,
-        child: firstPath != null && File(firstPath).existsSync()
-            ? Image.file(
-                File(firstPath),
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _buildPlaceholder(),
-              )
-            : _buildPlaceholder(),
+        child:
+            firstPath != null && File(firstPath).existsSync()
+                ? Image.file(
+                  File(firstPath),
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                )
+                : _buildPlaceholder(),
       ),
     );
   }
@@ -158,7 +178,7 @@ class ScanHistoryItem extends StatelessWidget {
       children: [
         Text(
           doc.title,
-          style: GoogleFonts.robotoMono(
+          style: GoogleFonts.poppins(
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: AppColors.black,
@@ -177,7 +197,7 @@ class ScanHistoryItem extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               _formatDate(doc.scannedAt),
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 11,
                 color: AppColors.greyText,
               ),
@@ -189,13 +209,6 @@ class ScanHistoryItem extends StatelessWidget {
               color: AppColors.greyText,
             ),
             const SizedBox(width: 4),
-            Text(
-              '${doc.pageCount} halaman',
-              style: GoogleFonts.robotoMono(
-                fontSize: 11,
-                color: AppColors.greyText,
-              ),
-            ),
           ],
         ),
       ],

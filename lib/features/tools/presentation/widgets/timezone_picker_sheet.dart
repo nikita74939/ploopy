@@ -35,11 +35,12 @@ class _TimezonePickerSheetState extends State<TimezonePickerSheet> {
   void _onSearch() {
     final q = _searchCtrl.text.toLowerCase();
     setState(() {
-      _filtered = TimezoneData.timezones.where((t) {
-        return t['city']!.toLowerCase().contains(q) ||
-            t['country']!.toLowerCase().contains(q) ||
-            t['name']!.toLowerCase().contains(q);
-      }).toList();
+      _filtered =
+          TimezoneData.timezones.where((t) {
+            return t['city']!.toLowerCase().contains(q) ||
+                t['country']!.toLowerCase().contains(q) ||
+                t['name']!.toLowerCase().contains(q);
+          }).toList();
     });
   }
 
@@ -123,11 +124,7 @@ class _TimezonePickerSheetState extends State<TimezonePickerSheet> {
         ),
         child: Row(
           children: [
-            Icon(
-              Icons.search_rounded,
-              size: 18,
-              color: Colors.grey.shade500,
-            ),
+            Icon(Icons.search_rounded, size: 18, color: Colors.grey.shade500),
             const SizedBox(width: 8),
             Expanded(
               child: TextField(
@@ -173,11 +170,9 @@ class _TimezonePickerSheetState extends State<TimezonePickerSheet> {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       itemCount: _filtered.length,
-      separatorBuilder: (_, __) => Divider(
-        height: 1,
-        color: Colors.grey.shade100,
-        indent: 56,
-      ),
+      separatorBuilder:
+          (_, __) =>
+              Divider(height: 1, color: Colors.grey.shade100, indent: 56),
       itemBuilder: (_, i) {
         final t = _filtered[i];
         final selected = t['id'] == widget.selectedId;

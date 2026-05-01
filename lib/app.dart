@@ -1,5 +1,11 @@
+// ignore_for_file: dead_code
+
 import 'package:flutter/material.dart';
+import 'package:ploopy/features/home/presentation/pages/calender_page.dart';
 import 'package:ploopy/features/home/presentation/pages/home_screen.dart';
+import 'package:ploopy/features/schedule/presentation/add_schedule_page.dart';
+import 'package:ploopy/features/schedule/presentation/add_task_page.dart';
+import 'package:ploopy/features/notification/presentation/pages/notification_page.dart';
 import 'package:ploopy/shared/services/activity_service.dart';
 import 'package:ploopy/shared/services/event_service.dart';
 import 'package:ploopy/features/auth/presentation/pages/auth_screen.dart';
@@ -25,7 +31,19 @@ class PloopyApp extends StatelessWidget {
     switch (settings.name) {
       case '/study-desk':
         return MaterialPageRoute(builder: (_) => const StudyDeskPage());
-
+        break;
+      case '/calendar':
+        return MaterialPageRoute(builder: (_) => const CalendarPage());
+        break;
+      case '/notification':
+        return MaterialPageRoute(builder: (_) => const NotificationPage());
+        break;
+      case '/add-schedule':
+        return MaterialPageRoute(builder: (_) => const AddSchedulePage());
+        break;
+      case '/add-task':
+        return MaterialPageRoute(builder: (_) => const AddTaskPage());
+        break;
       default:
         return MaterialPageRoute(builder: (_) => const HomeScreen());
     }

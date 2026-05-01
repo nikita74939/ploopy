@@ -263,7 +263,10 @@ class _ScheduleSectionState extends State<ScheduleSection>
           const SizedBox(height: 8),
           Text(
             message,
-            style: GoogleFonts.robotoMono(fontSize: 13, color: Colors.grey.shade400),
+            style: GoogleFonts.robotoMono(
+              fontSize: 13,
+              color: Colors.grey.shade400,
+            ),
           ),
         ],
       ),

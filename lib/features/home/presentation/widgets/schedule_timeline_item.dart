@@ -8,11 +8,13 @@ import '../../../../core/theme/app_colors.dart';
 class ScheduleTimelineItem extends StatefulWidget {
   final Map<String, dynamic> item;
   final bool isLast;
+  final VoidCallback? onTap; // ← TAMBAH INI
 
   const ScheduleTimelineItem({
     super.key,
     required this.item,
     required this.isLast,
+    this.onTap, // ← TAMBAH INI
   });
 
   @override
@@ -211,24 +213,28 @@ class _ScheduleTimelineItemState extends State<ScheduleTimelineItem> {
 
   Widget _buildCard() {
     final color = widget.item['color'] as Color;
+    final location = widget.item['location'] as String? ?? '';
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: _isDone ? AppColors.greyLighter : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.greyBorder, width: 1),
-      ),
-      child: Row(
-        children: [
-          _buildIcon(color),
-          const SizedBox(width: 12),
-          Expanded(child: _buildInfo()),
-          const SizedBox(width: 8),
-          _buildDuration(),
-        ],
+    return GestureDetector(
+      onTap: widget.onTap, // ← TAMBAH INI
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: _isDone ? AppColors.greyLighter : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.greyBorder, width: 1),
+        ),
+        child: Row(
+          children: [
+            _buildIcon(color),
+            const SizedBox(width: 12),
+            Expanded(child: _buildInfo(location)), // ← UPDATE
+            const SizedBox(width: 8),
+            _buildDuration(),
+          ],
+        ),
       ),
     );
   }
@@ -250,7 +256,8 @@ class _ScheduleTimelineItemState extends State<ScheduleTimelineItem> {
     );
   }
 
-  Widget _buildInfo() {
+  Widget _buildInfo(String location) {
+    // ← UPDATE PARAMETER
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -266,13 +273,29 @@ class _ScheduleTimelineItemState extends State<ScheduleTimelineItem> {
           ),
           child: Text(widget.item['title']),
         ),
-        if ((widget.item['streak'] as String).isNotEmpty)
-          Text(
-            'Streak ${widget.item['streak']}',
-            style: GoogleFonts.robotoMono(
-              fontSize: 11,
-              color: Colors.grey.shade400,
-            ),
+        // ── Tampilkan Lokasi ──
+        if (location.isNotEmpty)
+          Row(
+            children: [
+              Icon(
+                Icons.location_on_outlined,
+                size: 12,
+                color: _isDone ? Colors.grey.shade400 : Colors.grey.shade500,
+              ),
+              const SizedBox(width: 3),
+              Flexible(
+                child: Text(
+                  location,
+                  style: GoogleFonts.robotoMono(
+                    fontSize: 11,
+                    color:
+                        _isDone ? Colors.grey.shade400 : Colors.grey.shade500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
       ],
     );

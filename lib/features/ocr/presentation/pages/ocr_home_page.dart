@@ -150,7 +150,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
                   const SizedBox(height: 16),
                   Text(
                     'Menganalisis Gambar...',
-                    style: GoogleFonts.robotoMono(
+                    style: GoogleFonts.poppins(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: AppColors.black,
@@ -159,7 +159,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
                   const SizedBox(height: 4),
                   Text(
                     'AI sedang mengekstrak teks',
-                    style: GoogleFonts.robotoMono(
+                    style: GoogleFonts.poppins(
                       fontSize: 11,
                       color: AppColors.greyText,
                     ),
@@ -183,7 +183,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
             surfaceTintColor: Colors.transparent,
             title: Text(
               'Hapus hasil?',
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: AppColors.black,
@@ -191,7 +191,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
             ),
             content: Text(
               '"${result.title}" akan dihapus permanen',
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 12,
                 color: AppColors.greyText,
               ),
@@ -201,7 +201,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
                 onPressed: () => Navigator.pop(ctx, false),
                 child: Text(
                   'Batal',
-                  style: GoogleFonts.robotoMono(color: AppColors.greyText),
+                  style: GoogleFonts.poppins(color: AppColors.greyText),
                 ),
               ),
               GestureDetector(
@@ -217,7 +217,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
                   ),
                   child: Text(
                     'Hapus',
-                    style: GoogleFonts.robotoMono(
+                    style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
                     ),
@@ -241,7 +241,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
       SnackBar(
         content: Text(
           message,
-          style: GoogleFonts.robotoMono(color: Colors.white, fontSize: 12),
+          style: GoogleFonts.poppins(color: Colors.white, fontSize: 12),
         ),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,
@@ -281,7 +281,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
       ),
       title: Text(
         'Picture to Text',
-        style: GoogleFonts.robotoMono(
+        style: GoogleFonts.poppins(
           fontSize: 15,
           fontWeight: FontWeight.w700,
           color: AppColors.black,
@@ -332,7 +332,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
           const SizedBox(height: 20),
           Text(
             'Memproses...',
-            style: GoogleFonts.robotoMono(
+            style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: AppColors.black,
@@ -341,10 +341,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
           const SizedBox(height: 6),
           Text(
             'AI sedang menganalisis gambar',
-            style: GoogleFonts.robotoMono(
-              fontSize: 11,
-              color: AppColors.greyText,
-            ),
+            style: GoogleFonts.poppins(fontSize: 11, color: AppColors.greyText),
           ),
         ],
       ),
@@ -419,7 +416,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
               children: [
                 Text(
                   'Riwayat Ekstraksi',
-                  style: GoogleFonts.robotoMono(
+                  style: GoogleFonts.poppins(
                     fontSize: 11,
                     color: AppColors.greyText,
                   ),
@@ -427,7 +424,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
                 const SizedBox(height: 2),
                 Text(
                   '${_results.length} hasil · $totalWords kata',
-                  style: GoogleFonts.robotoMono(
+                  style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.black,

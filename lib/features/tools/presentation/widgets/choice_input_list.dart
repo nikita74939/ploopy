@@ -106,10 +106,7 @@ class ChoiceInputList extends StatelessWidget {
           Container(
             width: 28,
             height: 28,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             alignment: Alignment.center,
             child: Text(
               '${index + 1}',

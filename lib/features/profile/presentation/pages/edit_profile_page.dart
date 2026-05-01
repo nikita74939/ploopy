@@ -14,7 +14,9 @@ class EditProfilePage extends StatefulWidget {
 
 class _EditProfilePageState extends State<EditProfilePage> {
   final _nameCtrl = TextEditingController(text: 'Pengguna Ploopy');
-  final _bioCtrl = TextEditingController(text: 'Mahasiswa yang suka belajar 📚');
+  final _bioCtrl = TextEditingController(
+    text: 'Mahasiswa yang suka belajar 📚',
+  );
   final _phoneCtrl = TextEditingController(text: '081234567890');
 
   @override
@@ -113,10 +115,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ),
             alignment: Alignment.center,
             child: Text(
-              _nameCtrl.text.isNotEmpty
-                  ? _nameCtrl.text[0].toUpperCase()
-                  : 'P',
-              style: GoogleFonts.robotoMono(
+              _nameCtrl.text.isNotEmpty ? _nameCtrl.text[0].toUpperCase() : 'P',
+              style: GoogleFonts.poppins(
                 fontSize: 36,
                 fontWeight: FontWeight.w700,
                 color: AppColors.black,

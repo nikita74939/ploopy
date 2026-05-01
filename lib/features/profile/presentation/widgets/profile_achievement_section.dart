@@ -22,7 +22,7 @@ class ProfileAchievementSection extends StatelessWidget {
           children: [
             Text(
               'Achievement',
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.black,
@@ -32,7 +32,7 @@ class ProfileAchievementSection extends StatelessWidget {
               onTap: onSeeAll,
               child: Text(
                 'Lihat semua',
-                style: GoogleFonts.robotoMono(
+                style: GoogleFonts.poppins(
                   fontSize: 11,
                   color: AppColors.greyText,
                 ),
@@ -47,8 +47,8 @@ class ProfileAchievementSection extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             itemCount: achievements.length,
             separatorBuilder: (_, __) => const SizedBox(width: 8),
-            itemBuilder: (_, i) =>
-                _AchievementBadge(achievement: achievements[i]),
+            itemBuilder:
+                (_, i) => _AchievementBadge(achievement: achievements[i]),
           ),
         ),
       ],
@@ -76,16 +76,14 @@ class _AchievementBadge extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            unlocked
-                ? achievement['icon'] as IconData
-                : Icons.lock_rounded,
+            unlocked ? achievement['icon'] as IconData : Icons.lock_rounded,
             color: unlocked ? Colors.white : AppColors.greyHint,
             size: 22,
           ),
           const SizedBox(height: 6),
           Text(
             achievement['title'] as String,
-            style: GoogleFonts.robotoMono(
+            style: GoogleFonts.poppins(
               fontSize: 9,
               fontWeight: FontWeight.w600,
               color: unlocked ? Colors.white : AppColors.greyHint,
@@ -96,11 +94,12 @@ class _AchievementBadge extends StatelessWidget {
           ),
           Text(
             achievement['desc'] as String,
-            style: GoogleFonts.robotoMono(
+            style: GoogleFonts.poppins(
               fontSize: 8,
-              color: unlocked
-                  ? Colors.white.withOpacity(0.6)
-                  : AppColors.greyHandle,
+              color:
+                  unlocked
+                      ? Colors.white.withOpacity(0.6)
+                      : AppColors.greyHandle,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

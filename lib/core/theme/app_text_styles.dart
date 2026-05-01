@@ -3,57 +3,59 @@ import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTextStyles {
-  static TextStyle heading = GoogleFonts.robotoMono(
+  static TextStyle heading = GoogleFonts.poppins(
     fontSize: 16,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w700,
   );
 
-  static TextStyle subtitle = GoogleFonts.robotoMono(
+  static TextStyle subtitle = GoogleFonts.poppins(
     fontSize: 13,
     color: AppColors.greyText,
+    fontWeight: FontWeight.w400,
   );
 
-  static TextStyle body = GoogleFonts.robotoMono(fontSize: 13);
+  static TextStyle body = GoogleFonts.poppins(fontSize: 13);
 
-  static TextStyle hint = GoogleFonts.robotoMono(
+  static TextStyle hint = GoogleFonts.poppins(
     fontSize: 13,
     color: AppColors.greyHint,
   );
 
-  static TextStyle buttonPrimary = GoogleFonts.robotoMono(
+  static TextStyle buttonPrimary = GoogleFonts.poppins(
     color: AppColors.white,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w600,
     fontSize: 14,
   );
 
-  static TextStyle tabActive = GoogleFonts.robotoMono(
+  static TextStyle tabActive = GoogleFonts.poppins(
     fontSize: 13,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w600,
     color: AppColors.black,
   );
 
-  static TextStyle tabInactive = GoogleFonts.robotoMono(
+  static TextStyle tabInactive = GoogleFonts.poppins(
     fontSize: 13,
     fontWeight: FontWeight.w400,
     color: AppColors.grey,
   );
 
-  static TextStyle link = GoogleFonts.robotoMono(
+  static TextStyle link = GoogleFonts.poppins(
     fontSize: 12,
     color: AppColors.primary,
+    fontWeight: FontWeight.w500,
   );
 
-  static TextStyle small = GoogleFonts.robotoMono(
+  static TextStyle small = GoogleFonts.poppins(
     fontSize: 12,
     color: AppColors.grey,
   );
 
-  static TextStyle error = GoogleFonts.robotoMono(
+  static TextStyle error = GoogleFonts.poppins(
     fontSize: 12,
     color: AppColors.error,
   );
 
-  static TextStyle caption = GoogleFonts.robotoMono(
+  static TextStyle caption = GoogleFonts.poppins(
     fontSize: 12,
     color: AppColors.greyHint,
   );

@@ -8,12 +8,17 @@ class ScheduleTimeline extends StatefulWidget {
   final List<Map<String, dynamic>> scheduleItems;
   final List<Map<String, dynamic>> taskItems;
   final VoidCallback? onSeeAll;
+  final VoidCallback? onAddSchedule;
+  final VoidCallback? onAddTask;
+  final Function(Map<String, dynamic>)? onScheduleTap; 
 
   const ScheduleTimeline({
     super.key,
     required this.scheduleItems,
     required this.taskItems,
     this.onSeeAll,
+    this.onAddSchedule,
+    this.onAddTask, this.onScheduleTap,
   });
 
   @override
@@ -63,6 +68,7 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
     });
   }
 
+
   @override
   Widget build(BuildContext context) {
     final items = _showSchedule ? widget.scheduleItems : widget.taskItems;
@@ -70,7 +76,7 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildHeader(),
+        _buildHeader(), // ← Pake _currentItemCount
         const SizedBox(height: 16),
         FadeTransition(
           opacity: _fadeAnim ?? const AlwaysStoppedAnimation(1.0),
@@ -80,14 +86,15 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
                 items.isEmpty
                     ? _buildEmpty()
                     : _showSchedule
-                    ? Column(
-                      children: List.generate(items.length, (i) {
-                        return ScheduleTimelineItem(
-                          item: items[i],
-                          isLast: i == items.length - 1,
-                        );
-                      }),
-                    )
+    ? Column(
+        children: List.generate(items.length, (i) {
+          return ScheduleTimelineItem(
+            item: items[i],
+            isLast: i == items.length - 1,
+            onTap: () => widget.onScheduleTap?.call(items[i]),  // ← TAMBAH INI
+          );
+        }),
+      )
                     : Column(
                       children:
                           items.map((task) => _buildTaskItem(task)).toList(),
@@ -101,30 +108,67 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
   }
 
   // ── Header ───────────────────────────────────────
-  // Di dalam _buildHeader(), ubah padding atas:
   Widget _buildHeader() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Expanded(
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: Align(
-              key: ValueKey(_showSchedule),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                _showSchedule ? 'Jadwal Hari Ini' : 'Tugas',
-                style: GoogleFonts.robotoMono(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.black,
+        // Title with plus button
+        Row(
+          children: [
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: Align(
+                key: ValueKey(_showSchedule),
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  _showSchedule ? 'Jadwal' : 'Tugas',
+                  style: GoogleFonts.robotoMono(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.black,
+                  ),
                 ),
               ),
             ),
-          ),
+            const SizedBox(width: 10),
+            // ── PLUS BUTTON ──
+            _buildAddButton(isSchedule: true),
+          ],
         ),
+
+        const Spacer(),
         _buildSegmentedToggle(),
       ],
+    );
+  }
+
+  // ── Plus Add Button ───────────────────────────────
+  Widget _buildAddButton({required bool isSchedule}) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        if (_showSchedule) {
+          widget.onAddSchedule?.call();
+        } else {
+          widget.onAddTask?.call();
+        }
+      },
+      child: Container(
+        width: 26,
+        height: 26,
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(7),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.3),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: const Icon(Icons.add_rounded, color: Colors.white, size: 17),
+      ),
     );
   }
 
@@ -246,12 +290,28 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
       ),
       child: Column(
         children: [
+          Icon(
+            _showSchedule
+                ? Icons.calendar_today_outlined
+                : Icons.task_alt_outlined,
+            size: 32,
+            color: AppColors.greyHint,
+          ),
+          const SizedBox(height: 8),
           Text(
             _showSchedule ? 'Tidak ada jadwal' : 'Tidak ada tugas',
             style: GoogleFonts.robotoMono(
               fontSize: 13,
               color: AppColors.greyHint,
               fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Tekan + untuk menambahkan',
+            style: GoogleFonts.robotoMono(
+              fontSize: 11,
+              color: AppColors.greyText,
             ),
           ),
         ],

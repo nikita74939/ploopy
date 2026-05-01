@@ -26,10 +26,7 @@ class ToolCategorySection extends StatelessWidget {
           final tool = t as Map<String, dynamic>;
           return Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child: ToolCard(
-              tool: tool,
-              onTap: () => onToolTap(tool),
-            ),
+            child: ToolCard(tool: tool, onTap: () => onToolTap(tool)),
           );
         }).toList(),
       ],
@@ -44,7 +41,7 @@ class ToolCategorySection extends StatelessWidget {
         children: [
           Text(
             category['title'] as String,
-            style: GoogleFonts.robotoMono(
+            style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w700,
               color: AppColors.black,
@@ -53,10 +50,7 @@ class ToolCategorySection extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             category['description'] as String,
-            style: GoogleFonts.robotoMono(
-              fontSize: 11,
-              color: AppColors.greyText,
-            ),
+            style: GoogleFonts.poppins(fontSize: 11, color: AppColors.greyText),
           ),
         ],
       ),

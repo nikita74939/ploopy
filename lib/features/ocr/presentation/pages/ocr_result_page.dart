@@ -12,11 +12,7 @@ class OcrResultPage extends StatefulWidget {
   final OcrResult result;
   final bool isNew;
 
-  const OcrResultPage({
-    super.key,
-    required this.result,
-    this.isNew = false,
-  });
+  const OcrResultPage({super.key, required this.result, this.isNew = false});
 
   @override
   State<OcrResultPage> createState() => _OcrResultPageState();
@@ -51,9 +47,10 @@ class _OcrResultPageState extends State<OcrResultPage> {
 
   Future<void> _saveChanges() async {
     final updated = _result.copyWith(
-      title: _titleController.text.trim().isEmpty
-          ? _result.title
-          : _titleController.text.trim(),
+      title:
+          _titleController.text.trim().isEmpty
+              ? _result.title
+              : _titleController.text.trim(),
       extractedText: _textController.text,
     );
 
@@ -80,10 +77,7 @@ class _OcrResultPageState extends State<OcrResultPage> {
     if (_textController.text.isEmpty) return;
     HapticFeedback.lightImpact();
 
-    await Share.share(
-      _textController.text,
-      subject: _result.title,
-    );
+    await Share.share(_textController.text, subject: _result.title);
   }
 
   void _openInAi(String prompt) {
@@ -91,9 +85,10 @@ class _OcrResultPageState extends State<OcrResultPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => AiPage(
-          initialPrompt: '$prompt\n\n---\n${_textController.text}',
-        ),
+        builder:
+            (_) => AiPage(
+              initialPrompt: '$prompt\n\n---\n${_textController.text}',
+            ),
       ),
     );
   }
@@ -110,76 +105,85 @@ class _OcrResultPageState extends State<OcrResultPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.greyBorder,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Row(
+      builder:
+          (_) => SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.auto_awesome_rounded, size: 22, color: AppColors.black),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Proses dengan AI',
-                    style: GoogleFonts.robotoMono(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.black,
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.greyBorder,
+                      borderRadius: BorderRadius.circular(2),
                     ),
+                  ),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.auto_awesome_rounded,
+                        size: 22,
+                        color: AppColors.black,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Proses dengan AI',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Kirim teks ke AI Assistant untuk:',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      color: AppColors.greyText,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  _buildAiOption(
+                    icon: Icons.summarize_outlined,
+                    title: 'Rangkum',
+                    subtitle: 'Buat ringkasan poin-poin penting',
+                    onTap: () {
+                      Navigator.pop(context);
+                      _openInAi('Tolong buatkan rangkuman dari teks berikut:');
+                    },
+                  ),
+                  _buildAiOption(
+                    icon: Icons.translate_outlined,
+                    title: 'Terjemahkan',
+                    subtitle: 'Terjemahkan ke bahasa lain',
+                    onTap: () {
+                      Navigator.pop(context);
+                      _openInAi(
+                        'Tolong terjemahkan teks berikut ke Bahasa Indonesia:',
+                      );
+                    },
+                  ),
+                  _buildAiOption(
+                    icon: Icons.check_circle_outline_rounded,
+                    title: 'Perbaiki',
+                    subtitle: 'Perbaiki tata bahasa & ejaan',
+                    onTap: () {
+                      Navigator.pop(context);
+                      _openInAi(
+                        'Tolong perbaiki tata bahasa dan ejaan teks berikut:',
+                      );
+                    },
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                'Kirim teks ke AI Assistant untuk:',
-                style: GoogleFonts.robotoMono(
-                  fontSize: 11,
-                  color: AppColors.greyText,
-                ),
-              ),
-              const SizedBox(height: 14),
-              _buildAiOption(
-                icon: Icons.summarize_outlined,
-                title: 'Rangkum',
-                subtitle: 'Buat ringkasan poin-poin penting',
-                onTap: () {
-                  Navigator.pop(context);
-                  _openInAi('Tolong buatkan rangkuman dari teks berikut:');
-                },
-              ),
-              _buildAiOption(
-                icon: Icons.translate_outlined,
-                title: 'Terjemahkan',
-                subtitle: 'Terjemahkan ke bahasa lain',
-                onTap: () {
-                  Navigator.pop(context);
-                  _openInAi('Tolong terjemahkan teks berikut ke Bahasa Indonesia:');
-                },
-              ),
-              _buildAiOption(
-                icon: Icons.check_circle_outline_rounded,
-                title: 'Perbaiki',
-                subtitle: 'Perbaiki tata bahasa & ejaan',
-                onTap: () {
-                  Navigator.pop(context);
-                  _openInAi('Tolong perbaiki tata bahasa dan ejaan teks berikut:');
-                },
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
 
@@ -189,13 +193,11 @@ class _OcrResultPageState extends State<OcrResultPage> {
       SnackBar(
         content: Text(
           message,
-          style: GoogleFonts.robotoMono(color: Colors.white, fontSize: 12),
+          style: GoogleFonts.poppins(color: Colors.white, fontSize: 12),
         ),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 2),
       ),
@@ -228,44 +230,45 @@ class _OcrResultPageState extends State<OcrResultPage> {
         ),
         onPressed: () => Navigator.pop(context),
       ),
-      title: _isEditing
-          ? SizedBox(
-              height: 32,
-              child: TextField(
-                controller: _titleController,
-                style: GoogleFonts.robotoMono(
-                  fontSize: 13,
+      title:
+          _isEditing
+              ? SizedBox(
+                height: 32,
+                child: TextField(
+                  controller: _titleController,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.black,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Judul hasil OCR',
+                    hintStyle: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: AppColors.greyHint,
+                    ),
+                    filled: true,
+                    fillColor: AppColors.greyLighter,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    isDense: true,
+                  ),
+                ),
+              )
+              : Text(
+                _result.title,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: AppColors.black,
                 ),
-                decoration: InputDecoration(
-                  hintText: 'Judul hasil OCR',
-                  hintStyle: GoogleFonts.robotoMono(
-                    fontSize: 13,
-                    color: AppColors.greyHint,
-                  ),
-                  filled: true,
-                  fillColor: AppColors.greyLighter,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
-                  isDense: true,
-                ),
               ),
-            )
-          : Text(
-              _result.title,
-              style: GoogleFonts.robotoMono(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.black,
-              ),
-            ),
       centerTitle: true,
       actions: [
         if (_isEditing)
@@ -280,7 +283,7 @@ class _OcrResultPageState extends State<OcrResultPage> {
               ),
               child: Text(
                 'Simpan',
-                style: GoogleFonts.robotoMono(
+                style: GoogleFonts.poppins(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
@@ -336,103 +339,105 @@ class _OcrResultPageState extends State<OcrResultPage> {
           border: Border.all(color: AppColors.greyBorder),
         ),
         clipBehavior: Clip.antiAlias,
-        child: _showImage
-            ? Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.file(
-                    File(_result.imagePath),
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.image_not_supported_outlined,
-                            size: 40,
-                            color: AppColors.greyHint,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Gambar tidak tersedia',
-                            style: GoogleFonts.robotoMono(
-                              fontSize: 11,
-                              color: AppColors.greyText,
+        child:
+            _showImage
+                ? Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.file(
+                      File(_result.imagePath),
+                      fit: BoxFit.cover,
+                      errorBuilder:
+                          (_, __, ___) => Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.image_not_supported_outlined,
+                                  size: 40,
+                                  color: AppColors.greyHint,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Gambar tidak tersedia',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    color: AppColors.greyText,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
                     ),
-                  ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.6),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.fullscreen_rounded,
-                            size: 14,
-                            color: Colors.white,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Tap untuk sembunyikan',
-                            style: GoogleFonts.robotoMono(
-                              fontSize: 9,
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.fullscreen_rounded,
+                              size: 14,
                               color: Colors.white,
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            : Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.image_outlined,
-                      size: 20,
-                      color: AppColors.greyText,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Gambar sumber tersembunyi',
-                        style: GoogleFonts.robotoMono(
-                          fontSize: 12,
-                          color: AppColors.greyText,
+                            const SizedBox(width: 4),
+                            Text(
+                              'Tap untuk sembunyikan',
+                              style: GoogleFonts.poppins(
+                                fontSize: 9,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    Text(
-                      'Tap untuk tampilkan',
-                      style: GoogleFonts.robotoMono(
-                        fontSize: 10,
+                  ],
+                )
+                : Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.image_outlined,
+                        size: 20,
+                        color: AppColors.greyText,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Gambar sumber tersembunyi',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: AppColors.greyText,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'Tap untuk tampilkan',
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          color: AppColors.greyHint,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.expand_more_rounded,
+                        size: 18,
                         color: AppColors.greyHint,
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.expand_more_rounded,
-                      size: 18,
-                      color: AppColors.greyHint,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
       ),
     );
   }
@@ -464,11 +469,7 @@ class _OcrResultPageState extends State<OcrResultPage> {
             label: 'paragraf',
           ),
           const Spacer(),
-          Icon(
-            Icons.auto_awesome_rounded,
-            size: 18,
-            color: AppColors.greyHint,
-          ),
+          Icon(Icons.auto_awesome_rounded, size: 18, color: AppColors.greyHint),
         ],
       ),
     );
@@ -489,11 +490,7 @@ class _OcrResultPageState extends State<OcrResultPage> {
             shape: BoxShape.circle,
           ),
           alignment: Alignment.center,
-          child: Icon(
-            icon,
-            size: 16,
-            color: AppColors.black,
-          ),
+          child: Icon(icon, size: 16, color: AppColors.black),
         ),
         const SizedBox(width: 10),
         Column(
@@ -501,7 +498,7 @@ class _OcrResultPageState extends State<OcrResultPage> {
           children: [
             Text(
               value,
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: AppColors.black,
@@ -509,7 +506,7 @@ class _OcrResultPageState extends State<OcrResultPage> {
             ),
             Text(
               label,
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 10,
                 color: AppColors.greyText,
               ),
@@ -542,7 +539,7 @@ class _OcrResultPageState extends State<OcrResultPage> {
                 const SizedBox(width: 8),
                 Text(
                   'Hasil Ekstraksi',
-                  style: GoogleFonts.robotoMono(
+                  style: GoogleFonts.poppins(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: AppColors.greyText,
@@ -551,41 +548,39 @@ class _OcrResultPageState extends State<OcrResultPage> {
               ],
             ),
           ),
-          Divider(
-            height: 1,
-            color: AppColors.greyBorder,
-          ),
+          Divider(height: 1, color: AppColors.greyBorder),
           Padding(
             padding: const EdgeInsets.all(14),
-            child: _isEditing
-                ? TextField(
-                    controller: _textController,
-                    maxLines: null,
-                    minLines: 8,
-                    style: GoogleFonts.robotoMono(
-                      fontSize: 12,
-                      color: AppColors.black,
-                      height: 1.6,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'Teks hasil ekstraksi akan muncul di sini...',
-                      hintStyle: GoogleFonts.robotoMono(
+            child:
+                _isEditing
+                    ? TextField(
+                      controller: _textController,
+                      maxLines: null,
+                      minLines: 8,
+                      style: GoogleFonts.poppins(
                         fontSize: 12,
-                        color: AppColors.greyHint,
+                        color: AppColors.black,
                         height: 1.6,
                       ),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
+                      decoration: InputDecoration(
+                        hintText: 'Teks hasil ekstraksi akan muncul di sini...',
+                        hintStyle: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: AppColors.greyHint,
+                          height: 1.6,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    )
+                    : Text(
+                      _textController.text,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: AppColors.black,
+                        height: 1.6,
+                      ),
                     ),
-                  )
-                : Text(
-                    _textController.text,
-                    style: GoogleFonts.robotoMono(
-                      fontSize: 12,
-                      color: AppColors.black,
-                      height: 1.6,
-                    ),
-                  ),
           ),
         ],
       ),
@@ -602,9 +597,7 @@ class _OcrResultPageState extends State<OcrResultPage> {
       ),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(color: AppColors.greyBorder, width: 1),
-        ),
+        border: Border(top: BorderSide(color: AppColors.greyBorder, width: 1)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -614,21 +607,13 @@ class _OcrResultPageState extends State<OcrResultPage> {
             label: 'Salin',
             onTap: _copyText,
           ),
-          Container(
-            width: 1,
-            height: 40,
-            color: AppColors.greyBorder,
-          ),
+          Container(width: 1, height: 40, color: AppColors.greyBorder),
           _buildBottomAction(
             icon: Icons.share_outlined,
             label: 'Share',
             onTap: _shareText,
           ),
-          Container(
-            width: 1,
-            height: 40,
-            color: AppColors.greyBorder,
-          ),
+          Container(width: 1, height: 40, color: AppColors.greyBorder),
           _buildBottomAction(
             icon: Icons.auto_awesome_rounded,
             label: 'AI',
@@ -655,7 +640,7 @@ class _OcrResultPageState extends State<OcrResultPage> {
             const SizedBox(height: 6),
             Text(
               label,
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
                 color: AppColors.greyText,
@@ -702,7 +687,7 @@ class _OcrResultPageState extends State<OcrResultPage> {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.robotoMono(
+                    style: GoogleFonts.poppins(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: AppColors.black,
@@ -710,7 +695,7 @@ class _OcrResultPageState extends State<OcrResultPage> {
                   ),
                   Text(
                     subtitle,
-                    style: GoogleFonts.robotoMono(
+                    style: GoogleFonts.poppins(
                       fontSize: 11,
                       color: AppColors.greyText,
                     ),

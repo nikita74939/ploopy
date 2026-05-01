@@ -35,10 +35,11 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
   void _onSearch() {
     final q = _searchCtrl.text.toLowerCase();
     setState(() {
-      _filtered = CurrencyData.currencies.where((c) {
-        return c['code']!.toLowerCase().contains(q) ||
-            c['name']!.toLowerCase().contains(q);
-      }).toList();
+      _filtered =
+          CurrencyData.currencies.where((c) {
+            return c['code']!.toLowerCase().contains(q) ||
+                c['name']!.toLowerCase().contains(q);
+          }).toList();
     });
   }
 
@@ -122,11 +123,7 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
         ),
         child: Row(
           children: [
-            Icon(
-              Icons.search_rounded,
-              size: 18,
-              color: Colors.grey.shade500,
-            ),
+            Icon(Icons.search_rounded, size: 18, color: Colors.grey.shade500),
             const SizedBox(width: 8),
             Expanded(
               child: TextField(
@@ -172,11 +169,9 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       itemCount: _filtered.length,
-      separatorBuilder: (_, __) => Divider(
-        height: 1,
-        color: Colors.grey.shade100,
-        indent: 56,
-      ),
+      separatorBuilder:
+          (_, __) =>
+              Divider(height: 1, color: Colors.grey.shade100, indent: 56),
       itemBuilder: (_, i) {
         final c = _filtered[i];
         final selected = c['code'] == widget.selectedCode;

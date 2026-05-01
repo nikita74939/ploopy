@@ -18,8 +18,18 @@ class OcrHistoryItem extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
@@ -33,57 +43,58 @@ class OcrHistoryItem extends StatelessWidget {
       confirmDismiss: (_) async {
         return await showDialog<bool>(
           context: context,
-          builder: (ctx) => AlertDialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            surfaceTintColor: Colors.transparent,
-            title: Text(
-              'Hapus hasil?',
-              style: GoogleFonts.robotoMono(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: AppColors.black,
-              ),
-            ),
-            content: Text(
-              '"${result.title}" akan dihapus permanen',
-              style: GoogleFonts.robotoMono(
-                fontSize: 12,
-                color: AppColors.greyText,
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text(
-                  'Batal',
-                  style: GoogleFonts.robotoMono(color: AppColors.greyText),
+          builder:
+              (ctx) => AlertDialog(
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ),
-              GestureDetector(
-                onTap: () => Navigator.pop(ctx, true),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
+                surfaceTintColor: Colors.transparent,
+                title: Text(
+                  'Hapus hasil?',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.black,
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade400,
-                    borderRadius: BorderRadius.circular(8),
+                ),
+                content: Text(
+                  '"${result.title}" akan dihapus permanen',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppColors.greyText,
                   ),
-                  child: Text(
-                    'Hapus',
-                    style: GoogleFonts.robotoMono(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: Text(
+                      'Batal',
+                      style: GoogleFonts.poppins(color: AppColors.greyText),
                     ),
                   ),
-                ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(ctx, true),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade400,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Hapus',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
         );
       },
       background: Container(
@@ -93,10 +104,7 @@ class OcrHistoryItem extends StatelessWidget {
         ),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        child: const Icon(
-          Icons.delete_outline_rounded,
-          color: Colors.white,
-        ),
+        child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
       ),
       child: Material(
         color: Colors.white,
@@ -119,7 +127,7 @@ class OcrHistoryItem extends StatelessWidget {
                 Icon(
                   Icons.chevron_right_rounded,
                   size: 22,
-                                  color: AppColors.greyBorder,
+                  color: AppColors.greyBorder,
                 ),
               ],
             ),
@@ -138,23 +146,20 @@ class OcrHistoryItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       clipBehavior: Clip.antiAlias,
-      child: File(result.imagePath).existsSync()
-          ? Image.file(
-              File(result.imagePath),
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _buildPlaceholder(),
-            )
-          : _buildPlaceholder(),
+      child:
+          File(result.imagePath).existsSync()
+              ? Image.file(
+                File(result.imagePath),
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _buildPlaceholder(),
+              )
+              : _buildPlaceholder(),
     );
   }
 
   Widget _buildPlaceholder() {
     return Center(
-      child: Icon(
-        Icons.image_outlined,
-        size: 22,
-        color: AppColors.greyHint,
-      ),
+      child: Icon(Icons.image_outlined, size: 22, color: AppColors.greyHint),
     );
   }
 
@@ -164,7 +169,7 @@ class OcrHistoryItem extends StatelessWidget {
       children: [
         Text(
           result.title,
-          style: GoogleFonts.robotoMono(
+          style: GoogleFonts.poppins(
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: AppColors.black,
@@ -175,7 +180,7 @@ class OcrHistoryItem extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           result.extractedText,
-          style: GoogleFonts.robotoMono(
+          style: GoogleFonts.poppins(
             fontSize: 11,
             color: AppColors.greyText,
             height: 1.3,
@@ -194,7 +199,7 @@ class OcrHistoryItem extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               _formatDate(result.createdAt),
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 10,
                 color: AppColors.greyHint,
               ),
@@ -208,7 +213,7 @@ class OcrHistoryItem extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               '${result.wordCount} kata',
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 10,
                 color: AppColors.greyHint,
               ),

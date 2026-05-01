@@ -19,7 +19,7 @@ val mapsApiKey: String = localProperties.getProperty("mapsApiKey") ?: ""
 android {
     namespace = "com.example.ploopy"
     compileSdk = 36
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true

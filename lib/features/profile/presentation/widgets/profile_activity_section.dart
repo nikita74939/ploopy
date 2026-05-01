@@ -8,11 +8,7 @@ class ProfileActivitySection extends StatelessWidget {
   final VoidCallback? onCreatePost;
   final Function(Activity)? onTapPost;
 
-  const ProfileActivitySection({
-    super.key,
-    this.onCreatePost,
-    this.onTapPost,
-  });
+  const ProfileActivitySection({super.key, this.onCreatePost, this.onTapPost});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +17,7 @@ class ProfileActivitySection extends StatelessWidget {
       children: [
         Text(
           'Aktivitas',
-          style: GoogleFonts.robotoMono(
+          style: GoogleFonts.poppins(
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: AppColors.black,

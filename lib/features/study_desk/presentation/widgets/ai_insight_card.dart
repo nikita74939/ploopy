@@ -9,11 +9,7 @@ class AiInsightCard extends StatelessWidget {
   final String insight;
   final VoidCallback? onRefresh;
 
-  const AiInsightCard({
-    super.key,
-    required this.insight,
-    this.onRefresh,
-  });
+  const AiInsightCard({super.key, required this.insight, this.onRefresh});
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +43,7 @@ class AiInsightCard extends StatelessWidget {
               const SizedBox(width: 10),
               Text(
                 'Ploopy Insight',
-                style: GoogleFonts.robotoMono(
+                style: GoogleFonts.poppins(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: AppColors.black,
@@ -74,7 +70,7 @@ class AiInsightCard extends StatelessWidget {
           // Insight text
           Text(
             insight,
-            style: GoogleFonts.robotoMono(
+            style: GoogleFonts.poppins(
               fontSize: 13,
               color: AppColors.greyText,
               height: 1.5,

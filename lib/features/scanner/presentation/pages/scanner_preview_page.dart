@@ -6,10 +6,10 @@ import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/services/scanner_service.dart';
-import '../../domain/scanned_doc_model.dart';
+import '../../domain/models/scanned_doc_isar_model.dart'; // ← fix: domain → data
 
 class ScannerPreviewPage extends StatefulWidget {
-  final ScannedDoc doc;
+  final ScannedDocIsar doc;
 
   const ScannerPreviewPage({super.key, required this.doc});
 
@@ -19,7 +19,7 @@ class ScannerPreviewPage extends StatefulWidget {
 
 class _ScannerPreviewPageState extends State<ScannerPreviewPage> {
   late PageController _pageController;
-  late ScannedDoc _doc;
+  late ScannedDocIsar _doc;
   int _currentPage = 0;
   bool _isGeneratingPdf = false;
   bool _isSharing = false;
@@ -50,7 +50,7 @@ class _ScannerPreviewPageState extends State<ScannerPreviewPage> {
             surfaceTintColor: Colors.transparent,
             title: Text(
               'Edit Judul',
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: AppColors.black,
@@ -60,10 +60,7 @@ class _ScannerPreviewPageState extends State<ScannerPreviewPage> {
               controller: controller,
               autofocus: true,
               maxLength: 60,
-              style: GoogleFonts.robotoMono(
-                fontSize: 13,
-                color: AppColors.black,
-              ),
+              style: GoogleFonts.poppins(fontSize: 13, color: AppColors.black),
               decoration: InputDecoration(
                 filled: true,
                 fillColor: AppColors.greyLighter,
@@ -79,7 +76,7 @@ class _ScannerPreviewPageState extends State<ScannerPreviewPage> {
                 onPressed: () => Navigator.pop(ctx),
                 child: Text(
                   'Batal',
-                  style: GoogleFonts.robotoMono(color: AppColors.greyText),
+                  style: GoogleFonts.poppins(color: AppColors.greyText),
                 ),
               ),
               GestureDetector(
@@ -95,7 +92,7 @@ class _ScannerPreviewPageState extends State<ScannerPreviewPage> {
                   ),
                   child: Text(
                     'Simpan',
-                    style: GoogleFonts.robotoMono(
+                    style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
                     ),
@@ -107,16 +104,10 @@ class _ScannerPreviewPageState extends State<ScannerPreviewPage> {
     );
 
     if (result != null && result.isNotEmpty && result != _doc.title) {
-      await ScannerService.updateTitle(_doc.id, result);
+      await ScannerService.updateTitle(_doc.docId, result);
       if (!mounted) return;
       setState(() {
-        _doc = ScannedDoc(
-          id: _doc.id,
-          title: result,
-          imagePaths: _doc.imagePaths,
-          pdfPath: _doc.pdfPath,
-          scannedAt: _doc.scannedAt,
-        );
+        _doc = _doc.copyWith(title: result); // ← fix: pakai copyWith
       });
       _showSnackbar('Judul diperbarui');
     }
@@ -210,7 +201,7 @@ class _ScannerPreviewPageState extends State<ScannerPreviewPage> {
       SnackBar(
         content: Text(
           message,
-          style: GoogleFonts.robotoMono(color: Colors.white, fontSize: 12),
+          style: GoogleFonts.poppins(color: Colors.white, fontSize: 12),
         ),
         backgroundColor: isError ? Colors.red.shade400 : AppColors.black,
         behavior: SnackBarBehavior.floating,
@@ -252,7 +243,7 @@ class _ScannerPreviewPageState extends State<ScannerPreviewPage> {
             Flexible(
               child: Text(
                 _doc.title,
-                style: GoogleFonts.robotoMono(
+                style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
@@ -296,7 +287,7 @@ class _ScannerPreviewPageState extends State<ScannerPreviewPage> {
                       const SizedBox(width: 10),
                       Text(
                         'Print PDF',
-                        style: GoogleFonts.robotoMono(
+                        style: GoogleFonts.poppins(
                           fontSize: 13,
                           color: AppColors.black,
                         ),
@@ -316,7 +307,7 @@ class _ScannerPreviewPageState extends State<ScannerPreviewPage> {
                       const SizedBox(width: 10),
                       Text(
                         'Share Gambar',
-                        style: GoogleFonts.robotoMono(
+                        style: GoogleFonts.poppins(
                           fontSize: 13,
                           color: AppColors.black,
                         ),
@@ -336,7 +327,7 @@ class _ScannerPreviewPageState extends State<ScannerPreviewPage> {
                       const SizedBox(width: 10),
                       Text(
                         'Share PDF',
-                        style: GoogleFonts.robotoMono(
+                        style: GoogleFonts.poppins(
                           fontSize: 13,
                           color: AppColors.black,
                         ),
@@ -365,7 +356,7 @@ class _ScannerPreviewPageState extends State<ScannerPreviewPage> {
                 maxScale: 4.0,
                 child: Center(
                   child: Hero(
-                    tag: 'scan_${_doc.id}_$i',
+                    tag: 'scan_${_doc.docId}_$i',
                     child: Image.file(
                       File(path),
                       fit: BoxFit.contain,
@@ -410,7 +401,7 @@ class _ScannerPreviewPageState extends State<ScannerPreviewPage> {
             ),
             child: Text(
               '${_currentPage + 1} / ${_doc.imagePaths.length}',
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
@@ -482,7 +473,7 @@ class _ScannerPreviewPageState extends State<ScannerPreviewPage> {
                   const SizedBox(height: 20),
                   Text(
                     'Share sebagai',
-                    style: GoogleFonts.robotoMono(
+                    style: GoogleFonts.poppins(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: AppColors.black,
@@ -540,7 +531,7 @@ class _ScannerPreviewPageState extends State<ScannerPreviewPage> {
             const SizedBox(height: 8),
             Text(
               label,
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: AppColors.black,
@@ -580,7 +571,7 @@ class _ScannerPreviewPageState extends State<ScannerPreviewPage> {
             const SizedBox(height: 6),
             Text(
               label,
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 10,
                 color: Colors.white.withOpacity(0.7),
               ),

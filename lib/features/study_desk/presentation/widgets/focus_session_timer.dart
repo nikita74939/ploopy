@@ -55,7 +55,7 @@ class FocusSessionTimer extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     'focusing',
-                    style: GoogleFonts.robotoMono(
+                    style: GoogleFonts.poppins(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color:
@@ -79,7 +79,7 @@ class FocusSessionTimer extends StatelessWidget {
               // Session timer
               Text(
                 sessionTime,
-                style: GoogleFonts.robotoMono(
+                style: GoogleFonts.poppins(
                   fontSize: 36,
                   fontWeight: FontWeight.w700,
                   color:
@@ -129,7 +129,7 @@ class FocusSessionTimer extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               isFocusing ? 'pause' : 'start',
-              style: GoogleFonts.robotoMono(
+              style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: isFocusing ? AppColors.black : Colors.white,

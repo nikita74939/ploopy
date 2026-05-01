@@ -6,11 +6,7 @@ class ToolCard extends StatelessWidget {
   final Map<String, dynamic> tool;
   final VoidCallback onTap;
 
-  const ToolCard({
-    super.key,
-    required this.tool,
-    required this.onTap,
-  });
+  const ToolCard({super.key, required this.tool, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +60,7 @@ class ToolCard extends StatelessWidget {
       children: [
         Text(
           tool['label'] as String,
-          style: GoogleFonts.robotoMono(
+          style: GoogleFonts.poppins(
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: available ? AppColors.black : AppColors.greyHint,
@@ -73,10 +69,7 @@ class ToolCard extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           tool['description'] as String,
-          style: GoogleFonts.robotoMono(
-            fontSize: 11,
-            color: AppColors.greyText,
-          ),
+          style: GoogleFonts.poppins(fontSize: 11, color: AppColors.greyText),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -94,7 +87,7 @@ class ToolCard extends StatelessWidget {
         ),
         child: Text(
           'Soon',
-          style: GoogleFonts.robotoMono(
+          style: GoogleFonts.poppins(
             fontSize: 10,
             fontWeight: FontWeight.w600,
             color: AppColors.greyText,

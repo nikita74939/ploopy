@@ -23,11 +23,12 @@ class UnitPickerSheet extends StatelessWidget {
     return showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => UnitPickerSheet(
-        units: units,
-        selectedCode: selectedCode,
-        accentColor: accentColor,
-      ),
+      builder:
+          (_) => UnitPickerSheet(
+            units: units,
+            selectedCode: selectedCode,
+            accentColor: accentColor,
+          ),
     );
   }
 
@@ -48,11 +49,12 @@ class UnitPickerSheet extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               shrinkWrap: true,
               itemCount: units.length,
-              separatorBuilder: (_, __) => Divider(
-                height: 1,
-                color: Colors.grey.shade100,
-                indent: 20,
-              ),
+              separatorBuilder:
+                  (_, __) => Divider(
+                    height: 1,
+                    color: Colors.grey.shade100,
+                    indent: 20,
+                  ),
               itemBuilder: (_, i) {
                 final unit = units[i];
                 final selected = unit.code == selectedCode;
@@ -70,9 +72,10 @@ class UnitPickerSheet extends StatelessWidget {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: selected
-                                ? accentColor.withOpacity(0.15)
-                                : Colors.grey.shade100,
+                            color:
+                                selected
+                                    ? accentColor.withOpacity(0.15)
+                                    : Colors.grey.shade100,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           alignment: Alignment.center,
@@ -81,9 +84,8 @@ class UnitPickerSheet extends StatelessWidget {
                             style: GoogleFonts.poppins(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: selected
-                                  ? accentColor
-                                  : Colors.grey.shade600,
+                              color:
+                                  selected ? accentColor : Colors.grey.shade600,
                             ),
                           ),
                         ),

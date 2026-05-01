@@ -6,7 +6,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-import '../../features/scanner/domain/scanned_doc_model.dart';
+import '../../features/scanner/domain/models/scanned_doc_isar_model.dart';
 
 class ScannerService {
   static const String _storageKey = 'ploopy_scanned_docs';
@@ -100,7 +100,7 @@ class ScannerService {
 
   // ========== Storage Operations ==========
 
-  static Future<List<ScannedDoc>> getAllDocs() async {
+  static Future<List<ScannedDocIsar>> getAllDocs() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonStr = prefs.getString(_storageKey);
@@ -108,7 +108,7 @@ class ScannerService {
 
       final List<dynamic> list = jsonDecode(jsonStr);
       return list
-          .map((e) => ScannedDoc.fromJson(e as Map<String, dynamic>))
+          .map((e) => ScannedDocIsar.fromJson(e as Map<String, dynamic>))
           .toList();
     } catch (e) {
       print('❌ Error loading docs: $e');
@@ -116,7 +116,7 @@ class ScannerService {
     }
   }
 
-  static Future<bool> _saveAll(List<ScannedDoc> docs) async {
+  static Future<bool> _saveAll(List<ScannedDocIsar> docs) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonList = docs.map((d) => d.toJson()).toList();
@@ -127,20 +127,21 @@ class ScannerService {
     }
   }
 
-  static Future<ScannedDoc?> saveDoc({
+  static Future<ScannedDocIsar?> saveDoc({
     required String title,
     required List<String> imagePaths,
     String? pdfPath,
   }) async {
     try {
-      final doc = ScannedDoc(
-        id: _uuid.v4(),
+      final doc = ScannedDocIsar(
+        docId: _uuid.v4(),
         title: title.trim().isEmpty
             ? 'Scan ${DateTime.now().day}/${DateTime.now().month}'
             : title.trim(),
         imagePaths: imagePaths,
         pdfPath: pdfPath,
         scannedAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
       final docs = await getAllDocs();
@@ -154,15 +155,16 @@ class ScannerService {
 
   static Future<bool> updateTitle(String id, String newTitle) async {
     final docs = await getAllDocs();
-    final index = docs.indexWhere((d) => d.id == id);
+    final index = docs.indexWhere((d) => d.docId == id);
     if (index == -1) return false;
 
-    docs[index] = ScannedDoc(
-      id: docs[index].id,
+    docs[index] = ScannedDocIsar(
+      docId: docs[index].docId,
       title: newTitle,
       imagePaths: docs[index].imagePaths,
       pdfPath: docs[index].pdfPath,
       scannedAt: docs[index].scannedAt,
+      updatedAt: DateTime.now(),
     );
     return await _saveAll(docs);
   }
@@ -170,12 +172,13 @@ class ScannerService {
   static Future<bool> deleteDoc(String id) async {
     final docs = await getAllDocs();
     final doc = docs.firstWhere(
-      (d) => d.id == id,
-      orElse: () => ScannedDoc(
-        id: '',
+      (d) => d.docId == id,
+      orElse: () => ScannedDocIsar(
+        docId: '',
         title: '',
         imagePaths: [],
         scannedAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       ),
     );
 

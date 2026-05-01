@@ -34,9 +34,10 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
 
     final result = await ActivityService.create(
       content: _contentController.text.trim(),
-      location: _locationController.text.trim().isNotEmpty
-          ? _locationController.text.trim()
-          : null,
+      location:
+          _locationController.text.trim().isNotEmpty
+              ? _locationController.text.trim()
+              : null,
     );
 
     if (mounted) {
@@ -61,9 +62,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
         ),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),
       ),
     );
@@ -99,34 +98,42 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
         Padding(
           padding: const EdgeInsets.only(right: 8),
           child: Material(
-            color: _contentController.text.trim().isNotEmpty
-                ? AppColors.primary
-                : Colors.grey.shade300,
+            color:
+                _contentController.text.trim().isNotEmpty
+                    ? AppColors.primary
+                    : Colors.grey.shade300,
             borderRadius: BorderRadius.circular(12),
             child: InkWell(
-              onTap: _contentController.text.trim().isNotEmpty && !_isPosting
-                  ? _createPost
-                  : null,
+              onTap:
+                  _contentController.text.trim().isNotEmpty && !_isPosting
+                      ? _createPost
+                      : null,
               borderRadius: BorderRadius.circular(12),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: _isPosting
-                    ? SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: const AlwaysStoppedAnimation(Colors.white),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child:
+                    _isPosting
+                        ? SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: const AlwaysStoppedAnimation(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                        : Text(
+                          'Posting',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
                         ),
-                      )
-                    : Text(
-                        'Posting',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
               ),
             ),
           ),
@@ -237,8 +244,11 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
           const Divider(),
           Row(
             children: [
-              Icon(Icons.photo_library_rounded,
-                  size: 20, color: Colors.grey.shade400),
+              Icon(
+                Icons.photo_library_rounded,
+                size: 20,
+                color: Colors.grey.shade400,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Tambah foto',
@@ -282,10 +292,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
           Expanded(
             child: TextField(
               controller: _locationController,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: Colors.black87,
-              ),
+              style: GoogleFonts.poppins(fontSize: 12, color: Colors.black87),
               decoration: InputDecoration(
                 hintText: 'Tambah lokasi (opsional)',
                 hintStyle: GoogleFonts.poppins(
@@ -298,8 +305,11 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
               ),
             ),
           ),
-          Icon(Icons.chevron_right_rounded,
-              size: 20, color: Colors.grey.shade400),
+          Icon(
+            Icons.chevron_right_rounded,
+            size: 20,
+            color: Colors.grey.shade400,
+          ),
         ],
       ),
     );
