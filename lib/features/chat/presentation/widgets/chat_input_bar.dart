@@ -1,7 +1,6 @@
-// chat/presentation/widgets/chat_input_bar.dart
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class ChatInputBar extends StatefulWidget {
   final TextEditingController controller;
@@ -42,12 +41,10 @@ class _ChatInputBarState extends State<ChatInputBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      decoration: const BoxDecoration(
         color: AppColors.white,
-        border: Border(
-          top: BorderSide(color: AppColors.greyBorder, width: 1),
-        ),
+        border: Border(top: BorderSide(color: AppColors.greyBorder, width: 1)),
       ),
       child: SafeArea(
         top: false,
@@ -55,10 +52,10 @@ class _ChatInputBarState extends State<ChatInputBar> {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             _buildIconButton(Icons.add_outlined),
-            _buildIconButton(Icons.photo_camera_outlined),
+            _buildIconButton(Icons.image_outlined),
             const SizedBox(width: 8),
             Expanded(child: _buildTextField()),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             _buildSendButton(),
           ],
         ),
@@ -67,86 +64,66 @@ class _ChatInputBarState extends State<ChatInputBar> {
   }
 
   Widget _buildIconButton(IconData icon) {
-    return GestureDetector(
-      onTap: () {},
-      child: Container(
-        width: 40,
-        height: 40,
-        margin: const EdgeInsets.only(right: 4),
-        decoration: BoxDecoration(
-          color: AppColors.greyLight,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.greyBorder),
-        ),
-        child: Icon(icon, size: 20, color: AppColors.black),
+    return Container(
+      width: 36,
+      height: 36,
+      margin: const EdgeInsets.only(right: 4),
+      decoration: BoxDecoration(
+        color: AppColors.greyLight,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.greyBorder),
+      ),
+      child: InkWell(
+        onTap: () {},
+        borderRadius: BorderRadius.circular(8),
+        child: Icon(icon, size: 16, color: AppColors.grey),
       ),
     );
   }
 
   Widget _buildTextField() {
     return Container(
-      constraints: const BoxConstraints(minHeight: 44, maxHeight: 120),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      constraints: const BoxConstraints(maxHeight: 120),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
       decoration: BoxDecoration(
         color: AppColors.greyLight,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: AppColors.greyBorder),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: widget.controller,
-              maxLines: 4,
-              minLines: 1,
-              textCapitalization: TextCapitalization.sentences,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: AppColors.black,
-                height: 1.4,
-              ),
-              decoration: InputDecoration(
-                hintText: 'Tulis pesan...',
-                hintStyle: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: AppColors.grey,
-                ),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
-          ),
-          GestureDetector(
-            onTap: () {},
-            child: Icon(
-              Icons.emoji_emotions_outlined,
-              size: 22,
-              color: AppColors.grey,
-            ),
-          ),
-        ],
+      child: TextField(
+        controller: widget.controller,
+        style: AppTextStyles.body.copyWith(color: AppColors.black),
+        maxLines: null,
+        decoration: InputDecoration(
+          hintText: 'tulis pesan...',
+          hintStyle: AppTextStyles.hint,
+          border: InputBorder.none,
+          isDense: true,
+          contentPadding: EdgeInsets.zero,
+        ),
       ),
     );
   }
-// chat/presentation/widgets/chat_input_bar.dart (lanjutan)
 
   Widget _buildSendButton() {
-    return GestureDetector(
-      onTap: _hasText ? widget.onSend : null,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: _hasText ? AppColors.black : AppColors.greyLight,
-          borderRadius: BorderRadius.circular(12),
-          border: _hasText ? null : Border.all(color: AppColors.greyBorder),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        color: _hasText ? AppColors.black : AppColors.greyLight,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: _hasText ? AppColors.black : AppColors.greyBorder,
         ),
+      ),
+      child: InkWell(
+        onTap: _hasText ? widget.onSend : null,
+        borderRadius: BorderRadius.circular(8),
         child: Icon(
-          Icons.send_rounded,
-          size: 20,
-          color: _hasText ? AppColors.white : AppColors.grey,
+          Icons.arrow_upward_rounded,
+          size: 16,
+          color: _hasText ? AppColors.white : AppColors.greyHint,
         ),
       ),
     );

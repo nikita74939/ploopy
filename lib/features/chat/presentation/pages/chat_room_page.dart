@@ -1,4 +1,3 @@
-// chat/presentation/pages/chat_room_page.dart
 import 'package:flutter/material.dart';
 import '../../../../core/constants/chat_room_dummy_data.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -25,7 +24,6 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   void initState() {
     super.initState();
     _messages = List<Map<String, dynamic>>.from(ChatRoomDummyData.messages);
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToBottom(animated: false);
     });
@@ -49,7 +47,8 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     if (text.isEmpty) return;
 
     final now = DateTime.now();
-    final time = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    final time =
+        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
     setState(() {
       _messages.add({
@@ -62,7 +61,6 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     });
 
     _messageCtrl.clear();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToBottom();
     });
@@ -78,15 +76,12 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.background,
       appBar: ChatRoomAppBar(chat: widget.chat),
       body: Column(
         children: [
           Expanded(child: _buildMessageList()),
-          ChatInputBar(
-            controller: _messageCtrl,
-            onSend: _sendMessage,
-          ),
+          ChatInputBar(controller: _messageCtrl, onSend: _sendMessage),
         ],
       ),
     );
@@ -95,17 +90,14 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   Widget _buildMessageList() {
     return ListView.builder(
       controller: _scrollCtrl,
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       itemCount: _messages.length,
       itemBuilder: (_, i) {
         final msg = _messages[i];
-
         if (msg['type'] == 'date') {
           return ChatDateSeparator(date: msg['date'] as String);
         }
-
         final showTime = _shouldShowTime(i);
-
         return ChatBubble(message: msg, showTime: showTime);
       },
     );
@@ -113,14 +105,11 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
 
   bool _shouldShowTime(int index) {
     if (index == _messages.length - 1) return true;
-
     final current = _messages[index];
     final next = _messages[index + 1];
-
     if (next['type'] == 'date') return true;
     if (current['isMe'] != next['isMe']) return true;
     if (current['time'] != next['time']) return true;
-
     return false;
   }
 }

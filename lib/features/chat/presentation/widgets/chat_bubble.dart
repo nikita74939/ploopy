@@ -1,7 +1,6 @@
-// chat/presentation/widgets/chat_bubble.dart
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class ChatBubble extends StatelessWidget {
   final Map<String, dynamic> message;
@@ -21,59 +20,61 @@ class ChatBubble extends StatelessWidget {
     final read = message['read'] as bool;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.74,
+              maxWidth: MediaQuery.of(context).size.width * 0.72,
             ),
             child: Column(
-              crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
-                    color: isMe ? AppColors.black : AppColors.greyLight,
+                    color: isMe ? AppColors.black : AppColors.white,
                     borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(16),
-                      topRight: const Radius.circular(16),
-                      bottomLeft: Radius.circular(isMe ? 16 : 4),
-                      bottomRight: Radius.circular(isMe ? 4 : 16),
+                      topLeft: const Radius.circular(12),
+                      topRight: const Radius.circular(12),
+                      bottomLeft: Radius.circular(isMe ? 12 : 4),
+                      bottomRight: Radius.circular(isMe ? 4 : 12),
                     ),
-                    border: isMe ? null : Border.all(color: AppColors.greyBorder, width: 1),
+                    border: isMe
+                        ? null
+                        : Border.all(color: AppColors.greyBorder, width: 1),
                   ),
                   child: Text(
                     text,
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
+                    style: AppTextStyles.body.copyWith(
                       color: isMe ? AppColors.white : AppColors.black,
-                      height: 1.4,
+                      height: 1.5,
                     ),
                   ),
                 ),
                 if (showTime) ...[
                   const SizedBox(height: 4),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          time,
-                          style: GoogleFonts.inter(
-                            fontSize: 10,
-                            color: AppColors.grey,
-                          ),
-                        ),
+                        Text(time, style: AppTextStyles.caption),
                         if (isMe) ...[
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 3),
                           Icon(
-                            read ? Icons.done_all_rounded : Icons.done_rounded,
+                            read
+                                ? Icons.done_all_rounded
+                                : Icons.done_rounded,
                             size: 12,
-                            color: read ? AppColors.black : AppColors.grey,
+                            color: AppColors.greyHint,
                           ),
                         ],
                       ],

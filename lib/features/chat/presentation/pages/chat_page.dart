@@ -1,8 +1,7 @@
-// chat/presentation/pages/chat_page.dart
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/chat_dummy_data.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../widgets/chat_list_item.dart';
 import 'chat_room_page.dart';
 
@@ -12,7 +11,7 @@ class ChatPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -22,21 +21,23 @@ class ChatPage extends StatelessWidget {
               child: ListView.separated(
                 padding: const EdgeInsets.only(bottom: 80),
                 itemCount: ChatDummyData.chats.length,
-                separatorBuilder: (_, __) => Divider(
-                  height: 1,
-                  color: AppColors.greyBorder,
-                  indent: 76,
-                ),
-                itemBuilder: (_, i) => ChatListItem(
-                  chat: ChatDummyData.chats[i],
-                  onTap: () => _openChatRoom(context, ChatDummyData.chats[i]),
-                ),
+                separatorBuilder:
+                    (_, __) => Container(
+                      height: 1,
+                      color: AppColors.greyBorder,
+                    ),
+                itemBuilder:
+                    (_, i) => ChatListItem(
+                      chat: ChatDummyData.chats[i],
+                      onTap:
+                          () => _openChatRoom(context, ChatDummyData.chats[i]),
+                    ),
               ),
             ),
           ],
         ),
       ),
-      floatingActionButton: _buildNewChatFab(),
+      floatingActionButton: _buildFab(),
     );
   }
 
@@ -49,24 +50,26 @@ class ChatPage extends StatelessWidget {
 
   Widget _buildAppBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        border: Border(
-          bottom: BorderSide(color: AppColors.greyBorder, width: 1),
-        ),
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+      color: AppColors.background,
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            'Chat',
-            style: GoogleFonts.inter(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: AppColors.black,
+          Text('chat', style: AppTextStyles.heading),
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: AppColors.greyLight,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.greyBorder),
+            ),
+            child: const Icon(
+              Icons.filter_list_rounded,
+              size: 16,
+              color: AppColors.grey,
             ),
           ),
-          const Spacer(),
         ],
       ),
     );
@@ -74,44 +77,51 @@ class ChatPage extends StatelessWidget {
 
   Widget _buildSearchBar() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      color: AppColors.white,
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      color: AppColors.background,
       child: Container(
-        height: 42,
+        height: 40,
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
           color: AppColors.greyLight,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(color: AppColors.greyBorder),
         ),
         child: Row(
           children: [
-            Icon(Icons.search_rounded, size: 18, color: AppColors.grey),
-            const SizedBox(width: 10),
-            Text(
-              'Cari chat...',
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                color: AppColors.grey,
-              ),
+            const Icon(
+              Icons.search_rounded,
+              size: 16,
+              color: AppColors.greyHint,
             ),
+            const SizedBox(width: 10),
+            Text('cari chat...', style: AppTextStyles.hint),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildNewChatFab() {
+  Widget _buildFab() {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8, right: 4),
-      child: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: AppColors.black,
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: AppColors.black,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.greyBorder),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {},
+          borderRadius: BorderRadius.circular(12),
+          child: const Icon(
+            Icons.edit_outlined,
+            color: AppColors.white,
+            size: 20,
+          ),
         ),
-        child: const Icon(Icons.edit_outlined, color: AppColors.white, size: 22),
       ),
     );
   }

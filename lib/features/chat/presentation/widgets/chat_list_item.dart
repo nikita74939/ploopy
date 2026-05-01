@@ -1,7 +1,6 @@
-// chat/presentation/widgets/chat_list_item.dart
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class ChatListItem extends StatelessWidget {
   final Map<String, dynamic> chat;
@@ -19,6 +18,7 @@ class ChatListItem extends StatelessWidget {
     final isGroup = chat['isGroup'] == true;
     final isPinned = chat['isPinned'] == true;
     final isMuted = chat['isMuted'] == true;
+    final hasUnread = (chat['unread'] as int) > 0;
 
     return InkWell(
       onTap: onTap,
@@ -27,10 +27,8 @@ class ChatListItem extends StatelessWidget {
         color: AppColors.white,
         child: Row(
           children: [
-            // Avatar
             _buildAvatar(color, isGroup),
             const SizedBox(width: 12),
-            // Content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,16 +40,15 @@ class ChatListItem extends StatelessWidget {
                           padding: const EdgeInsets.only(right: 4),
                           child: Icon(
                             Icons.push_pin_outlined,
-                            size: 14,
-                            color: AppColors.grey,
+                            size: 12,
+                            color: AppColors.greyHint,
                           ),
                         ),
                       Expanded(
                         child: Text(
                           chat['name'] as String,
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: chat['unread'] as int > 0
+                          style: AppTextStyles.body.copyWith(
+                            fontWeight: hasUnread
                                 ? FontWeight.w700
                                 : FontWeight.w600,
                             color: AppColors.black,
@@ -60,7 +57,13 @@ class ChatListItem extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      _buildTime(chat),
+                      Text(
+                        chat['time'] as String,
+                        style: AppTextStyles.caption.copyWith(
+                          color: hasUnread ? AppColors.black : AppColors.greyHint,
+                          fontWeight: hasUnread ? FontWeight.w600 : FontWeight.w400,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -70,28 +73,23 @@ class ChatListItem extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.only(right: 4),
                           child: Icon(
-                            Icons.notifications_off_outlined,
-                            size: 12,
-                            color: AppColors.grey,
+                            Icons.volume_off_outlined,
+                            size: 11,
+                            color: AppColors.greyHint,
                           ),
                         ),
                       Expanded(
                         child: Text(
                           chat['lastMessage'] as String,
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: (chat['unread'] as int) > 0
-                                ? AppColors.black
-                                : AppColors.grey,
-                            fontWeight: (chat['unread'] as int) > 0
-                                ? FontWeight.w500
-                                : FontWeight.w400,
+                          style: AppTextStyles.caption.copyWith(
+                            color: hasUnread ? AppColors.black : AppColors.greyText,
+                            fontWeight: hasUnread ? FontWeight.w500 : FontWeight.w400,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if ((chat['unread'] as int) > 0) _buildUnreadBadge(),
+                      if (hasUnread) _buildUnreadBadge(),
                     ],
                   ),
                 ],
@@ -105,34 +103,21 @@ class ChatListItem extends StatelessWidget {
 
   Widget _buildAvatar(Color color, bool isGroup) {
     return Container(
-      width: 52,
-      height: 52,
+      width: 48,
+      height: 48,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: AppColors.greyLight,
         shape: BoxShape.circle,
-        border: Border.all(color: color.withOpacity(0.25), width: 1.5),
+        border: Border.all(color: AppColors.greyBorder, width: 1),
       ),
       alignment: Alignment.center,
       child: Text(
         chat['avatar'] as String,
-        style: GoogleFonts.inter(
-          fontSize: isGroup ? 20 : 18,
-          fontWeight: FontWeight.w600,
-          color: color,
+        style: AppTextStyles.body.copyWith(
+          fontSize: isGroup ? 18 : 16,
+          fontWeight: FontWeight.w700,
+          color: AppColors.black,
         ),
-      ),
-    );
-  }
-
-  Widget _buildTime(Map<String, dynamic> chat) {
-    final hasUnread = (chat['unread'] as int) > 0;
-
-    return Text(
-      chat['time'] as String,
-      style: GoogleFonts.inter(
-        fontSize: 11,
-        color: hasUnread ? AppColors.black : AppColors.grey,
-        fontWeight: hasUnread ? FontWeight.w600 : FontWeight.w400,
       ),
     );
   }
@@ -140,17 +125,17 @@ class ChatListItem extends StatelessWidget {
   Widget _buildUnreadBadge() {
     return Container(
       margin: const EdgeInsets.only(left: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
         color: AppColors.black,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         '${chat['unread']}',
-        style: GoogleFonts.inter(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
+        style: AppTextStyles.caption.copyWith(
           color: AppColors.white,
+          fontWeight: FontWeight.w700,
+          fontSize: 10,
         ),
       ),
     );

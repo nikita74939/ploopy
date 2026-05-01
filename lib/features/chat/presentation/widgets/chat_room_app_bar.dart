@@ -1,7 +1,6 @@
-// chat/presentation/widgets/chat_room_app_bar.dart
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class ChatRoomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Map<String, dynamic> chat;
@@ -9,16 +8,12 @@ class ChatRoomAppBar extends StatelessWidget implements PreferredSizeWidget {
   const ChatRoomAppBar({super.key, required this.chat});
 
   @override
-  Size get preferredSize => const Size.fromHeight(68);
+  Size get preferredSize => const Size.fromHeight(56);
 
   @override
   Widget build(BuildContext context) {
-    final color = chat['color'] as Color;
-    final isGroup = chat['isGroup'] == true;
-
     return Container(
-      padding: const EdgeInsets.only(top: 8),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.white,
         border: Border(
           bottom: BorderSide(color: AppColors.greyBorder, width: 1),
@@ -27,67 +22,53 @@ class ChatRoomAppBar extends StatelessWidget implements PreferredSizeWidget {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Row(
             children: [
-              // Back button
               GestureDetector(
                 onTap: () => Navigator.pop(context),
-                child: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: AppColors.black,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Avatar
-              _buildAvatar(color, isGroup),
-              const SizedBox(width: 12),
-              // Name (centered vertically)
-              Expanded(
-                child: Text(
-                  chat['name'] as String,
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.black,
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.greyLight,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.greyBorder),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  child: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: AppColors.black,
+                    size: 18,
+                  ),
                 ),
               ),
-              const SizedBox(width: 8),
-              // Action icons (no background)
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.call_outlined,
-                  color: AppColors.black,
-                  size: 22,
+              const SizedBox(width: 10),
+              _buildAvatar(),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      chat['name'] as String,
+                      style: AppTextStyles.body.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.black,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      'online',
+                      style: AppTextStyles.caption,
+                    ),
+                  ],
                 ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
               ),
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.videocam_outlined,
-                  color: AppColors.black,
-                  size: 22,
-                ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.more_vert,
-                  color: AppColors.black,
-                  size: 22,
-                ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
+              _buildIconButton(Icons.call_outlined),
+              _buildIconButton(Icons.videocam_outlined),
+              _buildIconButton(Icons.more_vert),
             ],
           ),
         ),
@@ -95,30 +76,36 @@ class ChatRoomAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  Widget _buildAvatar(Color color, bool isGroup) {
+  Widget _buildAvatar() {
     return Container(
-      width: 42,
-      height: 42,
+      width: 36,
+      height: 36,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: AppColors.greyLight,
         shape: BoxShape.circle,
-        border: Border.all(color: color.withOpacity(0.25), width: 1.5),
+        border: Border.all(color: AppColors.greyBorder),
       ),
       alignment: Alignment.center,
-      child:
-          isGroup
-              ? Text(
-                chat['avatar'] as String,
-                style: const TextStyle(fontSize: 18),
-              )
-              : Text(
-                chat['avatar'] as String,
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                ),
-              ),
+      child: Text(
+        chat['avatar'] as String,
+        style: AppTextStyles.body.copyWith(
+          fontWeight: FontWeight.w700,
+          color: AppColors.black,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconButton(IconData icon) {
+    return Container(
+      width: 36,
+      height: 36,
+      margin: const EdgeInsets.only(left: 4),
+      child: IconButton(
+        onPressed: () {},
+        icon: Icon(icon, color: AppColors.grey, size: 18),
+        padding: EdgeInsets.zero,
+      ),
     );
   }
 }

@@ -1,7 +1,6 @@
-// chat/presentation/widgets/chat_date_separator.dart
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class ChatDateSeparator extends StatelessWidget {
   final String date;
@@ -12,23 +11,31 @@ class ChatDateSeparator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 16),
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          decoration: BoxDecoration(
-            color: AppColors.greyLight,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.greyBorder),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(height: 1, color: AppColors.greyBorder),
           ),
-          child: Text(
-            date,
-            style: GoogleFonts.inter(
-              fontSize: 11,
-              color: AppColors.grey,
-              fontWeight: FontWeight.w500,
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+            decoration: BoxDecoration(
+              color: AppColors.greyLight,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: AppColors.greyBorder),
+            ),
+            child: Text(
+              date,
+              style: AppTextStyles.caption.copyWith(
+                fontWeight: FontWeight.w500,
+                color: AppColors.grey,
+              ),
             ),
           ),
-        ),
+          Expanded(
+            child: Container(height: 1, color: AppColors.greyBorder),
+          ),
+        ],
       ),
     );
   }
