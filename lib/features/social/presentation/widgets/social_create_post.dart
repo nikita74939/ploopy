@@ -41,7 +41,7 @@ class SocialCreatePost extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Bagikan progres kuliahmu...',
+                  'Bagikan progres belajarmu...',
                   style: AppTextStyles.body.copyWith(color: AppColors.grey),
                 ),
               ),
