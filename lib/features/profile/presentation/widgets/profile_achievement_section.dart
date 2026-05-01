@@ -17,52 +17,38 @@ class ProfileAchievementSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildHeader(),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 110,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: achievements.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemBuilder: (_, i) =>
-                _AchievementBadge(achievement: achievements[i]),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '🏆',
-              style: GoogleFonts.poppins(fontSize: 15),
-            ),
-            const SizedBox(width: 6),
-            Text(
               'Achievement',
-              style: GoogleFonts.poppins(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: Colors.black87,
+              style: GoogleFonts.robotoMono(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.black,
+              ),
+            ),
+            GestureDetector(
+              onTap: onSeeAll,
+              child: Text(
+                'Lihat semua',
+                style: GoogleFonts.robotoMono(
+                  fontSize: 11,
+                  color: AppColors.greyText,
+                ),
               ),
             ),
           ],
         ),
-        GestureDetector(
-          onTap: onSeeAll,
-          child: Text(
-            'Lihat semua',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: AppColors.primary,
-              fontWeight: FontWeight.w500,
-            ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 96,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: achievements.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (_, i) =>
+                _AchievementBadge(achievement: achievements[i]),
           ),
         ),
       ],
@@ -77,59 +63,48 @@ class _AchievementBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = achievement['color'] as Color;
     final unlocked = achievement['unlocked'] as bool;
 
     return Container(
-      width: 90,
+      width: 80,
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: unlocked ? color.withOpacity(0.3) : Colors.grey.shade100,
-          width: 1,
-        ),
+        color: unlocked ? AppColors.black : AppColors.greyLight,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: unlocked
-                  ? color.withOpacity(0.15)
-                  : Colors.grey.shade100,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              unlocked
-                  ? achievement['icon'] as IconData
-                  : Icons.lock_rounded,
-              color: unlocked ? color : Colors.grey.shade400,
-              size: 22,
-            ),
+          Icon(
+            unlocked
+                ? achievement['icon'] as IconData
+                : Icons.lock_rounded,
+            color: unlocked ? Colors.white : AppColors.greyHint,
+            size: 22,
           ),
           const SizedBox(height: 6),
           Text(
             achievement['title'] as String,
-            style: GoogleFonts.poppins(
-              fontSize: 10,
+            style: GoogleFonts.robotoMono(
+              fontSize: 9,
               fontWeight: FontWeight.w600,
-              color: unlocked ? Colors.black87 : Colors.grey.shade400,
+              color: unlocked ? Colors.white : AppColors.greyHint,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
           ),
           Text(
             achievement['desc'] as String,
-            style: GoogleFonts.poppins(
-              fontSize: 9,
-              color: Colors.grey.shade400,
+            style: GoogleFonts.robotoMono(
+              fontSize: 8,
+              color: unlocked
+                  ? Colors.white.withOpacity(0.6)
+                  : AppColors.greyHandle,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
           ),
         ],
       ),

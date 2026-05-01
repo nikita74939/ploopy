@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
 import '../../../../shared/widgets/primary_button.dart';
 
@@ -27,21 +28,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void _save() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white),
-            const SizedBox(width: 12),
-            Text(
-              'Profil berhasil diperbarui',
-              style: GoogleFonts.poppins(color: Colors.white),
-            ),
-          ],
+        content: Text(
+          'Profil berhasil diperbarui',
+          style: AppTextStyles.body.copyWith(color: Colors.white),
         ),
-        backgroundColor: Colors.green.shade600,
+        backgroundColor: AppColors.black,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         margin: const EdgeInsets.all(16),
       ),
     );
@@ -51,7 +44,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppColors.background,
       appBar: _buildAppBar(),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -60,7 +53,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildAvatarSection(),
-              const SizedBox(height: 28),
+              const SizedBox(height: 32),
               _buildLabel('Nama Lengkap'),
               const SizedBox(height: 8),
               CustomTextField(controller: _nameCtrl, hint: 'Nama lengkap'),
@@ -80,10 +73,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 keyboardType: TextInputType.phone,
               ),
               const SizedBox(height: 32),
-              PrimaryButton(
-                label: 'Simpan Perubahan',
-                onPressed: _save,
-              ),
+              PrimaryButton(label: 'Simpan Perubahan', onPressed: _save),
             ],
           ),
         ),
@@ -93,21 +83,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppColors.background,
       elevation: 0,
+      scrolledUnderElevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_rounded, color: Colors.black87),
+        icon: const Icon(Icons.arrow_back_rounded, color: AppColors.black),
         onPressed: () => Navigator.pop(context),
       ),
-      title: Text(
-        'Edit Profil',
-        style: GoogleFonts.poppins(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: Colors.black87,
-        ),
-      ),
+      title: Text('Edit Profil', style: AppTextStyles.heading),
       centerTitle: true,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: Divider(height: 1, color: AppColors.greyBorder),
+      ),
     );
   }
 
@@ -116,20 +104,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
       child: Stack(
         children: [
           Container(
-            width: 100,
-            height: 100,
+            width: 88,
+            height: 88,
             decoration: BoxDecoration(
-              color: const Color(0xFFFFF3E9),
+              color: AppColors.greyLight,
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFFFD0A8), width: 2),
+              border: Border.all(color: AppColors.greyBorder, width: 1.5),
             ),
             alignment: Alignment.center,
             child: Text(
-              'P',
-              style: GoogleFonts.poppins(
-                fontSize: 40,
+              _nameCtrl.text.isNotEmpty
+                  ? _nameCtrl.text[0].toUpperCase()
+                  : 'P',
+              style: GoogleFonts.robotoMono(
+                fontSize: 36,
                 fontWeight: FontWeight.w700,
-                color: AppColors.primary,
+                color: AppColors.black,
               ),
             ),
           ),
@@ -137,16 +127,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
             bottom: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.all(8),
+              width: 28,
+              height: 28,
               decoration: BoxDecoration(
-                color: AppColors.primary,
+                color: AppColors.black,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2.5),
+                border: Border.all(color: Colors.white, width: 2),
               ),
               child: const Icon(
-                Icons.camera_alt_rounded,
+                Icons.camera_alt_outlined,
                 color: Colors.white,
-                size: 16,
+                size: 14,
               ),
             ),
           ),
@@ -156,15 +147,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Widget _buildLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: Text(
-        text,
-        style: GoogleFonts.poppins(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: Colors.grey.shade600,
-        ),
+    return Text(
+      text,
+      style: AppTextStyles.caption.copyWith(
+        color: AppColors.greyText,
+        fontWeight: FontWeight.w500,
       ),
     );
   }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class HelpCenterPage extends StatelessWidget {
   const HelpCenterPage({super.key});
@@ -12,7 +12,7 @@ class HelpCenterPage extends StatelessWidget {
     },
     {
       'q': 'Apa itu Streak?',
-      'a': 'Streak adalah jumlah hari berturut-turut kamu menyelesaikan aktivitas belajar. Jaga terus streakmu! 🔥',
+      'a': 'Streak adalah jumlah hari berturut-turut kamu menyelesaikan aktivitas belajar. Jaga terus streakmu!',
     },
     {
       'q': 'Bagaimana cara mendapat Achievement?',
@@ -31,25 +31,20 @@ class HelpCenterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppColors.background,
       appBar: _buildAppBar(context),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: ListView(
           padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildBanner(),
-              const SizedBox(height: 20),
-              _buildQuickActions(),
-              const SizedBox(height: 24),
-              _buildSectionTitle('❓', 'Pertanyaan Umum'),
-              const SizedBox(height: 12),
-              ..._faqs.map((faq) => _FaqItem(faq: faq)).toList(),
-              const SizedBox(height: 20),
-              _buildContactCard(),
-            ],
-          ),
+          children: [
+            _buildSectionLabel('Hubungi Kami'),
+            const SizedBox(height: 8),
+            _buildContactCard(),
+            const SizedBox(height: 24),
+            _buildSectionLabel('Pertanyaan Umum'),
+            const SizedBox(height: 8),
+            _buildFaqCard(),
+          ],
         ),
       ),
     );
@@ -57,202 +52,120 @@ class HelpCenterPage extends StatelessWidget {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppColors.background,
       elevation: 0,
+      scrolledUnderElevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_rounded, color: Colors.black87),
+        icon: const Icon(Icons.arrow_back_rounded, color: AppColors.black),
         onPressed: () => Navigator.pop(context),
       ),
-      title: Text(
-        'Pusat Bantuan',
-        style: GoogleFonts.poppins(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: Colors.black87,
-        ),
-      ),
+      title: Text('Pusat Bantuan', style: AppTextStyles.heading),
       centerTitle: true,
-    );
-  }
-
-  Widget _buildBanner() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFFFF3E9), Color(0xFFFFE8D6)],
-        ),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('👋', style: TextStyle(fontSize: 32)),
-          const SizedBox(height: 8),
-          Text(
-            'Halo! Ada yang bisa\nkami bantu?',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Colors.black87,
-              height: 1.3,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Cari jawaban atau hubungi tim support kami',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-            ),
-          ),
-        ],
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: Divider(height: 1, color: AppColors.greyBorder),
       ),
     );
   }
 
-  Widget _buildQuickActions() {
-    final actions = [
-      {
-        'icon': Icons.email_outlined,
-        'label': 'Email',
-        'color': const Color(0xFF4D96FF),
-      },
-      {
-        'icon': Icons.chat_bubble_outline_rounded,
-        'label': 'Live Chat',
-        'color': const Color(0xFF6BCB77),
-      },
-      {
-        'icon': Icons.phone_outlined,
-        'label': 'Telepon',
-        'color': const Color(0xFFFFD166),
-      },
-    ];
-
-    return Row(
-      children: actions.map((a) {
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(
-              right: a == actions.last ? 0 : 10,
-            ),
-            child: _QuickActionButton(
-              icon: a['icon'] as IconData,
-              label: a['label'] as String,
-              color: a['color'] as Color,
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildSectionTitle(String emoji, String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: Row(
-        children: [
-          Text(emoji, style: GoogleFonts.poppins(fontSize: 14)),
-          const SizedBox(width: 6),
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade600,
-            ),
-          ),
-        ],
+  Widget _buildSectionLabel(String text) {
+    return Text(
+      text.toUpperCase(),
+      style: AppTextStyles.caption.copyWith(
+        letterSpacing: 0.8,
+        fontWeight: FontWeight.w600,
       ),
     );
   }
 
   Widget _buildContactCard() {
+    final actions = [
+      (icon: Icons.email_outlined, label: 'Email'),
+      (icon: Icons.chat_bubble_outline_rounded, label: 'Live Chat'),
+      (icon: Icons.phone_outlined, label: 'Telepon'),
+    ];
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.primary.withOpacity(0.2),
-          width: 1,
-        ),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.greyBorder),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('💌', style: TextStyle(fontSize: 28)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Masih butuh bantuan?',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+          Text(
+            'support@ploopy.id',
+            style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 2),
+          Text('Respon dalam 1x24 jam', style: AppTextStyles.caption),
+          const SizedBox(height: 14),
+          Row(
+            children: actions.map((a) {
+              return Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    right: a == actions.last ? 0 : 8,
                   ),
+                  child: _ContactButton(icon: a.icon, label: a.label),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  'support@ploopy.id',
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
+              );
+            }).toList(),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildFaqCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.greyBorder),
+      ),
+      child: Column(
+        children: _faqs.asMap().entries.map((e) {
+          final isLast = e.key == _faqs.length - 1;
+          return Column(
+            children: [
+              _FaqItem(faq: e.value),
+              if (!isLast)
+                const Divider(
+                    height: 1, color: AppColors.greyBorder, indent: 14),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
 }
 
-class _QuickActionButton extends StatelessWidget {
+class _ContactButton extends StatelessWidget {
   final IconData icon;
   final String label;
-  final Color color;
 
-  const _QuickActionButton({
-    required this.icon,
-    required this.label,
-    required this.color,
-  });
+  const _ContactButton({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade100, width: 1),
+        color: AppColors.greyLight,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(height: 6),
+          Icon(icon, size: 18, color: AppColors.black),
+          const SizedBox(height: 4),
           Text(
             label,
-            style: GoogleFonts.poppins(
-              fontSize: 11,
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.black,
               fontWeight: FontWeight.w500,
-              color: Colors.black87,
             ),
           ),
         ],
@@ -275,62 +188,44 @@ class _FaqItemState extends State<_FaqItem> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade100, width: 1),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: () => setState(() => _expanded = !_expanded),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return InkWell(
+      onTap: () => setState(() => _expanded = !_expanded),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        widget.faq['q']!,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ),
-                    AnimatedRotation(
-                      duration: const Duration(milliseconds: 200),
-                      turns: _expanded ? 0.5 : 0,
-                      child: Icon(
-                        Icons.expand_more_rounded,
-                        color: Colors.grey.shade400,
-                      ),
-                    ),
-                  ],
-                ),
-                if (_expanded) ...[
-                  const SizedBox(height: 10),
-                  Divider(height: 1, color: Colors.grey.shade100),
-                  const SizedBox(height: 10),
-                  Text(
-                    widget.faq['a']!,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      color: Colors.grey.shade600,
-                      height: 1.5,
+                Expanded(
+                  child: Text(
+                    widget.faq['q']!,
+                    style: AppTextStyles.body.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.black,
                     ),
                   ),
-                ],
+                ),
+                AnimatedRotation(
+                  duration: const Duration(milliseconds: 200),
+                  turns: _expanded ? 0.5 : 0,
+                  child: const Icon(
+                    Icons.expand_more_rounded,
+                    size: 18,
+                    color: AppColors.greyHint,
+                  ),
+                ),
               ],
             ),
-          ),
+            if (_expanded) ...[
+              const SizedBox(height: 10),
+              Text(
+                widget.faq['a']!,
+                style: AppTextStyles.subtitle.copyWith(height: 1.5),
+              ),
+            ],
+          ],
         ),
       ),
     );
