@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/constants/app_constants.dart';
 import 'feed_post_card.dart';
 
+/// Section aktivitas. [activities] berasal dari feed posts (akan disambungkan
+/// ke feed feature nanti). Saat ini menerima List kosong dari ProfilePage.
 class ProfileActivitySection extends StatelessWidget {
   final List<Map<String, dynamic>> activities;
   final VoidCallback? onCreatePost;
@@ -23,9 +25,14 @@ class ProfileActivitySection extends StatelessWidget {
         _buildHeader(),
         const SizedBox(height: 12),
         _buildCreatePostBox(),
-        const SizedBox(height: 14),
-        ...activities.map((post) => FeedPostCard(post: post)).toList(),
-        if (activities.isNotEmpty) _buildSeeAll(),
+        if (activities.isEmpty) ...[
+          const SizedBox(height: 14),
+          _buildEmptyState(),
+        ] else ...[
+          const SizedBox(height: 14),
+          ...activities.map((post) => FeedPostCard(post: post)),
+          _buildSeeAll(),
+        ],
       ],
     );
   }
@@ -83,35 +90,48 @@ class ProfileActivitySection extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
-              child: Icon(
-                Icons.edit_rounded,
-                color: AppColors.primary,
-                size: 18,
-              ),
+              child: Icon(Icons.edit_rounded,
+                  color: AppColors.primary, size: 18),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 'Ceritakan hari ini, yuk! ✨',
                 style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: Colors.grey.shade500,
-                ),
+                    fontSize: 13, color: Colors.grey.shade500),
               ),
             ),
-            Icon(
-              Icons.photo_library_rounded,
-              color: Colors.grey.shade400,
-              size: 20,
-            ),
+            Icon(Icons.photo_library_rounded,
+                color: Colors.grey.shade400, size: 20),
             const SizedBox(width: 8),
-            Icon(
-              Icons.emoji_emotions_rounded,
-              color: Colors.grey.shade400,
-              size: 20,
-            ),
+            Icon(Icons.emoji_emotions_rounded,
+                color: Colors.grey.shade400, size: 20),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: Row(
+        children: [
+          const Text('🌱', style: TextStyle(fontSize: 24)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Belum ada aktivitas. Mulai buat postingan pertamamu!',
+              style: GoogleFonts.poppins(
+                  fontSize: 12, color: Colors.grey.shade500),
+            ),
+          ),
+        ],
       ),
     );
   }

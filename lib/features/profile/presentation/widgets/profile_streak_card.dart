@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/// Card streak. Data berasal dari [StreakModel]:
+///   currentStreak = streak.currentStreak
+///   longestStreak = streak.longestStreak
 class ProfileStreakCard extends StatelessWidget {
   final int currentStreak;
   final int longestStreak;
@@ -19,10 +22,7 @@ class ProfileStreakCard extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFFFF8C42),
-            Color(0xFFFF6B6B),
-          ],
+          colors: [Color(0xFFFF8C42), Color(0xFFFF6B6B)],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
@@ -53,10 +53,7 @@ class ProfileStreakCard extends StatelessWidget {
         shape: BoxShape.circle,
       ),
       alignment: Alignment.center,
-      child: const Text(
-        '🔥',
-        style: TextStyle(fontSize: 32),
-      ),
+      child: const Text('🔥', style: TextStyle(fontSize: 32)),
     );
   }
 
@@ -99,7 +96,9 @@ class ProfileStreakCard extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'Pertahankan semangatmu! 💪',
+          currentStreak > 0
+              ? 'Pertahankan semangatmu! 💪'
+              : 'Yuk mulai streak hari ini! 🚀',
           style: GoogleFonts.poppins(
             fontSize: 10,
             color: Colors.white.withOpacity(0.85),
@@ -118,10 +117,7 @@ class ProfileStreakCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(
-            '🏆',
-            style: GoogleFonts.poppins(fontSize: 14),
-          ),
+          Text('🏆', style: GoogleFonts.poppins(fontSize: 14)),
           const SizedBox(height: 2),
           Text(
             '$longestStreak',

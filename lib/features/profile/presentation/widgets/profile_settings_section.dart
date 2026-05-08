@@ -1,23 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../data/models/app_settings_model.dart';
 import 'profile_menu_item.dart';
 
+/// Settings section yang terhubung ke [AppSettingsModel].
+///
+/// Toggle dark mode dan notifikasi langsung memanggil [onSettingsChanged]
+/// sehingga ProfileBloc bisa dispatch [UpdateAppSettings].
 class ProfileSettingsSection extends StatelessWidget {
+  final AppSettingsModel settings;
   final VoidCallback onEditProfile;
   final VoidCallback onSecurity;
   final VoidCallback onNotification;
   final VoidCallback onHelpCenter;
   final VoidCallback onTpmFeedback;
   final VoidCallback onLogout;
+  final ValueChanged<AppSettingsModel>? onSettingsChanged;
 
   const ProfileSettingsSection({
     super.key,
+    required this.settings,
     required this.onEditProfile,
     required this.onSecurity,
     required this.onNotification,
     required this.onHelpCenter,
     required this.onTpmFeedback,
     required this.onLogout,
+    this.onSettingsChanged,
   });
 
   @override
@@ -44,12 +53,42 @@ class ProfileSettingsSection extends StatelessWidget {
             onTap: onSecurity,
           ),
           _divider(),
+          // Notifikasi dengan toggle langsung dari AppSettingsModel
           ProfileMenuItem(
             icon: Icons.notifications_outlined,
             iconColor: const Color(0xFFFFD166),
             title: 'Notifikasi',
-            subtitle: 'Atur preferensi notifikasi',
+            subtitle: settings.notifEnabled ? 'Aktif' : 'Nonaktif',
             onTap: onNotification,
+            showChevron: false,
+            trailing: Switch.adaptive(
+              value: settings.notifEnabled,
+              activeColor: const Color(0xFFFFD166),
+              onChanged: (val) {
+                onSettingsChanged?.call(
+                  settings.copyWith(notifEnabled: val),
+                );
+              },
+            ),
+          ),
+          _divider(),
+          // Dark mode toggle dari AppSettingsModel
+          ProfileMenuItem(
+            icon: Icons.dark_mode_outlined,
+            iconColor: const Color(0xFF9C88FF),
+            title: 'Dark Mode',
+            subtitle: settings.darkMode ? 'Aktif' : 'Nonaktif',
+            onTap: () {},
+            showChevron: false,
+            trailing: Switch.adaptive(
+              value: settings.darkMode,
+              activeColor: const Color(0xFF9C88FF),
+              onChanged: (val) {
+                onSettingsChanged?.call(
+                  settings.copyWith(darkMode: val),
+                );
+              },
+            ),
           ),
         ]),
         const SizedBox(height: 20),
@@ -118,11 +157,9 @@ class ProfileSettingsSection extends StatelessWidget {
     );
   }
 
-  Widget _divider() {
-    return Divider(
-      height: 1,
-      color: Colors.grey.shade100,
-      indent: 64,
-    );
-  }
+  Widget _divider() => Divider(
+        height: 1,
+        color: Colors.grey.shade100,
+        indent: 64,
+      );
 }

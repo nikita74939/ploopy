@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/// Card statistik profil. Data berasal dari ProfileLoaded:
+///   totalFriends    = friends.length
+///   totalActivities = userAchievements.length (atau feed posts nanti)
+///   currentStreak   = streak.currentStreak
 class ProfileStatsCard extends StatelessWidget {
   final int totalFriends;
   final int totalActivities;
@@ -52,13 +56,11 @@ class ProfileStatsCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDivider() {
-    return Container(
-      width: 1,
-      height: 36,
-      color: Colors.grey.shade100,
-    );
-  }
+  Widget _buildDivider() => Container(
+        width: 1,
+        height: 36,
+        color: Colors.grey.shade100,
+      );
 }
 
 class _StatItem extends StatelessWidget {

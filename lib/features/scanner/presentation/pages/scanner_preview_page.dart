@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../shared/services/scanner_service.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/services/scanner_service.dart';
 import '../../domain/scanned_doc_model.dart';
 
 class ScannerPreviewPage extends StatefulWidget {

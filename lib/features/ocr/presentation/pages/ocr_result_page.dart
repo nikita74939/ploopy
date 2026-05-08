@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../shared/services/ocr_service.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/services/ocr_service.dart';
 import '../../../ai/presentation/pages/ai_page.dart';
 import '../../domain/ocr_result_model.dart';
 

@@ -1,21 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/constants/profile_dummy_data.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../shared/services/auth_service.dart';
-import '../../../../shared/services/session_service.dart';
-import '../../../auth/presentation/pages/auth_screen.dart';
+import 'package:ploopy/features/auth/presentation/pages/login_page.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../settings/presentation/pages/settings_page.dart';
+import '../bloc/profile_bloc.dart';
 import '../widgets/profile_achievement_section.dart';
 import '../widgets/profile_activity_section.dart';
 import '../widgets/profile_header.dart';
-import '../widgets/profile_settings_section.dart';
 import '../widgets/profile_stats_card.dart';
 import '../widgets/profile_streak_card.dart';
-import 'edit_profile_page.dart';
-import 'help_center_page.dart';
-import 'notification_settings_page.dart';
-import 'security_page.dart';
-import 'tpm_feedback_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -25,183 +20,235 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  Map<String, dynamic>? _user;
-  bool _loading = true;
+  String? _currentUserId;
 
   @override
   void initState() {
     super.initState();
-    _loadUser();
+    _dispatchFromAuthBloc();
   }
 
-  Future<void> _loadUser() async {
-    final user = await SessionService.getCurrentUser();
-    if (!mounted) return;
-    setState(() {
-      _user = user;
-      _loading = false;
-    });
-  }
-
-  void _navigateTo(Widget page) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-  }
-
-  Future<void> _showLogoutDialog() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder:
-          (ctx) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            title: Row(
-              children: [
-                const Text('👋', style: TextStyle(fontSize: 22)),
-                const SizedBox(width: 8),
-                Text(
-                  'Keluar?',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-            content: Text(
-              'Kamu yakin mau keluar dari akunmu?',
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text(
-                  'Batal',
-                  style: GoogleFonts.poppins(color: Colors.grey.shade600),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.shade400,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text(
-                  'Keluar',
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-    );
-
-    if (confirm == true) _logout();
-  }
-
-  Future<void> _logout() async {
-    await AuthService.logout();
-    if (!mounted) return;
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const AuthScreen()),
-      (route) => false,
-    );
+  void _dispatchFromAuthBloc() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is Authenticated) {
+      _currentUserId = authState.user.userId;
+      context.read<ProfileBloc>().add(LoadProfile(userId: _currentUserId!));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return Center(
-        child: CircularProgressIndicator(
-          color: AppColors.primary,
-          strokeWidth: 2,
-        ),
-      );
-    }
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, authState) {
+        if (authState is Unauthenticated) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const LoginPage()),
+            (route) => false,
+          );
+        }
+      },
+      child: BlocConsumer<ProfileBloc, ProfileState>(
+        listener: (context, state) {
+          if (state is ProfileError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message, style: GoogleFonts.poppins()),
+                backgroundColor: Colors.red.shade400,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                margin: const EdgeInsets.all(16),
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is ProfileLoading || state is ProfileInitial) {
+            return Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primary,
+                strokeWidth: 2,
+              ),
+            );
+          }
+          if (state is ProfileLoaded) return _buildContent(context, state);
+          return _buildErrorState(context);
+        },
+      ),
+    );
+  }
 
-    final name = _user?['name'] ?? 'Pengguna';
-    final email = _user?['email'] ?? '';
+  Widget _buildContent(BuildContext context, ProfileLoaded state) {
+    final user = state.user;
+    final streak = state.streak;
+    final achievements = state.achievements;
+    final userAchievements = state.userAchievements;
+    final friends = state.friends;
 
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          ProfileHeader(
-            name: name,
-            email: email,
-            joinYear: ProfileDummyData.joinYear,
-            onEditPressed: () => _navigateTo(const EditProfilePage()),
+    final unlockedIds = userAchievements.map((ua) => ua.achievementId).toSet();
+    final achievementMaps =
+        achievements
+            .map(
+              (a) => {
+                'id': a.id,
+                'title': a.name,
+                'desc': a.description ?? '',
+                'icon': _resolveIcon(a.badgeIcon),
+                'color': _resolveColor(a.conditionType),
+                'unlocked': unlockedIds.contains(a.id),
+              },
+            )
+            .toList();
+
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          child: Column(
+            children: [
+              ProfileHeader(
+                name: user.name,
+                email: user.email,
+                joinYear: user.joinedAt.year,
+                onEditPressed:
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => SettingsPage()),
+                    ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    ProfileStatsCard(
+                      totalFriends: friends.length,
+                      totalActivities: userAchievements.length,
+                      currentStreak: streak.currentStreak,
+                    ),
+                    const SizedBox(height: 16),
+                    ProfileStreakCard(
+                      currentStreak: streak.currentStreak,
+                      longestStreak: streak.longestStreak,
+                    ),
+                    const SizedBox(height: 20),
+                    ProfileAchievementSection(
+                      achievements: achievementMaps,
+                      onSeeAll: () {},
+                    ),
+                    const SizedBox(height: 20),
+                    ProfileActivitySection(
+                      activities: const [],
+                      onCreatePost: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              '📝 Fitur buat post coming soon!',
+                              style: GoogleFonts.poppins(),
+                            ),
+                            behavior: SnackBarBehavior.floating,
+                            backgroundColor: Colors.black87,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            margin: const EdgeInsets.all(16),
+                          ),
+                        );
+                      },
+                      onSeeAll: () {},
+                    ),
+                    const SizedBox(height: 24),
+                    _buildAppVersion(),
+                    const SizedBox(height: 100),
+                  ],
+                ),
+              ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                ProfileStatsCard(
-                  totalFriends: ProfileDummyData.totalFriends,
-                  totalActivities: ProfileDummyData.totalActivities,
-                  currentStreak: ProfileDummyData.currentStreak,
+        ),
+
+        // ── Settings icon kanan atas ─────────────────────────────────────────
+        Positioned(
+          top: 52,
+          right: 16,
+          child: _SettingsIconButton(
+            onTap:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => SettingsPage()),
                 ),
-                const SizedBox(height: 16),
-                ProfileStreakCard(
-                  currentStreak: ProfileDummyData.currentStreak,
-                  longestStreak: ProfileDummyData.longestStreak,
-                ),
-                const SizedBox(height: 20),
-                ProfileAchievementSection(
-                  achievements: ProfileDummyData.achievements,
-                  onSeeAll: () {},
-                ),
-                const SizedBox(height: 20),
-                ProfileActivitySection(
-                  activities: ProfileDummyData.feedPosts,
-                  onCreatePost: () {
-                    // TODO: navigate to create post page
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          '📝 Fitur buat post coming soon!',
-                          style: GoogleFonts.poppins(),
-                        ),
-                        behavior: SnackBarBehavior.floating,
-                        backgroundColor: Colors.black87,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        margin: const EdgeInsets.all(16),
-                      ),
-                    );
-                  },
-                  onSeeAll: () {
-                    // TODO: navigate to all activities
-                  },
-                ),
-                const SizedBox(height: 24),
-                ProfileSettingsSection(
-                  onEditProfile: () => _navigateTo(const EditProfilePage()),
-                  onSecurity: () => _navigateTo(const SecurityPage()),
-                  onNotification:
-                      () => _navigateTo(const NotificationSettingsPage()),
-                  onHelpCenter: () => _navigateTo(const HelpCenterPage()),
-                  onTpmFeedback: () => _navigateTo(const TpmFeedbackPage()),
-                  onLogout: _showLogoutDialog,
-                ),
-                const SizedBox(height: 24),
-                _buildAppVersion(),
-                const SizedBox(height: 80),
-              ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text('😕', style: TextStyle(fontSize: 40)),
+          const SizedBox(height: 12),
+          Text(
+            'Gagal memuat profil',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: Colors.grey.shade600,
             ),
           ),
+          const SizedBox(height: 16),
+          if (_currentUserId != null)
+            ElevatedButton(
+              onPressed:
+                  () => context.read<ProfileBloc>().add(
+                    LoadProfile(userId: _currentUserId!),
+                  ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                'Coba lagi',
+                style: GoogleFonts.poppins(color: Colors.white),
+              ),
+            ),
         ],
       ),
     );
+  }
+
+  IconData _resolveIcon(String? n) {
+    switch (n) {
+      case 'emoji_events':
+        return Icons.emoji_events_rounded;
+      case 'local_fire_department':
+        return Icons.local_fire_department_rounded;
+      case 'school':
+        return Icons.school_rounded;
+      case 'task_alt':
+        return Icons.task_alt_rounded;
+      case 'star':
+        return Icons.star_rounded;
+      default:
+        return Icons.emoji_events_rounded;
+    }
+  }
+
+  Color _resolveColor(String? t) {
+    switch (t) {
+      case 'study_time':
+        return const Color(0xFF4D96FF);
+      case 'streak':
+        return const Color(0xFFFF8C42);
+      case 'task_done':
+        return const Color(0xFF6BCB77);
+      default:
+        return const Color(0xFFB79CED);
+    }
   }
 
   Widget _buildAppVersion() {
@@ -221,6 +268,34 @@ class _ProfilePageState extends State<ProfilePage> {
           style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey.shade400),
         ),
       ],
+    );
+  }
+}
+
+class _SettingsIconButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _SettingsIconButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Icon(Icons.settings_rounded, size: 20, color: AppColors.primary),
+      ),
     );
   }
 }

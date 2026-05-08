@@ -167,7 +167,7 @@ class _ScheduleTimelineItemState extends State<ScheduleTimelineItem> {
           ),
           child: Text(widget.item['title']),
         ),
-        if ((widget.item['streak'] as String).isNotEmpty)
+        if ((widget.item['streak'] as String? ?? '').isNotEmpty)
           Text(
             'Streak ${widget.item['streak']}',
             style: GoogleFonts.poppins(

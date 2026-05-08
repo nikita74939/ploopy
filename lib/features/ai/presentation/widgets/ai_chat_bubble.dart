@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/theme/app_colors.dart';
+
+import '../../../../core/constants/app_constants.dart';
 
 class AiChatBubble extends StatelessWidget {
   final String text;
@@ -57,7 +58,7 @@ class AiChatBubble extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: isUser
-            ? AppColors.primary
+            ? Colors.blue.shade700
             : (isError ? Colors.red.shade50 : Colors.white),
         borderRadius: BorderRadius.only(
           topLeft: const Radius.circular(18),

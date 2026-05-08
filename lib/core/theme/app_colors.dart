@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
   // Primary
@@ -19,4 +20,15 @@ class AppColors {
 
   // Status
   static const Color error = Colors.red;
+
+    static ThemeData get lightTheme => ThemeData(
+    colorSchemeSeed: primary,
+    useMaterial3: true,
+    textTheme: GoogleFonts.poppinsTextTheme(),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+    ),
+  );
 }

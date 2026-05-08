@@ -1,47 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:ploopy/features/ai/presentation/pages/ai_page.dart';
-import 'package:ploopy/features/ocr/presentation/pages/ocr_home_page.dart';
-import 'package:ploopy/features/scanner/presentation/pages/scanner_home_page.dart';
-import 'package:ploopy/features/todo/presentation/pages/todo_page.dart';
-import 'package:ploopy/features/tools/presentation/pages/compass_page.dart';
-import 'package:ploopy/features/tools/presentation/pages/pomodoro_page.dart';
-import 'package:ploopy/features/tools/presentation/pages/timezone_converter_page.dart';
-import 'package:ploopy/features/tools/presentation/pages/unit_converter_page.dart';
-import 'package:ploopy/core/constants/tools_dummy_data.dart';
-import 'package:ploopy/features/tools/presentation/widgets/tool_category_section.dart';
+import '../../../../core/constants/tools_data.dart';
+import '../../../memory_game/presentation/pages/memory_game_page.dart';
+import '../../../ocr/presentation/pages/ocr_home_page.dart';
+import '../../../scanner/presentation/pages/scanner_home_page.dart';
+import '../widgets/tool_category_section.dart';
+import 'compass_page.dart';
 import 'currency_converter_page.dart';
-import 'package:ploopy/features/memory_game/presentation/pages/memory_game_page.dart';
+import 'timezone_converter_page.dart';
+import 'unit_converter_page.dart';
 
 class ToolsPage extends StatelessWidget {
   const ToolsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        children: [
-          _buildAppBar(),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ...ToolsDummyData.categories.map((cat) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 24),
-                      child: ToolCategorySection(
-                        category: cat,
-                        onToolTap: (tool) => _handleToolTap(context, tool),
-                      ),
-                    );
-                  }).toList(),
-                ],
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildAppBar(),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ...ToolsData.categories.map((cat) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 24),
+                        child: ToolCategorySection(
+                          category: cat,
+                          onToolTap: (tool) => _handleToolTap(context, tool),
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -129,28 +129,10 @@ class ToolsPage extends StatelessWidget {
           MaterialPageRoute(builder: (_) => const UnitConverterPage()),
         );
         break;
-      case 'ai_assistant': // ⭐ UPDATE
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const AiPage()),
-        );
-        break;
       case 'compass': // ⭐ ADD
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const CompassPage()),
-        );
-        break;
-      case 'pomodoro': // ⭐ ADD
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const PomodoroPage()),
-        );
-        break;
-      case 'todo': // ⭐ ADD
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const TodoPage()),
         );
         break;
       case 'pict_to_text': // ⭐ ADD

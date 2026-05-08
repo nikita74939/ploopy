@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:ploopy/core/theme/app_colors.dart';
-import 'package:ploopy/core/theme/app_theme.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class MemoryCardWidget extends StatelessWidget {
   final String emoji;
@@ -77,7 +76,7 @@ class MemoryCardWidget extends StatelessWidget {
     return Container(
       key: const ValueKey(false),
       decoration: BoxDecoration(
-        color: AppTheme.primaryContainer, // Warna krem oranye sangat lembut[cite: 6]
+        color: AppColors.primaryLight, // Warna krem oranye sangat lembut[cite: 6]
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AppColors.primary.withOpacity(0.3), // Border oranye tipis[cite: 7]

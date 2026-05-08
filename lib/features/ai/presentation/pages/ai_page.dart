@@ -1,7 +1,9 @@
+// ignore_for_file: unused_element_parameter
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../shared/services/action_handler_service.dart';
-import '../../../../shared/services/ai_service.dart';
+import '../../../../core/services/action_handler_service.dart';
+import '../../../../core/services/ai_service.dart';
 import '../../domain/ai_action.dart';
 import '../widgets/ai_action_preview_card.dart';
 import '../widgets/ai_chat_bubble.dart';

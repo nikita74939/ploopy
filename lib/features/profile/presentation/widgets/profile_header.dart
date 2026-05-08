@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/theme/app_colors.dart';
+
+import '../../../../core/constants/app_constants.dart';
 
 class ProfileHeader extends StatelessWidget {
   final String name;
@@ -21,13 +22,13 @@ class ProfileHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 60, 24, 28),
       width: double.infinity,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [const Color(0xFFFFF3E9), const Color(0xFFFFE8D6)],
+          colors: [Color(0xFFFFF3E9), Color(0xFFFFE8D6)],
         ),
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
       ),
       child: Column(
         children: [
@@ -115,11 +116,8 @@ class ProfileHeader extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.calendar_today_rounded,
-            size: 12,
-            color: AppColors.primary,
-          ),
+          Icon(Icons.calendar_today_rounded,
+              size: 12, color: AppColors.primary),
           const SizedBox(width: 6),
           Text(
             'Bergabung $joinYear',

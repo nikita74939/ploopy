@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../domain/ai_action.dart';
 import 'action_event_card.dart';
 import 'action_post_card.dart';
@@ -113,7 +112,7 @@ class _AiActionPreviewCardState extends State<AiActionPreviewCard> {
   Color _getBorderColor() {
     if (widget.isExecuted) return Colors.green.shade300;
     if (widget.isCancelled) return Colors.grey.shade300;
-    return AppColors.primary.withOpacity(0.3);
+    return Colors.blue.shade300;
   }
 
   Widget _buildStatusBanner() {
@@ -155,14 +154,14 @@ class _AiActionPreviewCardState extends State<AiActionPreviewCard> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.06),
+        color: Colors.blue.shade100,
         border: Border(
           top: BorderSide(
-            color: AppColors.primary.withOpacity(0.1),
+            color: Colors.blue.shade200,
             width: 1,
           ),
           bottom: BorderSide(
-            color: AppColors.primary.withOpacity(0.1),
+            color: Colors.blue.shade200,
             width: 1,
           ),
         ),
@@ -176,7 +175,7 @@ class _AiActionPreviewCardState extends State<AiActionPreviewCard> {
             style: GoogleFonts.poppins(
               fontSize: 10,
               fontWeight: FontWeight.w700,
-              color: AppColors.primary,
+              color: Colors.blue.shade700,
               letterSpacing: 0.5,
             ),
           ),
@@ -322,7 +321,7 @@ class _AiActionPreviewCardState extends State<AiActionPreviewCard> {
 
   Widget _buildConfirmButton() {
     return Material(
-      color: AppColors.primary,
+      color: Colors.blue.shade700,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: widget.isProcessing ? null : widget.onConfirm,

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:ploopy/core/theme/app_colors.dart';
-import 'package:ploopy/features/scanner/domain/scanned_doc_model.dart';
-import 'package:ploopy/features/scanner/presentation/pages/scanner_preview_page.dart';
-import 'package:ploopy/features/scanner/presentation/widgets/scan_empty_state.dart';
-import 'package:ploopy/features/scanner/presentation/widgets/scan_history_item.dart';
-import 'package:ploopy/shared/services/scanner_service.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../domain/scanned_doc_model.dart';
+import '../pages/scanner_preview_page.dart';
+import '../widgets/scan_empty_state.dart';
+import '../widgets/scan_history_item.dart';
+import '../../../../core/services/scanner_service.dart';
 
 class ScannerHomePage extends StatefulWidget {
   const ScannerHomePage({super.key});
