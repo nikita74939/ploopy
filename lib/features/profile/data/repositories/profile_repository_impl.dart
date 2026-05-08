@@ -2,7 +2,6 @@ import '../../../auth/data/models/user_model.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../datasources/profile_local_data_source.dart';
 import '../datasources/profile_remote_data_source.dart';
-import '../models/achievement_model.dart';
 import '../models/achievement_supabase_model.dart';
 import '../models/app_settings_model.dart';
 import '../models/friendship_model.dart';

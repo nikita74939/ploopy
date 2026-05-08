@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:ploopy/features/auth/presentation/pages/login_page.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/pages/login_page.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
 import '../bloc/profile_bloc.dart';
 import '../widgets/profile_achievement_section.dart';

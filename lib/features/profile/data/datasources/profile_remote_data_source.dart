@@ -1,6 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../auth/data/models/user_model.dart';
-import '../models/achievement_model.dart';
 import '../models/achievement_supabase_model.dart';
 import '../models/app_settings_model.dart';
 import '../models/friendship_model.dart';

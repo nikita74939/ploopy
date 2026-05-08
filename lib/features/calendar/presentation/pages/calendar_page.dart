@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/widgets/neo_container.dart';
-import '../../../../core/widgets/neo_card.dart' hide NeoCard;
 import '../../../../core/utils/date_utils.dart';
 import '../../../study/presentation/bloc/study_bloc.dart';
 import '../../../schedule/presentation/bloc/schedule_bloc.dart';

@@ -5,7 +5,6 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/home/presentation/pages/main_page.dart';
-import '../../features/home/presentation/widgets/home_page.dart';
 import '../../features/schedule/presentation/pages/schedule_page.dart';
 import '../../features/schedule/presentation/pages/add_schedule_page.dart';
 import '../../features/task/presentation/pages/task_page.dart';

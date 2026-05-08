@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:ploopy/core/theme/app_colors.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_constants.dart' hide AppColors;
 import '../../../../core/constants/app_routes.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/neo_container.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../activity/data/models/activity_model.dart';

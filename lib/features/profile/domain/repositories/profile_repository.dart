@@ -1,5 +1,4 @@
 import '../../../auth/data/models/user_model.dart';
-import '../../data/models/achievement_model.dart';
 import '../../data/models/achievement_supabase_model.dart';
 import '../../data/models/app_settings_model.dart';
 import '../../data/models/friendship_model.dart';

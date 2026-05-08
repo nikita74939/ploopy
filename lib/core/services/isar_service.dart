@@ -1,14 +1,10 @@
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../features/auth/data/models/user_model.dart';
-import '../../features/chat/data/models/chat_room_model.dart';
 import '../../features/schedule/data/models/schedule_model.dart';
 import '../../features/task/data/models/task_model.dart';
 import '../../features/study/domain/models/study_session_model.dart';
 import '../../features/notification/data/models/notification_model.dart';
-import '../../features/chat/data/models/chat_message_model.dart';
-import '../../features/activity/data/models/activity_model.dart';
-import '../../features/event/data/models/event_model.dart';
 import '../../features/profile/data/models/achievement_model.dart';
 
 class IsarService {

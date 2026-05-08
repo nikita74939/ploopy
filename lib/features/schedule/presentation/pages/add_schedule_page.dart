@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/widgets/custom_text_field.dart';
-import '../../../../core/widgets/doodle_container.dart';
 import '../../../../core/widgets/neo_container.dart';
 import '../../domain/entities/schedule_entity.dart';
 import '../bloc/schedule_bloc.dart';

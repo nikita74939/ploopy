@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/widgets/neo_container.dart';
-import '../../../../core/widgets/neo_card.dart' hide NeoCard;
 import '../../../../core/utils/date_utils.dart';
 import '../bloc/study_bloc.dart';
 
