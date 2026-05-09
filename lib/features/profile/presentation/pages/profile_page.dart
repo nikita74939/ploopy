@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../auth/presentation/pages/login_page.dart';
+import '../../../auth/presentation/pages/auth_page.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
 import '../bloc/profile_bloc.dart';
 import '../widgets/profile_achievement_section.dart';
@@ -43,7 +43,7 @@ class _ProfilePageState extends State<ProfilePage> {
         if (authState is Unauthenticated) {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (_) => const LoginPage()),
+            MaterialPageRoute(builder: (_) => const AuthPage()),
             (route) => false,
           );
         }

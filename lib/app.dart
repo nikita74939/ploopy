@@ -11,9 +11,7 @@ import 'core/services/navigation_service.dart';
 import 'core/theme/app_colors.dart';
 import 'features/ai/presentation/pages/ai_page.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
-import 'features/auth/presentation/pages/login_page.dart';
-import 'features/auth/presentation/pages/register_page.dart';
-import 'features/auth/presentation/pages/forgot_password_page.dart';
+import 'features/auth/presentation/pages/auth_page.dart';
 import 'features/home/presentation/bloc/home_bloc.dart';
 import 'features/home/presentation/pages/main_page.dart';
 import 'features/schedule/presentation/bloc/schedule_bloc.dart';
@@ -171,12 +169,8 @@ class PloopyApp extends StatelessWidget {
         return MaterialPageRoute(builder: (_) => const SplashPage());
 
       // Auth
-      case AppRoutes.login:
-        return MaterialPageRoute(builder: (_) => const LoginPage());
-      case AppRoutes.register:
-        return MaterialPageRoute(builder: (_) => const RegisterPage());
-      case AppRoutes.forgotPassword:
-        return MaterialPageRoute(builder: (_) => const ForgotPasswordPage());
+      case AppRoutes.auth:
+        return MaterialPageRoute(builder: (_) => const AuthPage());
 
       // Main
       case AppRoutes.home:

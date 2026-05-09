@@ -19,7 +19,7 @@ class _SplashPageState extends State<SplashPage> {
   Future<void> _navigateToLogin() async {
     await Future.delayed(const Duration(seconds: 2));
     if (mounted) {
-      Navigator.pushReplacementNamed(context, AppRoutes.login);
+      Navigator.pushReplacementNamed(context, AppRoutes.auth);
     }
   }
 
@@ -60,10 +60,7 @@ class _SplashPageState extends State<SplashPage> {
             const SizedBox(height: 8),
             const Text(
               'Your Study Companion',
-              style: TextStyle(
-                fontSize: 16,
-                color: AppColors.textSecondary,
-              ),
+              style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
             ),
           ],
         ),
