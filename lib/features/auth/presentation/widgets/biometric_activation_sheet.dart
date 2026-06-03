@@ -14,7 +14,9 @@ import '../bloc/auth_bloc.dart';
 /// 3. Repository verifikasi sidik jari OS → set biometricEnabled = true
 /// 4. State [BiometricEnabled] → tutup sheet & panggil onSuccess
 class BiometricActivationSheet extends StatelessWidget {
-  const BiometricActivationSheet({super.key});
+  final VoidCallback? onSkipped;
+
+  const BiometricActivationSheet({super.key, this.onSkipped});
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +87,10 @@ class BiometricActivationSheet extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                Navigator.pop(context);
+                onSkipped?.call();
+              },
               child: Text('Lewati', style: AppTextStyles.bodySmall),
             ),
           ],

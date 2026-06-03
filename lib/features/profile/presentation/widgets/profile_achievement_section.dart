@@ -40,10 +40,7 @@ class ProfileAchievementSection extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text(
-              '🏆',
-              style: GoogleFonts.poppins(fontSize: 15),
-            ),
+            Text('🏆', style: GoogleFonts.poppins(fontSize: 15)),
             const SizedBox(width: 6),
             Text(
               'Achievement',
@@ -80,6 +77,7 @@ class _AchievementBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = achievement['color'] as Color;
     final unlocked = achievement['unlocked'] as bool;
+    final badgeAsset = achievement['badgeAsset'] as String;
 
     return Container(
       width: 90,
@@ -88,7 +86,7 @@ class _AchievementBadge extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: unlocked ? color.withOpacity(0.3) : Colors.grey.shade100,
+          color: unlocked ? color.withValues(alpha: 0.3) : Colors.grey.shade100,
           width: 1,
         ),
       ),
@@ -100,16 +98,45 @@ class _AchievementBadge extends StatelessWidget {
             height: 44,
             decoration: BoxDecoration(
               color: unlocked
-                  ? color.withOpacity(0.15)
+                  ? color.withValues(alpha: 0.15)
                   : Colors.grey.shade100,
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              unlocked
-                  ? achievement['icon'] as IconData
-                  : Icons.lock_rounded,
-              color: unlocked ? color : Colors.grey.shade400,
-              size: 22,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Opacity(
+                  opacity: unlocked ? 1 : 0.28,
+                  child: ColorFiltered(
+                    colorFilter: unlocked
+                        ? const ColorFilter.mode(
+                            Colors.transparent,
+                            BlendMode.dst,
+                          )
+                        : const ColorFilter.mode(
+                            Colors.grey,
+                            BlendMode.saturation,
+                          ),
+                    child: Image.asset(
+                      badgeAsset,
+                      width: 34,
+                      height: 34,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => Icon(
+                        Icons.emoji_events_rounded,
+                        color: unlocked ? color : Colors.grey.shade400,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ),
+                if (!unlocked)
+                  Icon(
+                    Icons.lock_rounded,
+                    color: Colors.grey.shade500,
+                    size: 18,
+                  ),
+              ],
             ),
           ),
           const SizedBox(height: 6),

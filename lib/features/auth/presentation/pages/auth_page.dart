@@ -21,6 +21,7 @@ class AuthPage extends StatefulWidget {
 
 class _AuthPageState extends State<AuthPage> {
   bool _isLoginSelected = true;
+  bool _isBiometricActivationSheetOpen = false;
 
   void _setTab(bool isLogin) {
     setState(() => _isLoginSelected = isLogin);
@@ -42,10 +43,15 @@ class _AuthPageState extends State<AuthPage> {
     );
   }
 
-  void _showBiometricActivationSheet() {
+  void _showBiometricActivationSheet({VoidCallback? onSkipped}) {
+    if (_isBiometricActivationSheetOpen) return;
+    _isBiometricActivationSheetOpen = true;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.transparent,
+      isDismissible: onSkipped == null,
+      enableDrag: onSkipped == null,
       isScrollControlled: true,
       builder: (sheetCtx) => Padding(
         padding: EdgeInsets.only(
@@ -53,10 +59,12 @@ class _AuthPageState extends State<AuthPage> {
         ),
         child: BlocProvider.value(
           value: context.read<AuthBloc>(),
-          child: const BiometricActivationSheet(),
+          child: BiometricActivationSheet(onSkipped: onSkipped),
         ),
       ),
-    );
+    ).whenComplete(() {
+      _isBiometricActivationSheetOpen = false;
+    });
   }
 
   void _handleBiometricPressed() {
@@ -87,7 +95,16 @@ class _AuthPageState extends State<AuthPage> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is Authenticated || state is BiometricEnabled) {
+        if (state is Authenticated) {
+          if (state.user.biometricEnabled) {
+            _navigateToHome();
+          } else {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              _showBiometricActivationSheet(onSkipped: _navigateToHome);
+            });
+          }
+        } else if (state is BiometricEnabled) {
           _navigateToHome();
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(

@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 
 import { env } from './config/env.js';
+import { achievementRoutes } from './routes/achievementRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { authRoutes } from './routes/authRoutes.js';
 import { userRoutes } from './routes/userRoutes.js';
@@ -20,6 +21,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/achievements', achievementRoutes);
 app.use('/api/users', userRoutes);
 
 app.use((req, res) => {

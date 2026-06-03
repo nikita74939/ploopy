@@ -88,19 +88,18 @@ class _ProfilePageState extends State<ProfilePage> {
     final friends = state.friends;
 
     final unlockedIds = userAchievements.map((ua) => ua.achievementId).toSet();
-    final achievementMaps =
-        achievements
-            .map(
-              (a) => {
-                'id': a.id,
-                'title': a.name,
-                'desc': a.description ?? '',
-                'icon': _resolveIcon(a.badgeIcon),
-                'color': _resolveColor(a.conditionType),
-                'unlocked': unlockedIds.contains(a.id),
-              },
-            )
-            .toList();
+    final achievementMaps = achievements
+        .map(
+          (a) => {
+            'id': a.id,
+            'title': a.name,
+            'desc': a.description ?? '',
+            'badgeAsset': _resolveBadgeAsset(a.badgeIcon),
+            'color': _resolveColor(a.conditionType),
+            'unlocked': unlockedIds.contains(a.id),
+          },
+        )
+        .toList();
 
     return Stack(
       children: [
@@ -111,11 +110,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 name: user.name,
                 email: user.email,
                 joinYear: user.joinedAt.year,
-                onEditPressed:
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => SettingsPage()),
-                    ),
+                onEditPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => SettingsPage()),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.all(20),
@@ -172,11 +170,10 @@ class _ProfilePageState extends State<ProfilePage> {
           top: 52,
           right: 16,
           child: _SettingsIconButton(
-            onTap:
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => SettingsPage()),
-                ),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => SettingsPage()),
+            ),
           ),
         ),
       ],
@@ -200,10 +197,9 @@ class _ProfilePageState extends State<ProfilePage> {
           const SizedBox(height: 16),
           if (_currentUserId != null)
             ElevatedButton(
-              onPressed:
-                  () => context.read<ProfileBloc>().add(
-                    LoadProfile(userId: _currentUserId!),
-                  ),
+              onPressed: () => context.read<ProfileBloc>().add(
+                LoadProfile(userId: _currentUserId!),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 elevation: 0,
@@ -221,34 +217,34 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  IconData _resolveIcon(String? n) {
-    switch (n) {
-      case 'emoji_events':
-        return Icons.emoji_events_rounded;
-      case 'local_fire_department':
-        return Icons.local_fire_department_rounded;
-      case 'school':
-        return Icons.school_rounded;
-      case 'task_alt':
-        return Icons.task_alt_rounded;
-      case 'star':
-        return Icons.star_rounded;
-      default:
-        return Icons.emoji_events_rounded;
-    }
+  String _resolveBadgeAsset(String? badgeIcon) {
+    final fileName = (badgeIcon == null || badgeIcon.trim().isEmpty)
+        ? 'well_organized.png'
+        : badgeIcon.trim();
+
+    // Data backup.sql memakai first_focus.png, asset project saat ini bernama
+    // firts_focus.png.
+    final normalizedName = fileName == 'first_focus.png'
+        ? 'firts_focus.png'
+        : fileName;
+
+    return 'lib/assets/badge/$normalizedName';
   }
 
   Color _resolveColor(String? t) {
-    switch (t) {
-      case 'study_time':
-        return const Color(0xFF4D96FF);
-      case 'streak':
-        return const Color(0xFFFF8C42);
-      case 'task_done':
-        return const Color(0xFF6BCB77);
-      default:
-        return const Color(0xFFB79CED);
+    if (t == null) return const Color(0xFFB79CED);
+    if (t.contains('study') || t.contains('focus')) {
+      return const Color(0xFF4D96FF);
     }
+    if (t.contains('streak')) return const Color(0xFFFF8C42);
+    if (t.contains('task')) return const Color(0xFF6BCB77);
+    if (t.contains('friend') || t.contains('activity') || t.contains('like')) {
+      return const Color(0xFFFF6B9D);
+    }
+    if (t.contains('scanner') || t.contains('ocr') || t.contains('tools')) {
+      return const Color(0xFF38BDF8);
+    }
+    return const Color(0xFFB79CED);
   }
 
   Widget _buildAppVersion() {
@@ -284,11 +280,11 @@ class _SettingsIconButton extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.9),
+          color: Colors.white.withValues(alpha: 0.9),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),

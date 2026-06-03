@@ -251,7 +251,12 @@ class DependencyInjection {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static ProfileRemoteDataSource get profileRemoteDataSource =>
-      ProfileRemoteDataSourceImpl(supabase: _supabase);
+      ProfileRemoteDataSourceImpl(
+        supabase: _supabase,
+        client: _httpClient,
+        baseUrl: ApiConfig.baseUrl,
+        secureStorage: _secureStorage,
+      );
 
   static ProfileLocalDataSource get profileLocalDataSource =>
       ProfileLocalDataSourceImpl(isar: _isar!);

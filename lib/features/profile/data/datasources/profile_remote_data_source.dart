@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../models/achievement_supabase_model.dart';
@@ -13,7 +17,10 @@ abstract class ProfileRemoteDataSource {
   Future<void> unlockAchievement(String userId, String achievementId);
 
   Future<List<FriendshipModel>> getFriends(String userId);
-  Future<FriendshipModel> sendFriendRequest(String requesterId, String addresseeId);
+  Future<FriendshipModel> sendFriendRequest(
+    String requesterId,
+    String addresseeId,
+  );
   Future<void> acceptFriendRequest(String friendshipId);
   Future<void> removeFriend(String friendshipId);
 
@@ -26,8 +33,16 @@ abstract class ProfileRemoteDataSource {
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   final SupabaseClient supabase;
+  final http.Client client;
+  final String baseUrl;
+  final FlutterSecureStorage secureStorage;
 
-  ProfileRemoteDataSourceImpl({required this.supabase});
+  ProfileRemoteDataSourceImpl({
+    required this.supabase,
+    required this.client,
+    required this.baseUrl,
+    required this.secureStorage,
+  });
 
   // ─── USER ───────────────────────────────────────────────────────────────────
 
@@ -55,31 +70,71 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
   @override
   Future<List<AchievementSupabaseModel>> getAllAchievements() async {
-    final response = await supabase.from('achievements').select();
-    return (response as List)
-        .map((e) => AchievementSupabaseModel.fromJson(e as Map<String, dynamic>))
+    final response = await client.get(
+      _uri('/api/achievements'),
+      headers: await _jsonHeaders(),
+    );
+    final data = _decode(response);
+    final achievements = (data['achievements'] as List?) ?? [];
+
+    return achievements
+        .map(
+          (e) => AchievementSupabaseModel.fromJson(e as Map<String, dynamic>),
+        )
         .toList();
   }
 
   @override
   Future<List<UserAchievementSupabaseModel>> getUserAchievements(
-      String userId) async {
-    final response = await supabase
-        .from('user_achievements')
-        .select('*, achievements(*)')
-        .eq('user_id', userId);
-    return (response as List)
-        .map((e) =>
-            UserAchievementSupabaseModel.fromJson(e as Map<String, dynamic>))
+    String userId,
+  ) async {
+    final response = await client.get(
+      _uri('/api/achievements/users/$userId'),
+      headers: await _jsonHeaders(),
+    );
+    final data = _decode(response);
+    final userAchievements = (data['userAchievements'] as List?) ?? [];
+
+    return userAchievements
+        .map(
+          (e) =>
+              UserAchievementSupabaseModel.fromJson(e as Map<String, dynamic>),
+        )
         .toList();
   }
 
   @override
   Future<void> unlockAchievement(String userId, String achievementId) async {
-    await supabase.from('user_achievements').upsert({
-      'user_id': userId,
-      'achievement_id': achievementId,
-    });
+    final response = await client.post(
+      _uri('/api/achievements/users/$userId'),
+      headers: await _jsonHeaders(),
+      body: jsonEncode({'achievementId': achievementId}),
+    );
+    _decode(response);
+  }
+
+  Uri _uri(String path) => Uri.parse('$baseUrl$path');
+
+  Future<Map<String, String>> _jsonHeaders() async {
+    final token = await secureStorage.read(key: 'auth_token');
+    return {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+  }
+
+  Map<String, dynamic> _decode(http.Response response) {
+    final body = response.body.isEmpty
+        ? <String, dynamic>{}
+        : jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        body['message']?.toString() ?? 'Request gagal. Coba lagi.',
+      );
+    }
+
+    return body;
   }
 
   // ─── FRIENDS ─────────────────────────────────────────────────────────────────
@@ -103,16 +158,20 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     final List<FriendshipModel> friends = [];
 
     for (final row in (asRequester as List)) {
-      friends.add(FriendshipModel.fromJson(
-        row as Map<String, dynamic>,
-        currentUserId: userId,
-      ));
+      friends.add(
+        FriendshipModel.fromJson(
+          row as Map<String, dynamic>,
+          currentUserId: userId,
+        ),
+      );
     }
     for (final row in (asAddressee as List)) {
-      friends.add(FriendshipModel.fromJson(
-        row as Map<String, dynamic>,
-        currentUserId: userId,
-      ));
+      friends.add(
+        FriendshipModel.fromJson(
+          row as Map<String, dynamic>,
+          currentUserId: userId,
+        ),
+      );
     }
 
     return friends;
@@ -120,7 +179,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
   @override
   Future<FriendshipModel> sendFriendRequest(
-      String requesterId, String addresseeId) async {
+    String requesterId,
+    String addresseeId,
+  ) async {
     final response = await supabase
         .from('friendships')
         .insert({
