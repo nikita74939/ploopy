@@ -16,6 +16,9 @@ class TaskModel {
   bool isCompleted = false; // Ini adalah instance member
   late DateTime createdAt;
   late String userId;
+  int? remoteId;
+  String syncState = 'synced';
+  DateTime? deletedAt;
 
   TaskModel();
 
@@ -41,12 +44,14 @@ class TaskModel {
       ..isCompleted =
           isCompleted // Sekarang merujuk ke parameter di atas
       ..createdAt = DateTime.now()
-      ..userId = userId;
+      ..userId = userId
+      ..syncState = 'pendingCreate';
   }
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
     return TaskModel()
       ..id = (json['id'] as num).toInt()
+      ..remoteId = (json['id'] as num).toInt()
       ..userId = json['user_id'] as String
       ..name = json['name'] as String
       ..subject = json['subject'] as String?
@@ -56,7 +61,9 @@ class TaskModel {
       ..iconName = json['icon_name'] as String? ?? 'task'
       ..isPinned = json['is_pinned'] as bool? ?? false
       ..isCompleted = json['is_completed'] as bool? ?? false
-      ..createdAt = DateTime.parse(json['created_at'] as String).toLocal();
+      ..createdAt = DateTime.parse(json['created_at'] as String).toLocal()
+      ..syncState = 'synced'
+      ..deletedAt = null;
   }
 
   Map<String, dynamic> toJson() {
@@ -69,6 +76,7 @@ class TaskModel {
       'iconName': iconName,
       'isPinned': isPinned,
       'isCompleted': isCompleted,
+      'createdAt': createdAt.toUtc().toIso8601String(),
     };
   }
 }

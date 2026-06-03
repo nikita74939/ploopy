@@ -183,7 +183,7 @@ class _ScheduleCalendarStripState extends State<ScheduleCalendarStrip> {
                   color: isSelected
                       ? AppColors.textMain
                       : isToday
-                      ? AppColors.primary.withOpacity(0.15)
+                      ? AppColors.primary.withValues(alpha: 0.15)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                   border: isSelected

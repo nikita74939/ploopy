@@ -9,8 +9,8 @@ abstract class ScheduleRemoteDataSource {
   Future<List<ScheduleModel>> getSchedulesByDate(DateTime date);
   Future<List<ScheduleModel>> getAllSchedules();
   Future<ScheduleModel?> getScheduleById(int id);
-  Future<void> addSchedule(ScheduleModel schedule);
-  Future<void> updateSchedule(ScheduleModel schedule);
+  Future<ScheduleModel> addSchedule(ScheduleModel schedule);
+  Future<ScheduleModel> updateSchedule(ScheduleModel schedule);
   Future<void> deleteSchedule(int id);
   Future<List<ScheduleModel>> getUpcomingSchedules(String userId);
 }
@@ -28,69 +28,78 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
 
   @override
   Future<List<ScheduleModel>> getSchedulesByDate(DateTime date) async {
-    final response = await client.get(
-      _uri('/api/schedules', {
-        'date': DateTime(date.year, date.month, date.day).toIso8601String(),
-      }),
-      headers: await _jsonHeaders(),
-    );
+    final response = await client
+        .get(
+          _uri('/api/schedules', {
+            'date': DateTime(date.year, date.month, date.day).toIso8601String(),
+          }),
+          headers: await _jsonHeaders(),
+        )
+        .timeout(const Duration(seconds: 5));
     return _scheduleList(_decode(response)['schedules'] as List?);
   }
 
   @override
   Future<List<ScheduleModel>> getAllSchedules() async {
-    final response = await client.get(
-      _uri('/api/schedules'),
-      headers: await _jsonHeaders(),
-    );
+    final response = await client
+        .get(_uri('/api/schedules'), headers: await _jsonHeaders())
+        .timeout(const Duration(seconds: 5));
     return _scheduleList(_decode(response)['schedules'] as List?);
   }
 
   @override
   Future<ScheduleModel?> getScheduleById(int id) async {
-    final response = await client.get(
-      _uri('/api/schedules/$id'),
-      headers: await _jsonHeaders(),
-    );
+    final response = await client
+        .get(_uri('/api/schedules/$id'), headers: await _jsonHeaders())
+        .timeout(const Duration(seconds: 5));
     final data = _decode(response)['schedule'] as Map<String, dynamic>?;
     return data == null ? null : ScheduleModel.fromJson(data);
   }
 
   @override
-  Future<void> addSchedule(ScheduleModel schedule) async {
-    final response = await client.post(
-      _uri('/api/schedules'),
-      headers: await _jsonHeaders(),
-      body: jsonEncode(schedule.toJson()),
+  Future<ScheduleModel> addSchedule(ScheduleModel schedule) async {
+    final response = await client
+        .post(
+          _uri('/api/schedules'),
+          headers: await _jsonHeaders(),
+          body: jsonEncode(schedule.toJson()),
+        )
+        .timeout(const Duration(seconds: 5));
+    return ScheduleModel.fromJson(
+      _decode(response)['schedule'] as Map<String, dynamic>,
     );
-    _decode(response);
   }
 
   @override
-  Future<void> updateSchedule(ScheduleModel schedule) async {
-    final response = await client.patch(
-      _uri('/api/schedules/${schedule.id}'),
-      headers: await _jsonHeaders(),
-      body: jsonEncode(schedule.toJson()),
+  Future<ScheduleModel> updateSchedule(ScheduleModel schedule) async {
+    final response = await client
+        .patch(
+          _uri('/api/schedules/${schedule.remoteId ?? schedule.id}'),
+          headers: await _jsonHeaders(),
+          body: jsonEncode(schedule.toJson()),
+        )
+        .timeout(const Duration(seconds: 5));
+    return ScheduleModel.fromJson(
+      _decode(response)['schedule'] as Map<String, dynamic>,
     );
-    _decode(response);
   }
 
   @override
   Future<void> deleteSchedule(int id) async {
-    final response = await client.delete(
-      _uri('/api/schedules/$id'),
-      headers: await _jsonHeaders(),
-    );
+    final response = await client
+        .delete(_uri('/api/schedules/$id'), headers: await _jsonHeaders())
+        .timeout(const Duration(seconds: 5));
     _decode(response);
   }
 
   @override
   Future<List<ScheduleModel>> getUpcomingSchedules(String userId) async {
-    final response = await client.get(
-      _uri('/api/schedules', {'upcoming': 'true'}),
-      headers: await _jsonHeaders(),
-    );
+    final response = await client
+        .get(
+          _uri('/api/schedules', {'upcoming': 'true'}),
+          headers: await _jsonHeaders(),
+        )
+        .timeout(const Duration(seconds: 5));
     return _scheduleList(_decode(response)['schedules'] as List?);
   }
 

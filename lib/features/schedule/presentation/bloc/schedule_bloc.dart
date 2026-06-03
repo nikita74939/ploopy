@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../domain/repositories/schedule_repository.dart';
@@ -90,6 +93,9 @@ class ScheduleOperationSuccess extends ScheduleState {
 
 class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   final ScheduleRepository repository;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  String? _lastUserId;
+  DateTime? _lastDate;
 
   ScheduleBloc({required this.repository}) : super(ScheduleInitial()) {
     on<LoadSchedules>(_onLoadSchedules);
@@ -97,12 +103,30 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     on<AddSchedule>(_onAddSchedule);
     on<UpdateSchedule>(_onUpdateSchedule);
     on<DeleteSchedule>(_onDeleteSchedule);
+
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
+      results,
+    ) {
+      final isOnline = results.any(
+        (result) => result != ConnectivityResult.none,
+      );
+      if (isOnline && _lastUserId != null && !isClosed) {
+        final date = _lastDate;
+        if (date != null) {
+          add(LoadSchedulesByDate(date: date));
+        } else {
+          add(LoadSchedules(userId: _lastUserId!));
+        }
+      }
+    });
   }
 
   Future<void> _onLoadSchedules(
     LoadSchedules event,
     Emitter<ScheduleState> emit,
   ) async {
+    _lastUserId = event.userId;
+    _lastDate = null;
     emit(ScheduleLoading());
     try {
       final schedules = await repository.getUpcomingSchedules(event.userId);
@@ -116,6 +140,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     LoadSchedulesByDate event,
     Emitter<ScheduleState> emit,
   ) async {
+    _lastDate = event.date;
     emit(ScheduleLoading());
     try {
       final schedules = await repository.getSchedulesByDate(event.date);
@@ -165,5 +190,11 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     } catch (e) {
       emit(ScheduleError(message: e.toString()));
     }
+  }
+
+  @override
+  Future<void> close() async {
+    await _connectivitySubscription?.cancel();
+    return super.close();
   }
 }

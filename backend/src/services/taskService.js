@@ -25,6 +25,9 @@ function toTaskPayload(input, userId, { partial = false } = {}) {
   if (!partial || has(input, 'isCompleted') || has(input, 'is_completed')) {
     payload.is_completed = input.isCompleted ?? input.is_completed ?? false;
   }
+  if (!partial || has(input, 'createdAt') || has(input, 'created_at')) {
+    payload.created_at = input.createdAt ?? input.created_at ?? new Date().toISOString();
+  }
 
   return payload;
 }
@@ -44,6 +47,11 @@ function assertTaskInput(input, { partial = false } = {}) {
 
   if (input.deadline != null && Number.isNaN(Date.parse(input.deadline))) {
     throw httpError(400, 'Deadline task tidak valid.');
+  }
+
+  const createdAt = input.createdAt ?? input.created_at;
+  if (createdAt != null && Number.isNaN(Date.parse(createdAt))) {
+    throw httpError(400, 'Waktu pembuatan task tidak valid.');
   }
 }
 

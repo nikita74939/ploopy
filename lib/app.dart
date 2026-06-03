@@ -71,7 +71,7 @@ class PloopyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         navigatorKey: NavigationService.navigatorKey,
-        initialRoute: AppRoutes.splash,
+        initialRoute: AppRoutes.auth,
         // Semua definisi route dipusatkan di AppRoutes agar tidak tersebar
         onGenerateRoute: AppRoutes.generateRoute,
       ),

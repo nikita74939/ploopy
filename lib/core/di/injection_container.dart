@@ -29,12 +29,14 @@ import '../../../features/home/domain/repositories/home_repository.dart';
 import '../../../features/home/presentation/bloc/home_bloc.dart';
 
 // Schedule
+import '../../../features/schedule/data/datasources/schedule_local_data_source.dart';
 import '../../../features/schedule/data/datasources/schedule_remote_data_source.dart';
 import '../../../features/schedule/data/repositories/schedule_repository_impl.dart';
 import '../../../features/schedule/domain/repositories/schedule_repository.dart';
 import '../../../features/schedule/presentation/bloc/schedule_bloc.dart';
 
 // Task
+import '../../../features/task/data/datasources/task_local_data_source.dart';
 import '../../../features/task/data/datasources/task_remote_data_source.dart';
 import '../../../features/task/data/repositories/task_repository_impl.dart';
 import '../../../features/task/domain/repositories/task_repository.dart';
@@ -163,8 +165,13 @@ class DependencyInjection {
         secureStorage: _secureStorage,
       );
 
-  static ScheduleRepository get scheduleRepository =>
-      ScheduleRepositoryImpl(remoteDataSource: scheduleRemoteDataSource);
+  static ScheduleLocalDataSource get scheduleLocalDataSource =>
+      ScheduleLocalDataSourceImpl(isar: _isar!);
+
+  static ScheduleRepository get scheduleRepository => ScheduleRepositoryImpl(
+    localDataSource: scheduleLocalDataSource,
+    remoteDataSource: scheduleRemoteDataSource,
+  );
 
   static ScheduleBloc get scheduleBloc =>
       ScheduleBloc(repository: scheduleRepository);
@@ -181,8 +188,13 @@ class DependencyInjection {
         secureStorage: _secureStorage,
       );
 
-  static TaskRepository get taskRepository =>
-      TaskRepositoryImpl(remoteDataSource: taskRemoteDataSource);
+  static TaskLocalDataSource get taskLocalDataSource =>
+      TaskLocalDataSourceImpl(isar: _isar!);
+
+  static TaskRepository get taskRepository => TaskRepositoryImpl(
+    localDataSource: taskLocalDataSource,
+    remoteDataSource: taskRemoteDataSource,
+  );
 
   static TaskBloc get taskBloc => TaskBloc(repository: taskRepository);
 

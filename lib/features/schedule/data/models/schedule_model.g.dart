@@ -27,54 +27,69 @@ const ScheduleModelSchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'description': PropertySchema(
+    r'deletedAt': PropertySchema(
       id: 2,
+      name: r'deletedAt',
+      type: IsarType.dateTime,
+    ),
+    r'description': PropertySchema(
+      id: 3,
       name: r'description',
       type: IsarType.string,
     ),
     r'endTime': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'endTime',
       type: IsarType.dateTime,
     ),
     r'iconName': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'iconName',
       type: IsarType.string,
     ),
     r'link': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'link',
       type: IsarType.string,
     ),
     r'location': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'location',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'name',
       type: IsarType.string,
     ),
+    r'remoteId': PropertySchema(
+      id: 9,
+      name: r'remoteId',
+      type: IsarType.long,
+    ),
     r'repeatType': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'repeatType',
       type: IsarType.byte,
       enumMap: _ScheduleModelrepeatTypeEnumValueMap,
     ),
     r'repeatUntil': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'repeatUntil',
       type: IsarType.dateTime,
     ),
     r'startTime': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'startTime',
       type: IsarType.dateTime,
     ),
+    r'syncState': PropertySchema(
+      id: 13,
+      name: r'syncState',
+      type: IsarType.string,
+    ),
     r'userId': PropertySchema(
-      id: 11,
+      id: 14,
       name: r'userId',
       type: IsarType.string,
     )
@@ -124,6 +139,7 @@ int _scheduleModelEstimateSize(
     }
   }
   bytesCount += 3 + object.name.length * 3;
+  bytesCount += 3 + object.syncState.length * 3;
   bytesCount += 3 + object.userId.length * 3;
   return bytesCount;
 }
@@ -136,16 +152,19 @@ void _scheduleModelSerialize(
 ) {
   writer.writeLong(offsets[0], object.color);
   writer.writeDateTime(offsets[1], object.createdAt);
-  writer.writeString(offsets[2], object.description);
-  writer.writeDateTime(offsets[3], object.endTime);
-  writer.writeString(offsets[4], object.iconName);
-  writer.writeString(offsets[5], object.link);
-  writer.writeString(offsets[6], object.location);
-  writer.writeString(offsets[7], object.name);
-  writer.writeByte(offsets[8], object.repeatType.index);
-  writer.writeDateTime(offsets[9], object.repeatUntil);
-  writer.writeDateTime(offsets[10], object.startTime);
-  writer.writeString(offsets[11], object.userId);
+  writer.writeDateTime(offsets[2], object.deletedAt);
+  writer.writeString(offsets[3], object.description);
+  writer.writeDateTime(offsets[4], object.endTime);
+  writer.writeString(offsets[5], object.iconName);
+  writer.writeString(offsets[6], object.link);
+  writer.writeString(offsets[7], object.location);
+  writer.writeString(offsets[8], object.name);
+  writer.writeLong(offsets[9], object.remoteId);
+  writer.writeByte(offsets[10], object.repeatType.index);
+  writer.writeDateTime(offsets[11], object.repeatUntil);
+  writer.writeDateTime(offsets[12], object.startTime);
+  writer.writeString(offsets[13], object.syncState);
+  writer.writeString(offsets[14], object.userId);
 }
 
 ScheduleModel _scheduleModelDeserialize(
@@ -157,19 +176,22 @@ ScheduleModel _scheduleModelDeserialize(
   final object = ScheduleModel();
   object.color = reader.readLong(offsets[0]);
   object.createdAt = reader.readDateTime(offsets[1]);
-  object.description = reader.readStringOrNull(offsets[2]);
-  object.endTime = reader.readDateTime(offsets[3]);
-  object.iconName = reader.readStringOrNull(offsets[4]);
+  object.deletedAt = reader.readDateTimeOrNull(offsets[2]);
+  object.description = reader.readStringOrNull(offsets[3]);
+  object.endTime = reader.readDateTime(offsets[4]);
+  object.iconName = reader.readStringOrNull(offsets[5]);
   object.id = id;
-  object.link = reader.readStringOrNull(offsets[5]);
-  object.location = reader.readStringOrNull(offsets[6]);
-  object.name = reader.readString(offsets[7]);
-  object.repeatType =
-      _ScheduleModelrepeatTypeValueEnumMap[reader.readByteOrNull(offsets[8])] ??
-          RepeatType.none;
-  object.repeatUntil = reader.readDateTimeOrNull(offsets[9]);
-  object.startTime = reader.readDateTime(offsets[10]);
-  object.userId = reader.readString(offsets[11]);
+  object.link = reader.readStringOrNull(offsets[6]);
+  object.location = reader.readStringOrNull(offsets[7]);
+  object.name = reader.readString(offsets[8]);
+  object.remoteId = reader.readLongOrNull(offsets[9]);
+  object.repeatType = _ScheduleModelrepeatTypeValueEnumMap[
+          reader.readByteOrNull(offsets[10])] ??
+      RepeatType.none;
+  object.repeatUntil = reader.readDateTimeOrNull(offsets[11]);
+  object.startTime = reader.readDateTime(offsets[12]);
+  object.syncState = reader.readString(offsets[13]);
+  object.userId = reader.readString(offsets[14]);
   return object;
 }
 
@@ -185,26 +207,32 @@ P _scheduleModelDeserializeProp<P>(
     case 1:
       return (reader.readDateTime(offset)) as P;
     case 2:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 3:
-      return (reader.readDateTime(offset)) as P;
-    case 4:
       return (reader.readStringOrNull(offset)) as P;
+    case 4:
+      return (reader.readDateTime(offset)) as P;
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     case 6:
       return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 8:
+      return (reader.readString(offset)) as P;
+    case 9:
+      return (reader.readLongOrNull(offset)) as P;
+    case 10:
       return (_ScheduleModelrepeatTypeValueEnumMap[
               reader.readByteOrNull(offset)] ??
           RepeatType.none) as P;
-    case 9:
-      return (reader.readDateTimeOrNull(offset)) as P;
-    case 10:
-      return (reader.readDateTime(offset)) as P;
     case 11:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 12:
+      return (reader.readDateTime(offset)) as P;
+    case 13:
+      return (reader.readString(offset)) as P;
+    case 14:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -424,6 +452,80 @@ extension ScheduleModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'createdAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      deletedAtEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      deletedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      deletedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      deletedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deletedAt',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1293,6 +1395,80 @@ extension ScheduleModelQueryFilter
   }
 
   QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      remoteIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'remoteId',
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      remoteIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'remoteId',
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      remoteIdEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'remoteId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      remoteIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'remoteId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      remoteIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'remoteId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      remoteIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'remoteId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
       repeatTypeEqualTo(RepeatType value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1479,6 +1655,142 @@ extension ScheduleModelQueryFilter
   }
 
   QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      syncStateEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'syncState',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      syncStateGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'syncState',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      syncStateLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'syncState',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      syncStateBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'syncState',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      syncStateStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'syncState',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      syncStateEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'syncState',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      syncStateContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'syncState',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      syncStateMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'syncState',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      syncStateIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'syncState',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
+      syncStateIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'syncState',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
       userIdEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1648,6 +1960,19 @@ extension ScheduleModelQuerySortBy
     });
   }
 
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy> sortByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy>
+      sortByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy> sortByDescription() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'description', Sort.asc);
@@ -1723,6 +2048,19 @@ extension ScheduleModelQuerySortBy
     });
   }
 
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy> sortByRemoteId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remoteId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy>
+      sortByRemoteIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remoteId', Sort.desc);
+    });
+  }
+
   QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy> sortByRepeatType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'repeatType', Sort.asc);
@@ -1759,6 +2097,19 @@ extension ScheduleModelQuerySortBy
       sortByStartTimeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startTime', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy> sortBySyncState() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncState', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy>
+      sortBySyncStateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncState', Sort.desc);
     });
   }
 
@@ -1799,6 +2150,19 @@ extension ScheduleModelQuerySortThenBy
       thenByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy> thenByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy>
+      thenByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
     });
   }
 
@@ -1889,6 +2253,19 @@ extension ScheduleModelQuerySortThenBy
     });
   }
 
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy> thenByRemoteId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remoteId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy>
+      thenByRemoteIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remoteId', Sort.desc);
+    });
+  }
+
   QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy> thenByRepeatType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'repeatType', Sort.asc);
@@ -1928,6 +2305,19 @@ extension ScheduleModelQuerySortThenBy
     });
   }
 
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy> thenBySyncState() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncState', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy>
+      thenBySyncStateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncState', Sort.desc);
+    });
+  }
+
   QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy> thenByUserId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userId', Sort.asc);
@@ -1952,6 +2342,12 @@ extension ScheduleModelQueryWhereDistinct
   QueryBuilder<ScheduleModel, ScheduleModel, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QDistinct> distinctByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'deletedAt');
     });
   }
 
@@ -1996,6 +2392,12 @@ extension ScheduleModelQueryWhereDistinct
     });
   }
 
+  QueryBuilder<ScheduleModel, ScheduleModel, QDistinct> distinctByRemoteId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'remoteId');
+    });
+  }
+
   QueryBuilder<ScheduleModel, ScheduleModel, QDistinct> distinctByRepeatType() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'repeatType');
@@ -2012,6 +2414,13 @@ extension ScheduleModelQueryWhereDistinct
   QueryBuilder<ScheduleModel, ScheduleModel, QDistinct> distinctByStartTime() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'startTime');
+    });
+  }
+
+  QueryBuilder<ScheduleModel, ScheduleModel, QDistinct> distinctBySyncState(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'syncState', caseSensitive: caseSensitive);
     });
   }
 
@@ -2040,6 +2449,12 @@ extension ScheduleModelQueryProperty
   QueryBuilder<ScheduleModel, DateTime, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
+    });
+  }
+
+  QueryBuilder<ScheduleModel, DateTime?, QQueryOperations> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'deletedAt');
     });
   }
 
@@ -2079,6 +2494,12 @@ extension ScheduleModelQueryProperty
     });
   }
 
+  QueryBuilder<ScheduleModel, int?, QQueryOperations> remoteIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'remoteId');
+    });
+  }
+
   QueryBuilder<ScheduleModel, RepeatType, QQueryOperations>
       repeatTypeProperty() {
     return QueryBuilder.apply(this, (query) {
@@ -2096,6 +2517,12 @@ extension ScheduleModelQueryProperty
   QueryBuilder<ScheduleModel, DateTime, QQueryOperations> startTimeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'startTime');
+    });
+  }
+
+  QueryBuilder<ScheduleModel, String, QQueryOperations> syncStateProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'syncState');
     });
   }
 

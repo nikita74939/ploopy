@@ -12,7 +12,7 @@ class BiometricLoginSheet extends StatelessWidget {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is Authenticated) {
-          Navigator.pop(context);
+          Navigator.pop(context, true);
         } else if (state is AuthError) {
           ScaffoldMessenger.of(
             context,

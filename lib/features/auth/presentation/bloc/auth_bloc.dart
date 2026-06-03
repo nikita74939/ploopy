@@ -56,6 +56,10 @@ class AuthInitial extends AuthState {}
 
 class AuthLoading extends AuthState {}
 
+class AuthChecking extends AuthState {}
+
+class AuthLogoutLoading extends AuthState {}
+
 class Authenticated extends AuthState {
   final UserEntity user;
 
@@ -103,7 +107,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     CheckAuthStatus event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
+    emit(AuthChecking());
     try {
       final isLoggedIn = await repository.isLoggedIn();
       if (isLoggedIn) {
@@ -211,7 +215,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     LogoutRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
+    emit(AuthLogoutLoading());
     try {
       await repository.logout();
       emit(Unauthenticated());

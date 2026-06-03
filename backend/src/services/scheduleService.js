@@ -35,6 +35,9 @@ function toSchedulePayload(input, userId, { partial = false } = {}) {
   if (!partial || has(input, 'repeatUntil') || has(input, 'repeat_until') || has(input, 'recurrenceEnd')) {
     payload.repeat_until = input.repeatUntil ?? input.repeat_until ?? input.recurrenceEnd ?? null;
   }
+  if (!partial || has(input, 'createdAt') || has(input, 'created_at')) {
+    payload.created_at = input.createdAt ?? input.created_at ?? new Date().toISOString();
+  }
 
   return payload;
 }
@@ -61,6 +64,11 @@ function assertScheduleInput(input, { partial = false } = {}) {
 
   if (startTime != null && endTime != null && Date.parse(endTime) <= Date.parse(startTime)) {
     throw httpError(400, 'Waktu selesai harus setelah waktu mulai.');
+  }
+
+  const createdAt = input.createdAt ?? input.created_at;
+  if (createdAt != null && Number.isNaN(Date.parse(createdAt))) {
+    throw httpError(400, 'Waktu pembuatan jadwal tidak valid.');
   }
 }
 

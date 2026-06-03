@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/constants/app_routes.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../auth/presentation/pages/auth_page.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
 import '../bloc/profile_bloc.dart';
 import '../widgets/profile_achievement_section.dart';
@@ -41,9 +41,10 @@ class _ProfilePageState extends State<ProfilePage> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, authState) {
         if (authState is Unauthenticated) {
-          Navigator.pushAndRemoveUntil(
+          if (ModalRoute.of(context)?.isCurrent != true) return;
+          Navigator.pushNamedAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (_) => const AuthPage()),
+            AppRoutes.auth,
             (route) => false,
           );
         }

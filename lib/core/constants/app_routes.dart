@@ -23,7 +23,6 @@ import '../../features/tools/presentation/pages/timezone_converter_page.dart';
 import '../../features/tools/presentation/pages/unit_converter_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
-import '../../features/splash/presentation/pages/splash_page.dart';
 
 class AppRoutes {
   // Konstruktor privat — kelas ini hanya berisi konstanta & factory method
@@ -31,7 +30,6 @@ class AppRoutes {
 
   // ─── Nama-nama route ──────────────────────────────────────────────────────
 
-  static const String splash = '/';
   static const String auth = '/auth';
   static const String home = '/home';
 
@@ -78,8 +76,6 @@ class AppRoutes {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       // ── Splash & Auth ──────────────────────────────────────────────────────
-      case splash:
-        return _route(const SplashPage());
       case auth:
         return _route(const AuthPage());
 

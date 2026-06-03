@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -116,6 +119,9 @@ class TaskOperationSuccess extends TaskState {
 
 class TaskBloc extends Bloc<TaskEvent, TaskState> {
   final TaskRepository repository;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  String? _lastUserId;
+  DateTime? _lastDate;
 
   TaskBloc({required this.repository}) : super(TaskInitial()) {
     on<LoadTasks>(_onLoadTasks);
@@ -125,9 +131,27 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     on<DeleteTask>(_onDeleteTask);
     on<ToggleTaskCompletion>(_onToggleTaskCompletion);
     on<ToggleTaskPin>(_onToggleTaskPin);
+
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
+      results,
+    ) {
+      final isOnline = results.any(
+        (result) => result != ConnectivityResult.none,
+      );
+      if (isOnline && _lastUserId != null && !isClosed) {
+        final date = _lastDate;
+        if (date != null) {
+          add(LoadTasksByDate(date: date, userId: _lastUserId!));
+        } else {
+          add(LoadTasks(userId: _lastUserId!));
+        }
+      }
+    });
   }
 
   Future<void> _onLoadTasks(LoadTasks event, Emitter<TaskState> emit) async {
+    _lastUserId = event.userId;
+    _lastDate = null;
     emit(TaskLoading());
     try {
       final tasks = await repository.getTasksByUser(event.userId);
@@ -141,6 +165,8 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     LoadTasksByDate event,
     Emitter<TaskState> emit,
   ) async {
+    _lastUserId = event.userId;
+    _lastDate = event.date;
     emit(TaskLoading());
     try {
       final tasks = await repository.getTasksByUser(event.userId);
@@ -219,5 +245,11 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     } catch (e) {
       emit(TaskError(message: e.toString()));
     }
+  }
+
+  @override
+  Future<void> close() async {
+    await _connectivitySubscription?.cancel();
+    return super.close();
   }
 }

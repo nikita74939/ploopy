@@ -23,6 +23,9 @@ class ScheduleModel {
 
   late DateTime createdAt;
   late String userId;
+  int? remoteId;
+  String syncState = 'synced';
+  DateTime? deletedAt;
 
   ScheduleModel();
 
@@ -51,7 +54,8 @@ class ScheduleModel {
       ..repeatType = repeatType ?? RepeatType.none
       ..repeatUntil = repeatUntil
       ..createdAt = DateTime.now()
-      ..userId = userId;
+      ..userId = userId
+      ..syncState = 'pendingCreate';
   }
 
   /// Convert RepeatType enum to entity string
@@ -105,6 +109,7 @@ class ScheduleModel {
   factory ScheduleModel.fromJson(Map<String, dynamic> json) {
     return ScheduleModel()
       ..id = (json['id'] as num).toInt()
+      ..remoteId = (json['id'] as num).toInt()
       ..userId = json['user_id'] as String
       ..name = json['name'] as String
       ..startTime = DateTime.parse(json['start_time'] as String).toLocal()
@@ -120,7 +125,9 @@ class ScheduleModel {
       ..repeatUntil = json['repeat_until'] == null
           ? null
           : DateTime.parse(json['repeat_until'] as String).toLocal()
-      ..createdAt = DateTime.parse(json['created_at'] as String).toLocal();
+      ..createdAt = DateTime.parse(json['created_at'] as String).toLocal()
+      ..syncState = 'synced'
+      ..deletedAt = null;
   }
 
   Map<String, dynamic> toJson() {
@@ -135,12 +142,13 @@ class ScheduleModel {
       'iconName': iconName,
       'repeatType': _repeatTypeToString(repeatType),
       'repeatUntil': repeatUntil?.toUtc().toIso8601String(),
+      'createdAt': createdAt.toUtc().toIso8601String(),
     };
   }
 
   factory ScheduleModel.fromEntity(ScheduleEntity entity) {
     return ScheduleModel()
-      ..id = entity.id
+      ..id = entity.id > 0 ? entity.id : Isar.autoIncrement
       ..name = entity.name
       ..startTime = entity.startTime
       ..endTime = entity.endTime
@@ -152,7 +160,9 @@ class ScheduleModel {
       ..repeatType = _stringToRepeatType(entity.recurrence)
       ..repeatUntil = entity.recurrenceEnd
       ..createdAt = entity.createdAt
-      ..userId = entity.userId;
+      ..userId = entity.userId
+      ..remoteId = entity.id > 0 ? entity.id : null
+      ..syncState = 'pendingCreate';
   }
 }
 

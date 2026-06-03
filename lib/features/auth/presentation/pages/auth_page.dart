@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/ploopy_mascot.dart';
 import '../bloc/auth_bloc.dart';
 import '../widgets/auth_tab_selector.dart';
 import '../widgets/biometric_activation_sheet.dart';
@@ -22,17 +21,30 @@ class AuthPage extends StatefulWidget {
 class _AuthPageState extends State<AuthPage> {
   bool _isLoginSelected = true;
   bool _isBiometricActivationSheetOpen = false;
+  bool _isBiometricLoginSheetOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<AuthBloc>().add(CheckAuthStatus());
+  }
 
   void _setTab(bool isLogin) {
     setState(() => _isLoginSelected = isLogin);
   }
 
   void _navigateToHome() {
-    Navigator.pushReplacementNamed(context, AppRoutes.home);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, AppRoutes.home);
+    });
   }
 
-  void _showBiometricLoginSheet() {
-    showModalBottomSheet(
+  Future<void> _showBiometricLoginSheet() async {
+    if (_isBiometricLoginSheetOpen) return;
+    _isBiometricLoginSheetOpen = true;
+
+    final authenticated = await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: AppColors.transparent,
       isScrollControlled: true,
@@ -41,6 +53,12 @@ class _AuthPageState extends State<AuthPage> {
         child: const BiometricLoginSheet(),
       ),
     );
+    _isBiometricLoginSheetOpen = false;
+
+    if (!mounted) return;
+    if (authenticated == true) {
+      _navigateToHome();
+    }
   }
 
   void _showBiometricActivationSheet({VoidCallback? onSkipped}) {
@@ -96,6 +114,7 @@ class _AuthPageState extends State<AuthPage> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is Authenticated) {
+          if (_isBiometricLoginSheetOpen) return;
           if (state.user.biometricEnabled) {
             _navigateToHome();
           } else {
@@ -231,15 +250,7 @@ class _AuthPageState extends State<AuthPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const PloopyMascot(size: 104, withBook: false),
-        const SizedBox(height: 8),
-        Text(
-          'Welcome back!',
-          style: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.textSecondary,
-          ),
-        ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 60),
         Text(
           _isLoginSelected ? "Let's login to" : "Let's join",
           textAlign: TextAlign.center,
