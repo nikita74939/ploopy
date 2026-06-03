@@ -4,7 +4,7 @@ import { httpError } from '../utils/httpError.js';
 export async function getUserProfile(userId) {
   const { data, error } = await supabaseAdmin
     .from('users')
-    .select()
+    .select('id, name, email, bio, avatar_url, joined_at, biometric_enabled')
     .eq('id', userId)
     .maybeSingle();
 
@@ -19,17 +19,32 @@ export async function getUserProfile(userId) {
   return data;
 }
 
-export async function createUserProfile({ id, email, name }) {
+export async function getUserByEmailWithPassword(email) {
+  const { data, error } = await supabaseAdmin
+    .from('users')
+    .select()
+    .eq('email', email)
+    .maybeSingle();
+
+  if (error) {
+    throw httpError(500, error.message);
+  }
+
+  return data;
+}
+
+export async function createUserProfile({ id, email, name, passwordHash }) {
   const { data, error } = await supabaseAdmin
     .from('users')
     .insert({
       id,
       email,
       name,
+      password_hash: passwordHash,
       joined_at: new Date().toISOString(),
       biometric_enabled: false,
     })
-    .select()
+    .select('id, name, email, bio, avatar_url, joined_at, biometric_enabled')
     .single();
 
   if (error) {
@@ -44,7 +59,7 @@ export async function updateBiometricEnabled({ userId, enabled }) {
     .from('users')
     .update({ biometric_enabled: enabled })
     .eq('id', userId)
-    .select()
+    .select('id, name, email, bio, avatar_url, joined_at, biometric_enabled')
     .single();
 
   if (error) {
