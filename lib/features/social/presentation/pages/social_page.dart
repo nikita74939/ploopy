@@ -57,10 +57,6 @@ class _SocialPageState extends State<SocialPage>
             onPressed:
                 () => Navigator.pushNamed(context, AppRoutes.notification),
           ),
-          IconButton(
-            icon: const Icon(Icons.chat_bubble_outline),
-            onPressed: () => Navigator.pushNamed(context, AppRoutes.chatList),
-          ),
           IconButton(icon: const Icon(Icons.tune), onPressed: () {}),
         ],
         bottom: TabBar(

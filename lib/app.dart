@@ -21,7 +21,6 @@ import 'features/schedule/presentation/bloc/schedule_bloc.dart';
 import 'features/task/presentation/bloc/task_bloc.dart';
 import 'features/study/presentation/bloc/study_bloc.dart';
 import 'features/notification/presentation/bloc/notification_bloc.dart';
-import 'features/chat/presentation/bloc/chat_bloc.dart';
 import 'features/activity/presentation/bloc/activity_bloc.dart';
 import 'features/event/presentation/bloc/event_bloc.dart';
 import 'features/profile/presentation/bloc/profile_bloc.dart';
@@ -57,7 +56,6 @@ class PloopyApp extends StatelessWidget {
         BlocProvider<NotificationBloc>(
           create: (_) => DependencyInjection.notificationBloc,
         ),
-        BlocProvider<ChatBloc>(create: (_) => DependencyInjection.chatBloc),
         BlocProvider<ActivityBloc>(
           create: (_) => DependencyInjection.activityBloc,
         ),

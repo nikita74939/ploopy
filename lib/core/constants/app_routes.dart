@@ -14,8 +14,6 @@ import '../../features/calendar/presentation/pages/calendar_page.dart';
 import '../../features/notification/presentation/pages/notification_page.dart';
 import '../../features/activity/presentation/pages/activity_page.dart';
 import '../../features/event/presentation/pages/event_page.dart';
-import '../../features/chat/presentation/pages/chat_list_page.dart';
-import '../../features/chat/presentation/pages/chat_room_page.dart';
 import '../../features/social/presentation/pages/social_page.dart';
 import '../../features/tools/presentation/pages/tools_page.dart';
 import '../../features/tools/presentation/pages/currency_converter_page.dart';
@@ -45,10 +43,6 @@ class AppRoutes {
 
   static const String event = '/event';
   static const String eventDetail = '/event-detail'; // args: Event
-
-  // chatRoom membutuhkan args: {userId, otherUserId, otherUserName}
-  static const String chatList = '/chat-list';
-  static const String chatRoom = '/chat-room';
 
   static const String social = '/social';
   static const String aiChat = '/ai-chat';
@@ -102,25 +96,6 @@ class AppRoutes {
       // ── Notification ───────────────────────────────────────────────────────
       case notification:
         return _route(const NotificationPage());
-
-      // ── Chat ───────────────────────────────────────────────────────────────
-      // currentUserId diambil dari sesi Supabase yang sedang aktif
-      case chatList:
-        return _route(
-          ChatListPage(
-            currentUserId: Supabase.instance.client.auth.currentUser!.id,
-          ),
-        );
-      // args wajib: {userId, otherUserId, otherUserName}
-      case chatRoom:
-        final args = settings.arguments as Map<String, dynamic>;
-        return _route(
-          ChatRoomPage(
-            userId: args['userId'].toString(),
-            otherUserId: args['otherUserId'].toString(),
-            otherUserName: args['otherUserName']?.toString() ?? 'User',
-          ),
-        );
 
       // ── Activity & Event ───────────────────────────────────────────────────
       case activity:

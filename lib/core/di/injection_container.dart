@@ -54,12 +54,6 @@ import '../../../features/notification/data/repositories/notification_repository
 import '../../../features/notification/domain/repositories/notification_repository.dart';
 import '../../../features/notification/presentation/bloc/notification_bloc.dart';
 
-// Chat
-import '../../../features/chat/data/datasources/chat_remote_datasource.dart';
-import '../../../features/chat/data/repositories/chat_repository_impl.dart';
-import '../../../features/chat/domain/repositories/chat_repository.dart';
-import '../../../features/chat/presentation/bloc/chat_bloc.dart';
-
 // Activity (remote-only: Supabase)
 import '../../../features/activity/data/datasources/activity_remote_data_source.dart';
 import '../../../features/activity/data/repositories/activity_repository_impl.dart';
@@ -224,19 +218,6 @@ class DependencyInjection {
 
   static NotificationBloc get notificationBloc =>
       NotificationBloc(repository: notificationRepository);
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // CHAT
-  // Pesan real-time antar pengguna — remote-only via Supabase Realtime
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  static ChatRemoteDataSource get chatRemoteDataSource =>
-      ChatRemoteDataSourceImpl(supabase: _supabase);
-
-  static ChatRepository get chatRepository =>
-      ChatRepositoryImpl(remoteDataSource: chatRemoteDataSource);
-
-  static ChatBloc get chatBloc => ChatBloc(repository: chatRepository);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // ACTIVITY
