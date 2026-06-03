@@ -8,9 +8,7 @@ import '../../features/ai/presentation/pages/ai_page.dart';
 import '../../features/auth/presentation/pages/auth_page.dart';
 import '../../features/home/presentation/pages/main_page.dart';
 import '../../features/schedule/presentation/pages/schedule_page.dart';
-import '../../features/schedule/presentation/pages/add_schedule_page.dart';
 import '../../features/task/presentation/pages/task_page.dart';
-import '../../features/task/presentation/pages/add_task_page.dart';
 import '../../features/study/presentation/pages/study_page.dart';
 import '../../features/calendar/presentation/pages/calendar_page.dart';
 import '../../features/notification/presentation/pages/notification_page.dart';
@@ -33,48 +31,45 @@ class AppRoutes {
 
   // ─── Nama-nama route ──────────────────────────────────────────────────────
 
-  static const String splash            = '/';
-  static const String auth              = '/auth';
-  static const String home              = '/home';
+  static const String splash = '/';
+  static const String auth = '/auth';
+  static const String home = '/home';
 
-  static const String schedule          = '/schedule';
-  static const String addSchedule       = '/add-schedule';
-  static const String editSchedule      = '/edit-schedule';   // args: Schedule
+  static const String schedule = '/schedule';
+  static const String task = '/task';
 
-  static const String task              = '/task';
-  static const String addTask           = '/add-task';
-  static const String editTask          = '/edit-task';       // args: Task
+  static const String study = '/study';
+  static const String calendar = '/calendar';
+  static const String notification = '/notification';
 
-  static const String study             = '/study';
-  static const String calendar          = '/calendar';
-  static const String notification      = '/notification';
+  static const String activity = '/activity';
+  static const String activityDetail = '/activity-detail'; // args: Activity
 
-  static const String activity          = '/activity';
-  static const String activityDetail    = '/activity-detail'; // args: Activity
-
-  static const String event             = '/event';
-  static const String eventDetail       = '/event-detail';    // args: Event
+  static const String event = '/event';
+  static const String eventDetail = '/event-detail'; // args: Event
 
   // chatRoom membutuhkan args: {userId, otherUserId, otherUserName}
-  static const String chatList          = '/chat-list';
-  static const String chatRoom          = '/chat-room';
+  static const String chatList = '/chat-list';
+  static const String chatRoom = '/chat-room';
 
-  static const String social            = '/social';
-  static const String aiChat            = '/ai-chat';
+  static const String social = '/social';
+  static const String aiChat = '/ai-chat';
 
-  static const String tools             = '/tools';
-  static const String scanner           = '/scanner';         // TODO: belum diimplementasi
-  static const String ocr               = '/ocr';             // TODO: belum diimplementasi
+  static const String tools = '/tools';
+  static const String scanner = '/scanner'; // TODO: belum diimplementasi
+  static const String ocr = '/ocr'; // TODO: belum diimplementasi
   static const String currencyConverter = '/currency-converter';
   static const String timezoneConverter = '/timezone-converter';
-  static const String unitConverter     = '/unit-converter';
-  static const String memoryGame        = '/memory-game';     // TODO: belum diimplementasi
+  static const String unitConverter = '/unit-converter';
+  static const String memoryGame = '/memory-game'; // TODO: belum diimplementasi
 
-  static const String profile           = '/profile';
-  static const String editProfile       = '/edit-profile';    // TODO: belum diimplementasi
-  static const String achievement       = '/achievement';     // TODO: belum diimplementasi
-  static const String settingsprofile   = '/settings';
-  static const String security          = '/security';        // TODO: belum diimplementasi
+  static const String profile = '/profile';
+  static const String editProfile =
+      '/edit-profile'; // TODO: belum diimplementasi
+  static const String achievement =
+      '/achievement'; // TODO: belum diimplementasi
+  static const String settingsprofile = '/settings';
+  static const String security = '/security'; // TODO: belum diimplementasi
 
   // ─── Factory route ────────────────────────────────────────────────────────
 
@@ -82,7 +77,6 @@ class AppRoutes {
   /// Semua navigasi harus melalui [Navigator.pushNamed] dengan nama di atas.
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
-
       // ── Splash & Auth ──────────────────────────────────────────────────────
       case splash:
         return _route(const SplashPage());
@@ -96,20 +90,10 @@ class AppRoutes {
       // ── Schedule ───────────────────────────────────────────────────────────
       case schedule:
         return _route(const SchedulePage());
-      case addSchedule:
-        return _route(const AddSchedulePage());
-      // case editSchedule:
-      //   final s = settings.arguments as Schedule;
-      //   return _route(AddSchedulePage(existingSchedule: s));
 
       // ── Task ───────────────────────────────────────────────────────────────
       case task:
         return _route(const TaskPage());
-      case addTask:
-        return _route(const AddTaskPage());
-      // case editTask:
-      //   final t = settings.arguments as Task;
-      //   return _route(AddTaskPage(task: t));
 
       // ── Study ──────────────────────────────────────────────────────────────
       case study:

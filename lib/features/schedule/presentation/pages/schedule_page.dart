@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/constants/app_constants.dart';
+
 import '../../../../core/constants/app_routes.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/date_utils.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/schedule_entity.dart';
 import '../bloc/schedule_bloc.dart';
-import 'add_schedule_page.dart';
+import '../widgets/schedule_form_sheet.dart';
 import 'detail_schedule_page.dart';
-
-// Ganti dengan cara yang sesuai di proyekmu untuk mendapatkan userId aktif
-const _kCurrentUserId = '1';
 
 class SchedulePage extends StatefulWidget {
   const SchedulePage({super.key});
@@ -19,12 +19,38 @@ class SchedulePage extends StatefulWidget {
 }
 
 class _SchedulePageState extends State<SchedulePage> {
+  String? _currentUserId;
+
   @override
   void initState() {
     super.initState();
-    context
-        .read<ScheduleBloc>()
-        .add(LoadSchedules(userId: _kCurrentUserId));
+    _loadForCurrentUser();
+  }
+
+  void _loadForCurrentUser() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is Authenticated) {
+      _currentUserId = authState.user.userId;
+      context.read<ScheduleBloc>().add(LoadSchedules(userId: _currentUserId!));
+    }
+  }
+
+  void _showScheduleSheet({ScheduleEntity? schedule}) {
+    final userId = schedule?.userId ?? _currentUserId;
+    if (userId == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => BlocProvider.value(
+        value: context.read<ScheduleBloc>(),
+        child: ScheduleFormSheet(userId: userId, schedule: schedule),
+      ),
+    );
   }
 
   @override
@@ -32,264 +58,239 @@ class _SchedulePageState extends State<SchedulePage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
         title: const Text('Schedule'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.calendar_month),
-            onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.calendar);
-            },
+            icon: const Icon(Icons.calendar_month_rounded),
+            tooltip: 'Kalender',
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.calendar),
           ),
         ],
       ),
-      body: BlocBuilder<ScheduleBloc, ScheduleState>(
+      body: BlocConsumer<ScheduleBloc, ScheduleState>(
+        listener: (context, state) {
+          if (state is ScheduleError) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
+          }
+        },
         builder: (context, state) {
-          if (state is ScheduleLoading) {
+          if (state is ScheduleLoading || state is ScheduleInitial) {
             return const Center(child: CircularProgressIndicator());
           }
 
           if (state is ScheduleLoaded) {
-            if (state.schedules.isEmpty) {
-              return _buildEmptyState();
-            }
+            if (state.schedules.isEmpty) return _buildEmptyState();
             return _buildScheduleList(state.schedules);
           }
 
           if (state is ScheduleError) {
-            return Center(child: Text(state.message));
+            return _buildMessageState(
+              icon: Icons.error_outline_rounded,
+              title: 'Gagal memuat jadwal',
+              subtitle: state.message,
+            );
           }
 
           return const SizedBox.shrink();
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => BlocProvider.value(
-              value: context.read<ScheduleBloc>(),
-              child: const AddSchedulePage(),
-            ),
-          ),
-        ),
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+        onPressed: () => _showScheduleSheet(),
+        child: const Icon(Icons.add_rounded),
       ),
     );
   }
 
   Widget _buildEmptyState() {
+    return _buildMessageState(
+      icon: Icons.event_busy_rounded,
+      title: 'Belum ada jadwal',
+      subtitle: 'Tekan tombol tambah untuk membuat jadwal pertamamu.',
+    );
+  }
+
+  Widget _buildMessageState({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.event_busy,
-            size: 80,
-            color: AppColors.textSecondary.withOpacity(0.5),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Belum ada jadwal',
-            style: TextStyle(fontSize: 18, color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Tap + untuk menambahkan jadwal pertamamu',
-            style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 72,
+              color: AppColors.primary.withValues(alpha: 0.45),
+            ),
+            const SizedBox(height: 14),
+            Text(title, style: AppTextStyles.heading),
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              style: AppTextStyles.bodySmall,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildScheduleList(List<ScheduleEntity> schedules) {
-    // Kelompokkan jadwal berdasarkan tanggal
-    final Map<String, List<ScheduleEntity>> grouped = {};
+    final grouped = <String, List<ScheduleEntity>>{};
     for (final schedule in schedules) {
       final dateKey = DateTimeUtils.formatDate(schedule.startTime);
       grouped.putIfAbsent(dateKey, () => []).add(schedule);
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(AppStyle.paddingMedium),
-      itemCount: grouped.length,
-      itemBuilder: (context, index) {
-        final dateKey = grouped.keys.elementAt(index);
-        final daySchedules = grouped[dateKey]!;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 96),
+      children: grouped.entries.map((entry) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.only(top: 8, bottom: 10),
               child: Text(
-                dateKey,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textMain,
-                ),
+                entry.key,
+                style: AppTextStyles.title.copyWith(color: AppColors.primary),
               ),
             ),
-            ...daySchedules.map(
-              (schedule) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildScheduleCard(schedule),
-              ),
-            ),
+            ...entry.value.map(_buildScheduleCard),
           ],
         );
-      },
+      }).toList(),
     );
   }
 
   Widget _buildScheduleCard(ScheduleEntity schedule) {
+    final color = Color(schedule.color);
+
     return Dismissible(
-      key: Key(schedule.id.toString()),
+      key: ValueKey(schedule.id),
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 22),
         decoration: BoxDecoration(
           color: AppColors.error,
-          borderRadius: BorderRadius.circular(AppStyle.borderRadius),
+          borderRadius: BorderRadius.circular(18),
         ),
-        child: const Icon(Icons.delete, color: Colors.white),
+        child: const Icon(Icons.delete_outline_rounded, color: AppColors.white),
       ),
-      confirmDismiss: (_) async {
-        return await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Hapus Jadwal'),
-            content: const Text('Yakin ingin menghapus jadwal ini?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Batal'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Hapus'),
-              ),
-            ],
-          ),
-        );
-      },
+      confirmDismiss: (_) => _confirmDeleteSchedule(schedule),
       onDismissed: (_) {
         context.read<ScheduleBloc>().add(
-              DeleteSchedule(id: schedule.id, userId: schedule.userId),
-            );
+          DeleteSchedule(id: schedule.id, userId: schedule.userId),
+        );
       },
-      child: GestureDetector(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => BlocProvider.value(
-              value: context.read<ScheduleBloc>(),
-              child: DetailSchedulePage(schedule: schedule),
-            ),
-          ),
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(AppStyle.borderRadius),
-            border: Border(
-              left: BorderSide(color: Color(schedule.color), width: 4),
-            ),
-            boxShadow: const [
-              BoxShadow(
-                color: AppColors.border,
-                offset: Offset(3, 3),
-                blurRadius: 0,
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(AppStyle.paddingMedium),
-            child: Row(
-              children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Color(schedule.color).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    _getIconFromName(schedule.icon),
-                    color: Color(schedule.color),
-                  ),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Material(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(18),
+          child: InkWell(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BlocProvider.value(
+                  value: context.read<ScheduleBloc>(),
+                  child: DetailSchedulePage(schedule: schedule),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        schedule.name,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+              ),
+            ),
+            borderRadius: BorderRadius.circular(18),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppColors.greyBorder),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.13),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(_iconFromName(schedule.icon), color: color),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          schedule.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.title,
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${DateTimeUtils.formatTime(schedule.startTime)} - ${DateTimeUtils.formatTime(schedule.endTime)}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
+                        const SizedBox(height: 5),
+                        Text(
+                          '${DateTimeUtils.formatTime(schedule.startTime)} - ${DateTimeUtils.formatTime(schedule.endTime)}',
+                          style: AppTextStyles.bodySmall,
                         ),
-                      ),
-                      if (schedule.location?.isNotEmpty == true) ...[
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.location_on_outlined,
-                              size: 14,
-                              color: AppColors.textSecondary,
-                            ),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                schedule.location!,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.textSecondary,
-                                ),
-                                overflow: TextOverflow.ellipsis,
+                        if (schedule.location?.isNotEmpty == true) ...[
+                          const SizedBox(height: 5),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.location_on_outlined,
+                                size: 14,
+                                color: AppColors.textSecondary,
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                      if (schedule.recurrence != 'None') ...[
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.repeat,
-                              size: 14,
-                              color: AppColors.primary,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              _getRecurrenceLabel(schedule.recurrence),
-                              style: const TextStyle(
-                                fontSize: 12,
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  schedule.location!,
+                                  style: AppTextStyles.caption,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        if (schedule.recurrence != 'None') ...[
+                          const SizedBox(height: 5),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.repeat_rounded,
+                                size: 14,
                                 color: AppColors.primary,
                               ),
-                            ),
-                          ],
-                        ),
+                              const SizedBox(width: 4),
+                              Text(
+                                _recurrenceLabel(schedule.recurrence),
+                                style: AppTextStyles.caption.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-                const Icon(Icons.chevron_right),
-              ],
+                  const SizedBox(width: 8),
+                  IconButton(
+                    tooltip: 'Edit jadwal',
+                    onPressed: () => _showScheduleSheet(schedule: schedule),
+                    icon: const Icon(Icons.edit_outlined),
+                    color: AppColors.textSecondary,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -297,36 +298,60 @@ class _SchedulePageState extends State<SchedulePage> {
     );
   }
 
-  IconData _getIconFromName(String? iconName) {
+  Future<bool> _confirmDeleteSchedule(ScheduleEntity schedule) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Hapus Jadwal', style: AppTextStyles.heading),
+            content: Text(
+              'Yakin ingin menghapus "${schedule.name}"?',
+              style: AppTextStyles.body,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Batal'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Hapus'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  IconData _iconFromName(String? iconName) {
     switch (iconName) {
       case 'school':
-        return Icons.school;
+        return Icons.school_rounded;
       case 'work':
-        return Icons.work;
+        return Icons.work_rounded;
       case 'book':
-        return Icons.menu_book;
+        return Icons.menu_book_rounded;
       case 'sports':
-        return Icons.sports;
+        return Icons.sports_soccer_rounded;
       case 'music':
-        return Icons.music_note;
+        return Icons.music_note_rounded;
       case 'food':
-        return Icons.restaurant;
+        return Icons.restaurant_rounded;
       case 'health':
-        return Icons.favorite;
+        return Icons.favorite_rounded;
       case 'travel':
-        return Icons.flight;
+        return Icons.flight_rounded;
       case 'social':
-        return Icons.people;
+        return Icons.people_rounded;
       case 'game':
-        return Icons.sports_esports;
+        return Icons.sports_esports_rounded;
       case 'meeting':
-        return Icons.groups;
+        return Icons.groups_rounded;
       default:
-        return Icons.event;
+        return Icons.event_rounded;
     }
   }
 
-  String _getRecurrenceLabel(String recurrence) {
+  String _recurrenceLabel(String recurrence) {
     switch (recurrence) {
       case 'Daily':
         return 'Setiap Hari';

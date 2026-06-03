@@ -29,13 +29,13 @@ import '../../../features/home/domain/repositories/home_repository.dart';
 import '../../../features/home/presentation/bloc/home_bloc.dart';
 
 // Schedule
-import '../../../features/schedule/data/datasources/schedule_local_data_source.dart';
+import '../../../features/schedule/data/datasources/schedule_remote_data_source.dart';
 import '../../../features/schedule/data/repositories/schedule_repository_impl.dart';
 import '../../../features/schedule/domain/repositories/schedule_repository.dart';
 import '../../../features/schedule/presentation/bloc/schedule_bloc.dart';
 
 // Task
-import '../../../features/task/data/datasources/task_local_data_source.dart';
+import '../../../features/task/data/datasources/task_remote_data_source.dart';
 import '../../../features/task/data/repositories/task_repository_impl.dart';
 import '../../../features/task/domain/repositories/task_repository.dart';
 import '../../../features/task/presentation/bloc/task_bloc.dart';
@@ -156,11 +156,15 @@ class DependencyInjection {
   // Jadwal harian/mingguan — disimpan lokal di Isar
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static ScheduleLocalDataSource get scheduleLocalDataSource =>
-      ScheduleLocalDataSourceImpl(isar: _isar!);
+  static ScheduleRemoteDataSource get scheduleRemoteDataSource =>
+      ScheduleRemoteDataSourceImpl(
+        client: _httpClient,
+        baseUrl: ApiConfig.baseUrl,
+        secureStorage: _secureStorage,
+      );
 
   static ScheduleRepository get scheduleRepository =>
-      ScheduleRepositoryImpl(localDataSource: scheduleLocalDataSource);
+      ScheduleRepositoryImpl(remoteDataSource: scheduleRemoteDataSource);
 
   static ScheduleBloc get scheduleBloc =>
       ScheduleBloc(repository: scheduleRepository);
@@ -170,11 +174,15 @@ class DependencyInjection {
   // Tugas/to-do — disimpan lokal di Isar
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static TaskLocalDataSource get taskLocalDataSource =>
-      TaskLocalDataSourceImpl(isar: _isar!);
+  static TaskRemoteDataSource get taskRemoteDataSource =>
+      TaskRemoteDataSourceImpl(
+        client: _httpClient,
+        baseUrl: ApiConfig.baseUrl,
+        secureStorage: _secureStorage,
+      );
 
   static TaskRepository get taskRepository =>
-      TaskRepositoryImpl(localDataSource: taskLocalDataSource);
+      TaskRepositoryImpl(remoteDataSource: taskRemoteDataSource);
 
   static TaskBloc get taskBloc => TaskBloc(repository: taskRepository);
 

@@ -8,7 +8,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/widgets/doodle_container.dart';
 import '../../domain/entities/schedule_entity.dart';
 import '../bloc/schedule_bloc.dart';
-import 'add_schedule_page.dart';
+import '../widgets/schedule_form_sheet.dart';
 
 class DetailSchedulePage extends StatelessWidget {
   final ScheduleEntity schedule;
@@ -46,7 +46,7 @@ class DetailSchedulePage extends StatelessWidget {
           children: [
             // ── Hero Card ───────────────────────────────────────────────────
             DoodleContainer(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               width: double.infinity,
               child: Column(
                 children: [
@@ -54,11 +54,12 @@ class DetailSchedulePage extends StatelessWidget {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.2),
+                      color: color.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                          color: AppColors.border,
-                          width: AppStyle.borderWidth),
+                        color: AppColors.border,
+                        width: AppStyle.borderWidth,
+                      ),
                     ),
                     child: Icon(iconData, color: color, size: 32),
                   ),
@@ -75,7 +76,9 @@ class DetailSchedulePage extends StatelessWidget {
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 5),
+                      horizontal: 14,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: color,
                       borderRadius: BorderRadius.circular(20),
@@ -100,8 +103,10 @@ class DetailSchedulePage extends StatelessWidget {
             _DetailRow(
               icon: Icons.calendar_today_outlined,
               label: 'Tanggal',
-              value: DateFormat('EEEE, d MMMM yyyy', 'id_ID')
-                  .format(schedule.startTime),
+              value: DateFormat(
+                'EEEE, d MMMM yyyy',
+                'id_ID',
+              ).format(schedule.startTime),
               color: AppColors.primary,
             ),
             _DetailRow(
@@ -134,13 +139,14 @@ class DetailSchedulePage extends StatelessWidget {
                 isLink: true,
                 onTap: () => _launchUrl(schedule.url!),
               ),
-            if (schedule.recurrenceEnd != null &&
-                schedule.recurrence != 'None')
+            if (schedule.recurrenceEnd != null && schedule.recurrence != 'None')
               _DetailRow(
                 icon: Icons.event_repeat_outlined,
                 label: 'Batas Perulangan',
-                value: DateFormat('d MMMM yyyy', 'id_ID')
-                    .format(schedule.recurrenceEnd!),
+                value: DateFormat(
+                  'd MMMM yyyy',
+                  'id_ID',
+                ).format(schedule.recurrenceEnd!),
                 color: Colors.purple,
               ),
 
@@ -149,7 +155,9 @@ class DetailSchedulePage extends StatelessWidget {
               child: Text(
                 'Dibuat ${DateFormat('d MMMM yyyy, HH:mm').format(schedule.createdAt)}',
                 style: GoogleFonts.poppins(
-                    fontSize: 10, color: Colors.grey.shade400),
+                  fontSize: 10,
+                  color: Colors.grey.shade400,
+                ),
               ),
             ),
 
@@ -166,8 +174,11 @@ class DetailSchedulePage extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.edit_outlined,
-                              color: Colors.white, size: 18),
+                          const Icon(
+                            Icons.edit_outlined,
+                            color: Colors.white,
+                            size: 18,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Edit',
@@ -191,8 +202,11 @@ class DetailSchedulePage extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.delete_outline,
-                              color: Color(0xFFE53935), size: 18),
+                          const Icon(
+                            Icons.delete_outline,
+                            color: Color(0xFFE53935),
+                            size: 18,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Hapus',
@@ -218,13 +232,19 @@ class DetailSchedulePage extends StatelessWidget {
   // ─── Navigation ─────────────────────────────────────────────────────────────
 
   void _navigateToEdit(BuildContext context) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: context.read<ScheduleBloc>(),
-          // Kirim entity yang sedang dilihat ke halaman edit
-          child: AddSchedulePage(schedule: schedule),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => BlocProvider.value(
+        value: context.read<ScheduleBloc>(),
+        child: ScheduleFormSheet(
+          userId: schedule.userId,
+          schedule: schedule,
+          onSaved: () => Navigator.pop(context),
         ),
       ),
     );
@@ -301,12 +321,15 @@ class DetailSchedulePage extends StatelessWidget {
             color: AppColors.background,
             borderRadius: BorderRadius.circular(AppStyle.borderRadius),
             border: Border.all(
-                color: AppColors.border, width: AppStyle.borderWidth),
+              color: AppColors.border,
+              width: AppStyle.borderWidth,
+            ),
             boxShadow: const [
               BoxShadow(
-                  color: AppColors.border,
-                  offset: Offset(6, 6),
-                  blurRadius: 0),
+                color: AppColors.border,
+                offset: Offset(6, 6),
+                blurRadius: 0,
+              ),
             ],
           ),
           child: Column(
@@ -316,13 +339,17 @@ class DetailSchedulePage extends StatelessWidget {
               Text(
                 'Hapus Jadwal?',
                 style: GoogleFonts.poppins(
-                    fontSize: 18, fontWeight: FontWeight.bold),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Yakin mau hapus "${schedule.name}"? Aksi ini tidak bisa dibatalkan.',
                 style: GoogleFonts.poppins(
-                    fontSize: 13, color: Colors.grey.shade600),
+                  fontSize: 13,
+                  color: Colors.grey.shade600,
+                ),
               ),
               const SizedBox(height: 24),
               Row(
@@ -350,11 +377,11 @@ class DetailSchedulePage extends StatelessWidget {
                       onTap: () {
                         // userId diperlukan agar bloc me-reload jadwal yang benar
                         context.read<ScheduleBloc>().add(
-                              DeleteSchedule(
-                                id: schedule.id,
-                                userId: schedule.userId,
-                              ),
-                            );
+                          DeleteSchedule(
+                            id: schedule.id,
+                            userId: schedule.userId,
+                          ),
+                        );
                         Navigator.pop(ctx);
                         Navigator.pop(context);
                       },
@@ -413,16 +440,20 @@ class _DetailRow extends StatelessWidget {
                     content: Text(
                       'Tautan disalin!',
                       style: GoogleFonts.poppins(
-                          color: Colors.white, fontSize: 13),
+                        color: Colors.white,
+                        fontSize: 13,
+                      ),
                     ),
                     backgroundColor: AppColors.textMain,
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(AppStyle.borderRadius),
+                      borderRadius: BorderRadius.circular(
+                        AppStyle.borderRadius,
+                      ),
                       side: const BorderSide(
-                          color: AppColors.border,
-                          width: AppStyle.borderWidth),
+                        color: AppColors.border,
+                        width: AppStyle.borderWidth,
+                      ),
                     ),
                     margin: const EdgeInsets.all(16),
                     elevation: 0,
@@ -436,12 +467,15 @@ class _DetailRow extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(AppStyle.borderRadius),
             border: Border.all(
-                color: AppColors.border, width: AppStyle.borderWidth),
+              color: AppColors.border,
+              width: AppStyle.borderWidth,
+            ),
             boxShadow: const [
               BoxShadow(
-                  color: AppColors.border,
-                  offset: Offset(3, 3),
-                  blurRadius: 0),
+                color: AppColors.border,
+                offset: Offset(3, 3),
+                blurRadius: 0,
+              ),
             ],
           ),
           child: Row(
@@ -451,7 +485,7 @@ class _DetailRow extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
+                  color: color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: color, size: 18),

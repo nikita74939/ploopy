@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_constants.dart';
+import '../../../../core/theme/app_colors.dart';
 
 /// Warna yang tersedia untuk jadwal
 const List<Map<String, dynamic>> kScheduleColors = [
+  {'value': '0xFFFF7600', 'label': 'Utama'},
   {'value': '0xFFF5A623', 'label': 'Oranye'},
   {'value': '0xFF9CCC65', 'label': 'Hijau'},
   {'value': '0xFFFFEE58', 'label': 'Kuning'},
@@ -50,10 +51,10 @@ class ColorPickerWidget extends StatelessWidget {
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: color.withOpacity(0.5),
+                        color: color.withValues(alpha: 0.5),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
-                      )
+                      ),
                     ]
                   : null,
             ),

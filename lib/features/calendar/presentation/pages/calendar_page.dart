@@ -7,7 +7,7 @@ import '../../../../core/utils/date_utils.dart';
 import '../../../study/presentation/bloc/study_bloc.dart';
 import '../../../schedule/presentation/bloc/schedule_bloc.dart';
 import '../../../schedule/domain/entities/schedule_entity.dart';
-import '../../../task/data/models/task_model.dart';
+import '../../../task/domain/entities/task_entity.dart';
 import '../../../task/presentation/bloc/task_bloc.dart';
 
 class CalendarPage extends StatefulWidget {
@@ -428,7 +428,7 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  Widget _buildTaskItem(TaskModel task) {
+  Widget _buildTaskItem(TaskEntity task) {
     return NeoCard(
       accentColor: Color(task.color),
       child: Padding(
@@ -563,7 +563,7 @@ class _CalendarPageState extends State<CalendarPage> {
     }
   }
 
-  Color _getDeadlineColor(DateTime deadline, TaskModel task) {
+  Color _getDeadlineColor(DateTime deadline, TaskEntity task) {
     final now = DateTime.now();
     final difference = deadline.difference(now);
 

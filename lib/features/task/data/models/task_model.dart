@@ -38,8 +38,37 @@ class TaskModel {
       ..color = color ?? 0xFF6C63FF
       ..iconName = iconName ?? 'task'
       ..isPinned = isPinned
-      ..isCompleted = isCompleted // Sekarang merujuk ke parameter di atas
+      ..isCompleted =
+          isCompleted // Sekarang merujuk ke parameter di atas
       ..createdAt = DateTime.now()
       ..userId = userId;
+  }
+
+  factory TaskModel.fromJson(Map<String, dynamic> json) {
+    return TaskModel()
+      ..id = (json['id'] as num).toInt()
+      ..userId = json['user_id'] as String
+      ..name = json['name'] as String
+      ..subject = json['subject'] as String?
+      ..deadline = DateTime.parse(json['deadline'] as String).toLocal()
+      ..details = json['details'] as String?
+      ..color = (json['color'] as num?)?.toInt() ?? 0xFFFF7600
+      ..iconName = json['icon_name'] as String? ?? 'task'
+      ..isPinned = json['is_pinned'] as bool? ?? false
+      ..isCompleted = json['is_completed'] as bool? ?? false
+      ..createdAt = DateTime.parse(json['created_at'] as String).toLocal();
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'subject': subject,
+      'deadline': deadline.toUtc().toIso8601String(),
+      'details': details,
+      'color': color,
+      'iconName': iconName,
+      'isPinned': isPinned,
+      'isCompleted': isCompleted,
+    };
   }
 }

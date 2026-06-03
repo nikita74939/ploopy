@@ -1,59 +1,96 @@
 import '../../domain/repositories/task_repository.dart';
-import '../datasources/task_local_data_source.dart';
+import '../../domain/entities/task_entity.dart';
+import '../datasources/task_remote_data_source.dart';
 import '../models/task_model.dart';
 
 class TaskRepositoryImpl implements TaskRepository {
-  final TaskLocalDataSource localDataSource;
+  final TaskRemoteDataSource remoteDataSource;
 
-  TaskRepositoryImpl({required this.localDataSource});
+  TaskRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<List<TaskModel>> getTasksByDate(DateTime date, String userId) async {
-    return await localDataSource.getTasksByDate(date, userId);
+  Future<List<TaskEntity>> getTasksByDate(DateTime date, String userId) async {
+    final tasks = await remoteDataSource.getTasksByDate(date, userId);
+    return tasks.map(_toEntity).toList();
   }
 
   @override
-  Future<List<TaskModel>> getAllTasks(String userId) async {
-    return await localDataSource.getAllTasks(userId);
+  Future<List<TaskEntity>> getAllTasks(String userId) async {
+    final tasks = await remoteDataSource.getAllTasks(userId);
+    return tasks.map(_toEntity).toList();
   }
 
   @override
-  Future<List<TaskModel>> getTasksByUser(String userId) async {
-    return await localDataSource.getTasksByUser(userId);
+  Future<List<TaskEntity>> getTasksByUser(String userId) async {
+    final tasks = await remoteDataSource.getTasksByUser(userId);
+    return tasks.map(_toEntity).toList();
   }
 
   @override
-  Future<TaskModel?> getTaskById(int id, String userId) async {
-    return await localDataSource.getTaskById(id, userId);
+  Future<TaskEntity?> getTaskById(int id, String userId) async {
+    final task = await remoteDataSource.getTaskById(id, userId);
+    return task == null ? null : _toEntity(task);
   }
 
   @override
-  Future<void> addTask(TaskModel task) async {
-    await localDataSource.addTask(task);
+  Future<void> addTask(TaskEntity task) async {
+    await remoteDataSource.addTask(_fromEntity(task));
   }
 
   @override
-  Future<void> updateTask(TaskModel task) async {
-    await localDataSource.updateTask(task);
+  Future<void> updateTask(TaskEntity task) async {
+    await remoteDataSource.updateTask(_fromEntity(task));
   }
 
   @override
   Future<void> deleteTask(int id, String userId) async {
-    await localDataSource.deleteTask(id, userId);
+    await remoteDataSource.deleteTask(id, userId);
   }
 
   @override
-  Future<List<TaskModel>> getPinnedTasks(String userId) async {
-    return await localDataSource.getPinnedTasks(userId);
+  Future<List<TaskEntity>> getPinnedTasks(String userId) async {
+    final tasks = await remoteDataSource.getPinnedTasks(userId);
+    return tasks.map(_toEntity).toList();
   }
 
   @override
   Future<void> toggleTaskCompletion(int id, String userId) async {
-    await localDataSource.toggleTaskCompletion(id, userId);
+    await remoteDataSource.toggleTaskCompletion(id, userId);
   }
 
   @override
   Future<void> toggleTaskPin(int id, String userId) async {
-    await localDataSource.toggleTaskPin(id, userId);
+    await remoteDataSource.toggleTaskPin(id, userId);
+  }
+
+  TaskEntity _toEntity(TaskModel model) {
+    return TaskEntity(
+      id: model.id,
+      userId: model.userId,
+      name: model.name,
+      subject: model.subject,
+      deadline: model.deadline,
+      details: model.details,
+      color: model.color,
+      iconName: model.iconName,
+      isPinned: model.isPinned,
+      isCompleted: model.isCompleted,
+      createdAt: model.createdAt,
+    );
+  }
+
+  TaskModel _fromEntity(TaskEntity entity) {
+    return TaskModel()
+      ..id = entity.id
+      ..userId = entity.userId
+      ..name = entity.name
+      ..subject = entity.subject
+      ..deadline = entity.deadline
+      ..details = entity.details
+      ..color = entity.color
+      ..iconName = entity.iconName
+      ..isPinned = entity.isPinned
+      ..isCompleted = entity.isCompleted
+      ..createdAt = entity.createdAt;
   }
 }

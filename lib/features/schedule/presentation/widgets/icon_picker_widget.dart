@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_constants.dart';
+import '../../../../core/constants/app_constants.dart' show AppStyle;
+import '../../../../core/theme/app_colors.dart';
 
 const List<Map<String, dynamic>> kScheduleIcons = [
   {'value': 'event', 'icon': Icons.event},

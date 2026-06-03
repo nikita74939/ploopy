@@ -1,18 +1,18 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import '../../domain/repositories/task_repository.dart';
-import '../../data/models/task_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-// Events
+import '../../domain/entities/task_entity.dart';
+import '../../domain/repositories/task_repository.dart';
+
 abstract class TaskEvent extends Equatable {
   @override
   List<Object?> get props => [];
 }
 
 class LoadTasks extends TaskEvent {
-  final String userId; // TAMBAHAN
+  final String userId;
 
-  LoadTasks({required this.userId}); // TAMBAHAN
+  LoadTasks({required this.userId});
 
   @override
   List<Object?> get props => [userId];
@@ -20,32 +20,32 @@ class LoadTasks extends TaskEvent {
 
 class LoadTasksByDate extends TaskEvent {
   final DateTime date;
-  final String userId; // TAMBAHAN
+  final String userId;
 
-  LoadTasksByDate({required this.date, required this.userId}); // TAMBAHAN
+  LoadTasksByDate({required this.date, required this.userId});
 
   @override
   List<Object?> get props => [date, userId];
 }
 
 class AddTask extends TaskEvent {
-  final TaskModel task;
-  final String userId; // TAMBAHAN
+  final TaskEntity task;
+  final String userId;
 
-  AddTask({required this.task, required this.userId}); // TAMBAHAN
+  AddTask({required this.task, required this.userId});
 
   @override
   List<Object?> get props => [task, userId];
 }
 
 class UpdateTask extends TaskEvent {
-  final TaskModel task;
+  final TaskEntity task;
   final String userId;
 
   UpdateTask({required this.task, required this.userId});
 
   @override
-  List<Object?> get props => [task];
+  List<Object?> get props => [task, userId];
 }
 
 class DeleteTask extends TaskEvent {
@@ -55,7 +55,7 @@ class DeleteTask extends TaskEvent {
   DeleteTask({required this.id, required this.userId});
 
   @override
-  List<Object?> get props => [id];
+  List<Object?> get props => [id, userId];
 }
 
 class ToggleTaskCompletion extends TaskEvent {
@@ -65,7 +65,7 @@ class ToggleTaskCompletion extends TaskEvent {
   ToggleTaskCompletion({required this.id, required this.userId});
 
   @override
-  List<Object?> get props => [id];
+  List<Object?> get props => [id, userId];
 }
 
 class ToggleTaskPin extends TaskEvent {
@@ -75,10 +75,9 @@ class ToggleTaskPin extends TaskEvent {
   ToggleTaskPin({required this.id, required this.userId});
 
   @override
-  List<Object?> get props => [id];
+  List<Object?> get props => [id, userId];
 }
 
-// States
 abstract class TaskState extends Equatable {
   @override
   List<Object?> get props => [];
@@ -89,7 +88,7 @@ class TaskInitial extends TaskState {}
 class TaskLoading extends TaskState {}
 
 class TaskLoaded extends TaskState {
-  final List<TaskModel> tasks;
+  final List<TaskEntity> tasks;
 
   TaskLoaded({required this.tasks});
 
@@ -115,7 +114,6 @@ class TaskOperationSuccess extends TaskState {
   List<Object?> get props => [message];
 }
 
-// BLoC
 class TaskBloc extends Bloc<TaskEvent, TaskState> {
   final TaskRepository repository;
 
@@ -132,7 +130,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   Future<void> _onLoadTasks(LoadTasks event, Emitter<TaskState> emit) async {
     emit(TaskLoading());
     try {
-      final tasks = await repository.getTasksByUser(event.userId); // UBAH
+      final tasks = await repository.getTasksByUser(event.userId);
       emit(TaskLoaded(tasks: tasks));
     } catch (e) {
       emit(TaskError(message: e.toString()));
@@ -145,10 +143,22 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   ) async {
     emit(TaskLoading());
     try {
-      final tasks = await repository.getTasksByUser(
-        event.userId,
-      ); // UBAH - filter by user and date
-      emit(TaskLoaded(tasks: tasks));
+      final tasks = await repository.getTasksByUser(event.userId);
+      final selectedDate = DateTime(
+        event.date.year,
+        event.date.month,
+        event.date.day,
+      );
+      final filteredTasks = tasks.where((task) {
+        final deadlineDate = DateTime(
+          task.deadline.year,
+          task.deadline.month,
+          task.deadline.day,
+        );
+        return deadlineDate == selectedDate;
+      }).toList();
+
+      emit(TaskLoaded(tasks: filteredTasks));
     } catch (e) {
       emit(TaskError(message: e.toString()));
     }
@@ -157,68 +167,57 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   Future<void> _onAddTask(AddTask event, Emitter<TaskState> emit) async {
     emit(TaskLoading());
     try {
-      final taskWithUserId = TaskModel.create(
-        name: event.task.name,
-        subject: event.task.subject,
-        deadline: event.task.deadline,
-        details: event.task.details,
-        color: event.task.color,
-        iconName: event.task.iconName,
-        isPinned: event.task.isPinned,
-        isCompleted: event.task.isCompleted,
-        userId: event.userId,
-      );
-      await repository.addTask(taskWithUserId);
-      emit(TaskOperationSuccess(message: 'Task added successfully'));
-      add(LoadTasks(userId: event.userId));  // TAMBAHAN
+      await repository.addTask(event.task);
+      emit(TaskOperationSuccess(message: 'Task berhasil ditambahkan'));
+      add(LoadTasks(userId: event.userId));
     } catch (e) {
       emit(TaskError(message: e.toString()));
     }
   }
 
-Future<void> _onUpdateTask(UpdateTask event, Emitter<TaskState> emit) async {
-  emit(TaskLoading());
-  try {
-    await repository.updateTask(event.task);
-    emit(TaskOperationSuccess(message: 'Task updated successfully'));
-    add(LoadTasks(userId: event.userId));  // ✅ Sudah benar
-  } catch (e) {
-    emit(TaskError(message: e.toString()));
+  Future<void> _onUpdateTask(UpdateTask event, Emitter<TaskState> emit) async {
+    emit(TaskLoading());
+    try {
+      await repository.updateTask(event.task);
+      emit(TaskOperationSuccess(message: 'Task berhasil diperbarui'));
+      add(LoadTasks(userId: event.userId));
+    } catch (e) {
+      emit(TaskError(message: e.toString()));
+    }
   }
-}
 
-Future<void> _onDeleteTask(DeleteTask event, Emitter<TaskState> emit) async {
-  emit(TaskLoading());
-  try {
-    await repository.deleteTask(event.id, event.userId);
-    emit(TaskOperationSuccess(message: 'Task deleted successfully'));
-    add(LoadTasks(userId: event.userId));  // ✅ PERBAIKI - tambah userId
-  } catch (e) {
-    emit(TaskError(message: e.toString()));
+  Future<void> _onDeleteTask(DeleteTask event, Emitter<TaskState> emit) async {
+    emit(TaskLoading());
+    try {
+      await repository.deleteTask(event.id, event.userId);
+      emit(TaskOperationSuccess(message: 'Task berhasil dihapus'));
+      add(LoadTasks(userId: event.userId));
+    } catch (e) {
+      emit(TaskError(message: e.toString()));
+    }
   }
-}
 
-Future<void> _onToggleTaskCompletion(
-  ToggleTaskCompletion event,
-  Emitter<TaskState> emit,
-) async {
-  try {
-    await repository.toggleTaskCompletion(event.id, event.userId);
-    add(LoadTasks(userId: event.userId));  // ✅ PERBAIKI - tambah userId
-  } catch (e) {
-    emit(TaskError(message: e.toString()));
+  Future<void> _onToggleTaskCompletion(
+    ToggleTaskCompletion event,
+    Emitter<TaskState> emit,
+  ) async {
+    try {
+      await repository.toggleTaskCompletion(event.id, event.userId);
+      add(LoadTasks(userId: event.userId));
+    } catch (e) {
+      emit(TaskError(message: e.toString()));
+    }
   }
-}
 
-Future<void> _onToggleTaskPin(
-  ToggleTaskPin event,
-  Emitter<TaskState> emit,
-) async {
-  try {
-    await repository.toggleTaskPin(event.id, event.userId);
-    add(LoadTasks(userId: event.userId));  // ✅ PERBAIKI - tambah userId
-  } catch (e) {
-    emit(TaskError(message: e.toString()));
+  Future<void> _onToggleTaskPin(
+    ToggleTaskPin event,
+    Emitter<TaskState> emit,
+  ) async {
+    try {
+      await repository.toggleTaskPin(event.id, event.userId);
+      add(LoadTasks(userId: event.userId));
+    } catch (e) {
+      emit(TaskError(message: e.toString()));
+    }
   }
-}
 }

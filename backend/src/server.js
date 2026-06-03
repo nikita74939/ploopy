@@ -7,6 +7,8 @@ import { env } from './config/env.js';
 import { achievementRoutes } from './routes/achievementRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { authRoutes } from './routes/authRoutes.js';
+import { scheduleRoutes } from './routes/scheduleRoutes.js';
+import { taskRoutes } from './routes/taskRoutes.js';
 import { userRoutes } from './routes/userRoutes.js';
 
 const app = express();
@@ -22,6 +24,8 @@ app.get('/health', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/achievements', achievementRoutes);
+app.use('/api/schedules', scheduleRoutes);
+app.use('/api/tasks', taskRoutes);
 app.use('/api/users', userRoutes);
 
 app.use((req, res) => {

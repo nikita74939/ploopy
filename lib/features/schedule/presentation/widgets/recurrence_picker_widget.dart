@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/constants/app_constants.dart';
+import '../../../../core/constants/app_constants.dart' show AppStyle;
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/doodle_container.dart';
 
 const List<Map<String, String>> kRecurrenceOptions = [
@@ -67,10 +68,9 @@ class RecurrencePickerWidget extends StatelessWidget {
                 ),
                 child: Text(
                   opt['label']!,
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white : AppColors.textMain,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: isSelected ? AppColors.white : AppColors.textMain,
                   ),
                 ),
               ),
@@ -102,7 +102,7 @@ class RecurrencePickerWidget extends StatelessWidget {
               onRecurrenceEndChanged(picked);
             },
             child: DoodleContainer(
-              color: AppColors.yellowAccent.withOpacity(0.3),
+              color: AppColors.yellowAccent.withValues(alpha: 0.3),
               child: Row(
                 children: [
                   const Icon(
@@ -117,10 +117,9 @@ class RecurrencePickerWidget extends StatelessWidget {
                       children: [
                         Text(
                           'Batas Perulangan',
-                          style: GoogleFonts.poppins(
-                            fontSize: 10,
-                            color: Colors.grey.shade500,
-                            fontWeight: FontWeight.bold,
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.textMuted,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                         Text(
@@ -130,10 +129,8 @@ class RecurrencePickerWidget extends StatelessWidget {
                                   'id_ID',
                                 ).format(recurrenceEnd!)
                               : 'Tanpa batas',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textMain,
+                          style: AppTextStyles.body.copyWith(
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
@@ -151,11 +148,12 @@ class RecurrencePickerWidget extends StatelessWidget {
           if (recurrenceEnd != null)
             TextButton.icon(
               onPressed: () => onRecurrenceEndChanged(null),
-              icon: const Icon(Icons.clear, size: 14, color: Colors.grey),
-              label: Text(
-                'Hapus batas',
-                style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12),
+              icon: const Icon(
+                Icons.clear_rounded,
+                size: 14,
+                color: AppColors.textSecondary,
               ),
+              label: Text('Hapus batas', style: AppTextStyles.caption),
             ),
         ],
       ],

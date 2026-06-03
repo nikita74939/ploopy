@@ -1,6 +1,7 @@
 import '../../../schedule/domain/repositories/schedule_repository.dart';
 import '../../../study/domain/repositories/study_repository.dart';
 import '../../../task/data/models/task_model.dart';
+import '../../../task/domain/entities/task_entity.dart';
 import '../../../task/domain/repositories/task_repository.dart';
 import '../../domain/repositories/home_repository.dart';
 import '../../../schedule/data/models/schedule_model.dart';
@@ -27,7 +28,8 @@ class HomeRepositoryImpl implements HomeRepository {
   @override
   Future<List<TaskModel>> getTasksOrderedByDeadline() async {
     final tasks = await taskRepository.getAllTasks('1');
-    return tasks..sort((a, b) => a.deadline.compareTo(b.deadline));
+    final models = tasks.map(_taskModelFromEntity).toList();
+    return models..sort((a, b) => a.deadline.compareTo(b.deadline));
   }
 
   @override
@@ -43,7 +45,7 @@ class HomeRepositoryImpl implements HomeRepository {
     final incompleteTasks = tasks.where((t) => !t.isCompleted).toList();
     if (incompleteTasks.isEmpty) return null;
     incompleteTasks.sort((a, b) => a.deadline.compareTo(b.deadline));
-    return incompleteTasks.first;
+    return _taskModelFromEntity(incompleteTasks.first);
   }
 
   @override
@@ -59,6 +61,22 @@ class HomeRepositoryImpl implements HomeRepository {
 
   @override
   Future<List<TaskModel>> getTasksByDate(DateTime date) async {
-    return await taskRepository.getTasksByDate(date, '1');
+    final tasks = await taskRepository.getTasksByDate(date, '1');
+    return tasks.map(_taskModelFromEntity).toList();
+  }
+
+  TaskModel _taskModelFromEntity(TaskEntity entity) {
+    return TaskModel()
+      ..id = entity.id
+      ..userId = entity.userId
+      ..name = entity.name
+      ..subject = entity.subject
+      ..deadline = entity.deadline
+      ..details = entity.details
+      ..color = entity.color
+      ..iconName = entity.iconName
+      ..isPinned = entity.isPinned
+      ..isCompleted = entity.isCompleted
+      ..createdAt = entity.createdAt;
   }
 }

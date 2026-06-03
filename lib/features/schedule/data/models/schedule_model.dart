@@ -102,6 +102,42 @@ class ScheduleModel {
   }
 
   /// Map ScheduleEntity → ScheduleModel
+  factory ScheduleModel.fromJson(Map<String, dynamic> json) {
+    return ScheduleModel()
+      ..id = (json['id'] as num).toInt()
+      ..userId = json['user_id'] as String
+      ..name = json['name'] as String
+      ..startTime = DateTime.parse(json['start_time'] as String).toLocal()
+      ..endTime = DateTime.parse(json['end_time'] as String).toLocal()
+      ..location = json['location'] as String?
+      ..description = json['description'] as String?
+      ..link = json['link'] as String?
+      ..color = (json['color'] as num?)?.toInt() ?? 0xFFFF7600
+      ..iconName = json['icon_name'] as String? ?? 'event'
+      ..repeatType = _stringToRepeatType(
+        json['repeat_type'] as String? ?? 'None',
+      )
+      ..repeatUntil = json['repeat_until'] == null
+          ? null
+          : DateTime.parse(json['repeat_until'] as String).toLocal()
+      ..createdAt = DateTime.parse(json['created_at'] as String).toLocal();
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'startTime': startTime.toUtc().toIso8601String(),
+      'endTime': endTime.toUtc().toIso8601String(),
+      'location': location,
+      'description': description,
+      'link': link,
+      'color': color,
+      'iconName': iconName,
+      'repeatType': _repeatTypeToString(repeatType),
+      'repeatUntil': repeatUntil?.toUtc().toIso8601String(),
+    };
+  }
+
   factory ScheduleModel.fromEntity(ScheduleEntity entity) {
     return ScheduleModel()
       ..id = entity.id

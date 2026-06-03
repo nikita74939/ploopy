@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/constants/app_constants.dart';
-import '../../../../core/constants/app_routes.dart';
+
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/date_utils.dart';
-import '../../../../core/widgets/neo_container.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../domain/entities/task_entity.dart';
 import '../bloc/task_bloc.dart';
-import '../../data/models/task_model.dart';
+import '../widgets/task_form_sheet.dart';
 
 class TaskPage extends StatefulWidget {
   const TaskPage({super.key});
@@ -16,12 +17,15 @@ class TaskPage extends StatefulWidget {
 }
 
 class _TaskPageState extends State<TaskPage> {
-  String? _currentUserId; // TAMBAHAN
+  String? _currentUserId;
 
   @override
   void initState() {
     super.initState();
-    // Ambil userId dari AuthBloc
+    _loadForCurrentUser();
+  }
+
+  void _loadForCurrentUser() {
     final authState = context.read<AuthBloc>().state;
     if (authState is Authenticated) {
       _currentUserId = authState.user.userId;
@@ -29,290 +33,302 @@ class _TaskPageState extends State<TaskPage> {
     }
   }
 
+  void _showTaskSheet({TaskEntity? task}) {
+    final userId = _currentUserId;
+    if (userId == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => BlocProvider.value(
+        value: context.read<TaskBloc>(),
+        child: TaskFormSheet(userId: userId, task: task),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        title: const Text('Tasks'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {
-              // Show filter options
-            },
-          ),
-        ],
-      ),
-      body: BlocListener<TaskBloc, TaskState>(
+      appBar: AppBar(title: const Text('Tasks')),
+      body: BlocConsumer<TaskBloc, TaskState>(
         listener: (context, state) {
-          if (state is TaskOperationSuccess) {
-            // Refresh tasks dengan userId terbaru
-            if (_currentUserId != null) {
-              context.read<TaskBloc>().add(LoadTasks(userId: _currentUserId!));
-            }
+          if (state is TaskError) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           }
+        },
+        builder: (context, state) {
+          if (state is TaskLoading || state is TaskInitial) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state is TaskLoaded) {
+            if (state.tasks.isEmpty) return _buildEmptyState();
+            return _buildTaskList(state.tasks);
+          }
+
+          if (state is TaskError) {
+            return _buildMessageState(
+              icon: Icons.error_outline_rounded,
+              title: 'Gagal memuat task',
+              subtitle: state.message,
+            );
+          }
+
+          return const SizedBox.shrink();
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(
-            context,
-            AppRoutes.addTask,
-            arguments: _currentUserId,
-          );
-        },
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+        onPressed: () => _showTaskSheet(),
+        child: const Icon(Icons.add_rounded),
       ),
     );
   }
 
   Widget _buildEmptyState() {
+    return _buildMessageState(
+      icon: Icons.assignment_outlined,
+      title: 'Belum ada task',
+      subtitle: 'Tekan tombol tambah untuk membuat task pertamamu.',
+    );
+  }
+
+  Widget _buildMessageState({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.assignment_outlined,
-            size: 80,
-            color: AppColors.textSecondary.withOpacity(0.5),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'No tasks yet',
-            style: TextStyle(fontSize: 18, color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Tap + to add your first task',
-            style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 72,
+              color: AppColors.primary.withValues(alpha: 0.45),
+            ),
+            const SizedBox(height: 14),
+            Text(title, style: AppTextStyles.heading),
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              style: AppTextStyles.bodySmall,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildTaskList(List<TaskModel> tasks) {
-    // Separate pinned and unpinned tasks
-    final pinnedTasks = tasks.where((t) => t.isPinned).toList();
-    final unpinnedTasks = tasks.where((t) => !t.isPinned).toList();
+  Widget _buildTaskList(List<TaskEntity> tasks) {
+    final pinnedTasks = tasks.where((task) => task.isPinned).toList();
+    final otherTasks = tasks.where((task) => !task.isPinned).toList();
 
     return ListView(
-      padding: const EdgeInsets.all(AppStyle.paddingMedium),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 96),
       children: [
         if (pinnedTasks.isNotEmpty) ...[
-          const Padding(
-            padding: EdgeInsets.only(bottom: 8),
-            child: Row(
-              children: [
-                Icon(Icons.push_pin, size: 18, color: AppColors.primary),
-                SizedBox(width: 8),
-                Text(
-                  'Pinned',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          ...pinnedTasks.map(
-            (task) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _buildTaskCard(task),
-            ),
-          ),
-          const SizedBox(height: 16),
+          _buildSectionTitle('Pinned', Icons.push_pin_rounded),
+          const SizedBox(height: 10),
+          ...pinnedTasks.map(_buildTaskCard),
+          const SizedBox(height: 18),
         ],
-        ...unpinnedTasks.map(
-          (task) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _buildTaskCard(task),
-          ),
+        if (otherTasks.isNotEmpty) ...[
+          if (pinnedTasks.isNotEmpty)
+            _buildSectionTitle('Task lainnya', Icons.list_alt_rounded),
+          if (pinnedTasks.isNotEmpty) const SizedBox(height: 10),
+          ...otherTasks.map(_buildTaskCard),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildSectionTitle(String title, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: AppColors.primary),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: AppTextStyles.title.copyWith(color: AppColors.primary),
         ),
       ],
     );
   }
 
-  Widget _buildTaskCard(TaskModel task) {
+  Widget _buildTaskCard(TaskEntity task) {
+    final color = Color(task.color);
+    final deadlineColor = _getDeadlineColor(task.deadline, task);
+
     return Dismissible(
-      key: Key(task.id.toString()),
+      key: ValueKey(task.id),
       direction: DismissDirection.horizontal,
-      background: Container(
+      background: _buildDismissBackground(
         alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.only(left: 20),
-        decoration: BoxDecoration(
-          color: task.isPinned ? AppColors.textSecondary : AppColors.primary,
-          borderRadius: BorderRadius.circular(AppStyle.borderRadius),
-        ),
-        child: Icon(
-          task.isPinned ? Icons.push_pin_outlined : Icons.push_pin,
-          color: Colors.white,
-        ),
+        color: task.isPinned ? AppColors.textSecondary : AppColors.primary,
+        icon: task.isPinned ? Icons.push_pin_outlined : Icons.push_pin_rounded,
       ),
-      secondaryBackground: Container(
+      secondaryBackground: _buildDismissBackground(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        decoration: BoxDecoration(
-          color: AppColors.error,
-          borderRadius: BorderRadius.circular(AppStyle.borderRadius),
-        ),
-        child: const Icon(Icons.delete, color: Colors.white),
+        color: AppColors.error,
+        icon: Icons.delete_outline_rounded,
       ),
       confirmDismiss: (direction) async {
+        final userId = _currentUserId;
+        if (userId == null) return false;
+
         if (direction == DismissDirection.startToEnd) {
-          // Toggle pin
           context.read<TaskBloc>().add(
-            ToggleTaskPin(id: task.id, userId: _currentUserId!),
+            ToggleTaskPin(id: task.id, userId: userId),
           );
           return false;
-        } else {
-          // Delete
-          return await showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Delete Task'),
-              content: const Text('Are you sure you want to delete this task?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Delete'),
-                ),
-              ],
-            ),
-          );
         }
+
+        return _confirmDeleteTask(task);
       },
-      onDismissed: (direction) {
-        if (direction == DismissDirection.endToStart) {
-          context.read<TaskBloc>().add(
-            DeleteTask(id: task.id, userId: _currentUserId!),
-          );
-        }
+      onDismissed: (_) {
+        final userId = _currentUserId;
+        if (userId == null) return;
+        context.read<TaskBloc>().add(DeleteTask(id: task.id, userId: userId));
       },
-      child: GestureDetector(
-        onTap: () {
-          Navigator.pushNamed(context, AppRoutes.editTask, arguments: task);
-        },
-        onLongPress: () {
-          context.read<TaskBloc>().add(
-            ToggleTaskPin(id: task.id, userId: _currentUserId!),
-          );
-        },
-        child: NeoCard(
-          accentColor: Color(task.color),
-          onTap: () {
-            context.read<TaskBloc>().add(
-              ToggleTaskCompletion(id: task.id, userId: _currentUserId!),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(AppStyle.paddingMedium),
-            child: Row(
-              children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: task.isCompleted
-                        ? AppColors.success.withOpacity(0.2)
-                        : Color(task.color).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Material(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(18),
+          child: InkWell(
+            onTap: () => _showTaskSheet(task: task),
+            onLongPress: () {
+              final userId = _currentUserId;
+              if (userId == null) return;
+              context.read<TaskBloc>().add(
+                ToggleTaskPin(id: task.id, userId: userId),
+              );
+            },
+            borderRadius: BorderRadius.circular(18),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppColors.greyBorder),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.13),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(_taskIcon(task.iconName), color: color),
                   ),
-                  child: Icon(
-                    task.isCompleted ? Icons.check_circle : Icons.assignment,
-                    color: task.isCompleted
-                        ? AppColors.success
-                        : Color(task.color),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          if (task.isPinned) ...[
-                            const Icon(
-                              Icons.push_pin,
-                              size: 16,
-                              color: AppColors.primary,
-                            ),
-                            const SizedBox(width: 4),
-                          ],
-                          Expanded(
-                            child: Text(
-                              task.name,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                decoration: task.isCompleted
-                                    ? TextDecoration.lineThrough
-                                    : null,
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            if (task.isPinned) ...[
+                              const Icon(
+                                Icons.push_pin_rounded,
+                                size: 15,
+                                color: AppColors.primary,
+                              ),
+                              const SizedBox(width: 4),
+                            ],
+                            Expanded(
+                              child: Text(
+                                task.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTextStyles.title.copyWith(
+                                  decoration: task.isCompleted
+                                      ? TextDecoration.lineThrough
+                                      : null,
+                                  color: task.isCompleted
+                                      ? AppColors.textMuted
+                                      : AppColors.textMain,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      if (task.subject != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          task.subject!,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: AppColors.textSecondary,
-                          ),
+                          ],
                         ),
-                      ],
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.schedule,
-                            size: 14,
-                            color: _getDeadlineColor(task.deadline, task),
-                          ),
-                          const SizedBox(width: 4),
+                        if (task.subject?.isNotEmpty == true) ...[
+                          const SizedBox(height: 4),
                           Text(
-                            DateTimeUtils.formatDateTime(task.deadline),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: _getDeadlineColor(task.deadline, task),
-                            ),
+                            task.subject!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.bodySmall,
                           ),
                         ],
-                      ),
-                      if (task.details != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          task.details!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.schedule_rounded,
+                              size: 14,
+                              color: deadlineColor,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                DateTimeUtils.formatDateTime(task.deadline),
+                                style: AppTextStyles.caption.copyWith(
+                                  color: deadlineColor,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
+                        if (task.details?.isNotEmpty == true) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            task.details!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.caption,
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-                Icon(
-                  task.isCompleted ? Icons.check_circle : Icons.circle_outlined,
-                  color: task.isCompleted
-                      ? AppColors.success
-                      : AppColors.textSecondary,
-                ),
-              ],
+                  const SizedBox(width: 10),
+                  IconButton(
+                    tooltip: task.isCompleted
+                        ? 'Tandai belum selesai'
+                        : 'Selesai',
+                    onPressed: () {
+                      final userId = _currentUserId;
+                      if (userId == null) return;
+                      context.read<TaskBloc>().add(
+                        ToggleTaskCompletion(id: task.id, userId: userId),
+                      );
+                    },
+                    icon: Icon(
+                      task.isCompleted
+                          ? Icons.check_circle_rounded
+                          : Icons.circle_outlined,
+                      color: task.isCompleted
+                          ? AppColors.success
+                          : AppColors.textMuted,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -320,14 +336,68 @@ class _TaskPageState extends State<TaskPage> {
     );
   }
 
-  Color _getDeadlineColor(DateTime deadline, TaskModel task) {
-    final now = DateTime.now();
-    final difference = deadline.difference(now);
+  Widget _buildDismissBackground({
+    required Alignment alignment,
+    required Color color,
+    required IconData icon,
+  }) {
+    return Container(
+      alignment: alignment,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 22),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Icon(icon, color: AppColors.white),
+    );
+  }
+
+  Future<bool> _confirmDeleteTask(TaskEntity task) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Hapus Task', style: AppTextStyles.heading),
+            content: Text(
+              'Yakin ingin menghapus "${task.name}"?',
+              style: AppTextStyles.body,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Batal'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Hapus'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  Color _getDeadlineColor(DateTime deadline, TaskEntity task) {
+    final difference = deadline.difference(DateTime.now());
 
     if (task.isCompleted) return AppColors.success;
-    if (difference.isNegative) return AppColors.error;
-    if (difference.inHours < 1) return AppColors.error;
+    if (difference.isNegative || difference.inHours < 1) return AppColors.error;
     if (difference.inHours < 12) return AppColors.warning;
     return AppColors.textSecondary;
+  }
+
+  IconData _taskIcon(String? iconName) {
+    switch (iconName) {
+      case 'homework':
+        return Icons.home_work_rounded;
+      case 'exam':
+        return Icons.quiz_rounded;
+      case 'project':
+        return Icons.folder_rounded;
+      case 'personal':
+        return Icons.person_rounded;
+      default:
+        return Icons.assignment_rounded;
+    }
   }
 }
