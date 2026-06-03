@@ -2,9 +2,6 @@
 // Tambahkan route baru di sini — jangan buat navigasi ad-hoc di widget.
 
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-
-import '../../features/ai/presentation/pages/ai_page.dart';
 import '../../features/auth/presentation/pages/auth_page.dart';
 import '../../features/home/presentation/pages/main_page.dart';
 import '../../features/schedule/presentation/pages/schedule_page.dart';
@@ -102,10 +99,6 @@ class AppRoutes {
         return _route(const ActivityPage());
       case event:
         return _route(const EventPage());
-
-      // ── AI ─────────────────────────────────────────────────────────────────
-      case aiChat:
-        return _route(const AiPage());
 
       // ── Social ─────────────────────────────────────────────────────────────
       case social:

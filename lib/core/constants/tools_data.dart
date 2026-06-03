@@ -4,7 +4,7 @@ class ToolsData {
   static final List<Map<String, dynamic>> categories = [
     {
       'title': 'Smart Tools',
-      'description': 'Powered by AI',
+      'description': 'Alat bantu produktivitas',
       'tools': [
         {
           'icon': Icons.document_scanner_rounded,
