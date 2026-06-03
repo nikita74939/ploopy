@@ -3,7 +3,8 @@ import 'package:equatable/equatable.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../data/models/user_model.dart';
 
-// Events
+// ─── Events ───────────────────────────────────────────────────────────────────
+
 abstract class AuthEvent extends Equatable {
   @override
   List<Object?> get props => [];
@@ -45,11 +46,16 @@ class ForgotPasswordRequested extends AuthEvent {
   List<Object?> get props => [email];
 }
 
+/// Login menggunakan biometrik (user sudah terdaftar sebelumnya)
 class BiometricAuthRequested extends AuthEvent {}
+
+/// Aktivasi biometrik pertama kali setelah login dengan email+password
+class EnableBiometricRequested extends AuthEvent {}
 
 class LogoutRequested extends AuthEvent {}
 
-// States
+// ─── States ───────────────────────────────────────────────────────────────────
+
 abstract class AuthState extends Equatable {
   @override
   List<Object?> get props => [];
@@ -81,7 +87,30 @@ class AuthError extends AuthState {
 
 class PasswordResetSent extends AuthState {}
 
-// BLoC
+class RegistrationSuccess extends AuthState {
+  final UserModel user;
+  final bool requiresEmailConfirmation;
+
+  RegistrationSuccess({
+    required this.user,
+    required this.requiresEmailConfirmation,
+  });
+
+  @override
+  List<Object?> get props => [user, requiresEmailConfirmation];
+}
+
+/// Biometrik berhasil diaktifkan (bukan login — hanya aktivasi)
+class BiometricEnabled extends AuthState {
+  final UserModel user;
+  BiometricEnabled({required this.user});
+
+  @override
+  List<Object?> get props => [user];
+}
+
+// ─── BLoC ─────────────────────────────────────────────────────────────────────
+
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository repository;
 
@@ -91,6 +120,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<RegisterRequested>(_onRegisterRequested);
     on<ForgotPasswordRequested>(_onForgotPasswordRequested);
     on<BiometricAuthRequested>(_onBiometricAuthRequested);
+    on<EnableBiometricRequested>(_onEnableBiometricRequested);
     on<LogoutRequested>(_onLogoutRequested);
   }
 
@@ -112,7 +142,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(Unauthenticated());
       }
     } catch (e) {
-      emit(AuthError(message: e.toString()));
+      emit(Unauthenticated());
     }
   }
 
@@ -126,10 +156,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (user != null) {
         emit(Authenticated(user: user));
       } else {
-        emit(AuthError(message: 'Invalid credentials'));
+        emit(AuthError(message: 'Email atau password salah.'));
       }
     } catch (e) {
-      emit(AuthError(message: e.toString()));
+      emit(AuthError(message: _cleanError(e)));
     }
   }
 
@@ -139,18 +169,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     try {
-      final user = await repository.register(
+      final result = await repository.register(
         event.email,
         event.password,
         event.name,
       );
-      if (user != null) {
-        emit(Authenticated(user: user));
+      if (result == null) {
+        emit(AuthError(message: 'Registrasi gagal. Coba lagi.'));
+      } else if (result.isAuthenticated) {
+        emit(Authenticated(user: result.user));
       } else {
-        emit(AuthError(message: 'Registration failed'));
+        emit(
+          RegistrationSuccess(
+            user: result.user,
+            requiresEmailConfirmation: result.requiresEmailConfirmation,
+          ),
+        );
       }
     } catch (e) {
-      emit(AuthError(message: e.toString()));
+      emit(AuthError(message: _cleanError(e)));
     }
   }
 
@@ -163,10 +200,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await repository.forgotPassword(event.email);
       emit(PasswordResetSent());
     } catch (e) {
-      emit(AuthError(message: e.toString()));
+      emit(AuthError(message: _cleanError(e)));
     }
   }
 
+  /// Login biometrik: verifikasi sidik jari → ambil user dari cache → Authenticated
   Future<void> _onBiometricAuthRequested(
     BiometricAuthRequested event,
     Emitter<AuthState> emit,
@@ -174,16 +212,43 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       final authenticated = await repository.authenticateWithBiometrics();
-      if (authenticated) {
-        final user = await repository.getCurrentUser();
-        if (user != null) {
-          emit(Authenticated(user: user));
-        }
+      if (!authenticated) {
+        emit(AuthError(message: 'Autentikasi biometrik gagal.'));
+        return;
+      }
+
+      final user = await repository.getCurrentUser();
+      if (user != null) {
+        emit(Authenticated(user: user));
       } else {
-        emit(AuthError(message: 'Biometric authentication failed'));
+        // Tidak ada user lokal — minta login ulang dengan email/password
+        emit(
+          AuthError(
+            message:
+                'Sesi habis. Silakan login dengan email & password terlebih dahulu.',
+          ),
+        );
       }
     } catch (e) {
-      emit(AuthError(message: e.toString()));
+      emit(AuthError(message: _cleanError(e)));
+    }
+  }
+
+  /// Aktivasi biometrik: verifikasi sidik jari → aktifkan flag → BiometricEnabled
+  Future<void> _onEnableBiometricRequested(
+    EnableBiometricRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    try {
+      final user = await repository.enableBiometric();
+      if (user != null) {
+        emit(BiometricEnabled(user: user));
+      } else {
+        emit(AuthError(message: 'Gagal mengaktifkan biometrik.'));
+      }
+    } catch (e) {
+      emit(AuthError(message: _cleanError(e)));
     }
   }
 
@@ -196,7 +261,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await repository.logout();
       emit(Unauthenticated());
     } catch (e) {
-      emit(AuthError(message: e.toString()));
+      // Logout lokal tetap berhasil — emit Unauthenticated
+      emit(Unauthenticated());
     }
+  }
+
+  String _cleanError(Object e) {
+    final msg = e.toString();
+    // Buang prefix "Exception: " yang ditambahkan Dart
+    return msg.startsWith('Exception: ') ? msg.substring(11) : msg;
   }
 }

@@ -124,15 +124,13 @@ class StudyLocalDataSourceImpl implements StudyLocalDataSource {
 
   @override
   Future<int> getStreak(String userId) async {
-    final users = await isar.userModels.where().findAll();
-    final user = users.where((u) => u.id == userId).firstOrNull;
+    final user = await isar.userModels.getByUserId(userId);
     return user?.streak ?? 0;
   }
 
   @override
   Future<void> updateStreak(String userId, int streak) async {
-    final users = await isar.userModels.where().findAll();
-    final user = users.where((u) => u.id == userId).firstOrNull;
+    final user = await isar.userModels.getByUserId(userId);
     if (user != null) {
       user.streak = streak;
       if (streak > user.longestStreak) {

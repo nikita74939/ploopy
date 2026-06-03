@@ -32,8 +32,9 @@ class _AuthPageState extends State<AuthPage> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => BiometricLoginSheet(
-        onSuccess: _navigateToHome,
+      builder: (sheetCtx) => BlocProvider.value(
+        value: context.read<AuthBloc>(),
+        child: BiometricLoginSheet(onSuccess: _navigateToHome),
       ),
     );
   }
@@ -49,26 +50,37 @@ class _AuthPageState extends State<AuthPage> {
         ),
         child: BlocProvider.value(
           value: context.read<AuthBloc>(),
-          child: BiometricActivationSheet(
-            onSuccess: () {
-              Navigator.pop(sheetCtx);
-              _navigateToHome();
-            },
-          ),
+          child: BiometricActivationSheet(onSuccess: _navigateToHome),
         ),
       ),
     );
   }
 
+  /// Dipanggil saat user menekan tombol sidik jari di LoginForm.
+  ///
+  /// Logika:
+  /// - Jika ada user lokal dengan biometricEnabled = true → tampilkan login sheet
+  /// - Jika sudah login (Authenticated) tapi belum aktifkan → tampilkan activation sheet
+  /// - Jika belum login sama sekali → tampilkan pesan minta login dulu
   void _handleBiometricPressed() {
-    final authBloc = context.read<AuthBloc>();
-    // Cek apakah user sudah punya akun lokal (biometric sudah terdaftar)
-    // Jika belum, tampilkan activation sheet; jika sudah, tampilkan login sheet
-    authBloc.repository.getCurrentUser().then((user) {
+    final bloc = context.read<AuthBloc>();
+    bloc.repository.getCurrentUser().then((user) {
       if (!mounted) return;
-      if (user != null && user.biometricEnabled) {
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Login dengan email & password terlebih dahulu untuk mengaktifkan sidik jari.',
+            ),
+          ),
+        );
+        return;
+      }
+
+      if (user.biometricEnabled) {
         _showBiometricLoginSheet();
       } else {
+        // User sudah punya akun lokal tapi belum aktifkan biometrik
         _showBiometricActivationSheet();
       }
     });
@@ -80,13 +92,19 @@ class _AuthPageState extends State<AuthPage> {
       listener: (context, state) {
         if (state is Authenticated) {
           _navigateToHome();
+        } else if (state is BiometricEnabled) {
+          // Biometrik diaktifkan dari luar flow login normal — navigate ke home
+          _navigateToHome();
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
                 children: [
-                  const Icon(Icons.error_outline_rounded,
-                      color: Colors.white, size: 18),
+                  const Icon(
+                    Icons.error_outline_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(child: Text(state.message)),
                 ],
@@ -94,26 +112,30 @@ class _AuthPageState extends State<AuthPage> {
               backgroundColor: Colors.red.shade600,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
               margin: const EdgeInsets.all(16),
             ),
           );
         } else if (state is PasswordResetSent) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Row(
+              content: const Row(
                 children: [
-                  const Icon(Icons.check_circle_rounded,
-                      color: Colors.white, size: 18),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                      child: Text('Link reset password telah dikirim!')),
+                  Icon(
+                    Icons.check_circle_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(child: Text('Link reset password telah dikirim!')),
                 ],
               ),
               backgroundColor: Colors.green.shade600,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
               margin: const EdgeInsets.all(16),
             ),
           );
@@ -144,17 +166,22 @@ class _AuthPageState extends State<AuthPage> {
                         )
                       : RegisterForm(
                           onSuccess: () {
+                            // Setelah register berhasil → pindah ke tab login
+                            // BlocListener di atas sudah handle navigasi ke home
+                            // Jika email confirmation aktif, arahkan user login manual
                             _setTab(true);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Row(
+                                content: const Row(
                                   children: [
-                                    const Icon(Icons.check_circle_rounded,
-                                        color: Colors.white),
-                                    const SizedBox(width: 12),
+                                    Icon(
+                                      Icons.check_circle_rounded,
+                                      color: Colors.white,
+                                    ),
+                                    SizedBox(width: 12),
                                     Expanded(
                                       child: Text(
-                                        'Registrasi berhasil! Silakan login.',
+                                        'Registrasi berhasil!',
                                         style: TextStyle(color: Colors.white),
                                       ),
                                     ),
@@ -163,7 +190,8 @@ class _AuthPageState extends State<AuthPage> {
                                 backgroundColor: Colors.green.shade600,
                                 behavior: SnackBarBehavior.floating,
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12)),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                                 margin: const EdgeInsets.all(16),
                                 duration: const Duration(seconds: 3),
                               ),
@@ -214,18 +242,14 @@ class _AuthPageState extends State<AuthPage> {
         const SizedBox(height: 8),
         Text(
           'Selamat datang! Kelola belajarmu dengan mudah.',
-          style: TextStyle(
-            fontSize: 14,
-            color: AppColors.grey,
-            height: 1.4,
-          ),
+          style: TextStyle(fontSize: 14, color: AppColors.grey, height: 1.4),
         ),
       ],
     );
   }
 }
 
-// ─── Forgot Password Sheet (inline) ──────────────────────────────────────────
+// ─── Forgot Password Sheet ────────────────────────────────────────────────────
 
 class _ForgotPasswordSheet extends StatefulWidget {
   final TextEditingController emailCtrl;
@@ -238,11 +262,21 @@ class _ForgotPasswordSheet extends StatefulWidget {
 
 class _ForgotPasswordSheetState extends State<_ForgotPasswordSheet> {
   @override
+  void dispose() {
+    widget.emailCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is PasswordResetSent) {
           Navigator.pop(context);
+        } else if (state is AuthError) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: Container(
@@ -273,17 +307,21 @@ class _ForgotPasswordSheetState extends State<_ForgotPasswordSheet> {
                   color: AppColors.primary.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.lock_reset_rounded,
-                    color: AppColors.primary, size: 36),
+                child: Icon(
+                  Icons.lock_reset_rounded,
+                  color: AppColors.primary,
+                  size: 36,
+                ),
               ),
             ),
             const SizedBox(height: 16),
             const Text(
               'Lupa Password?',
               style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1A1A2E)),
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1A1A2E),
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 6),
@@ -303,7 +341,9 @@ class _ForgotPasswordSheetState extends State<_ForgotPasswordSheet> {
             BlocBuilder<AuthBloc, AuthState>(
               builder: (context, state) {
                 return _PrimaryButton(
-                  label: state is AuthLoading ? 'Mengirim...' : 'Kirim Link Reset',
+                  label: state is AuthLoading
+                      ? 'Mengirim...'
+                      : 'Kirim Link Reset',
                   onPressed: state is AuthLoading
                       ? null
                       : () {
@@ -311,13 +351,14 @@ class _ForgotPasswordSheetState extends State<_ForgotPasswordSheet> {
                           if (email.isEmpty || !email.contains('@')) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                  content: Text('Masukkan email yang valid')),
+                                content: Text('Masukkan email yang valid'),
+                              ),
                             );
                             return;
                           }
-                          context
-                              .read<AuthBloc>()
-                              .add(ForgotPasswordRequested(email: email));
+                          context.read<AuthBloc>().add(
+                            ForgotPasswordRequested(email: email),
+                          );
                         },
                 );
               },
@@ -325,8 +366,10 @@ class _ForgotPasswordSheetState extends State<_ForgotPasswordSheet> {
             const SizedBox(height: 8),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Batal',
-                  style: TextStyle(color: Colors.grey.shade500)),
+              child: Text(
+                'Batal',
+                style: TextStyle(color: Colors.grey.shade500),
+              ),
             ),
           ],
         ),
@@ -335,22 +378,19 @@ class _ForgotPasswordSheetState extends State<_ForgotPasswordSheet> {
   }
 }
 
-// ─── Shared internal widgets (used by sheet) ─────────────────────────────────
+// ─── Shared internal widgets ──────────────────────────────────────────────────
 
 class _StyledTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
   final TextInputType? keyboardType;
   final IconData? prefixIcon;
-  final bool obscure;
 
   const _StyledTextField({
     required this.controller,
     required this.hint,
     this.keyboardType,
     this.prefixIcon,
-    // ignore: unused_element_parameter
-    this.obscure = false,
   });
 
   @override
@@ -358,7 +398,7 @@ class _StyledTextField extends StatelessWidget {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
-      obscureText: obscure,
+      obscureText: false,
       style: const TextStyle(fontSize: 15, color: Color(0xFF1A1A2E)),
       decoration: InputDecoration(
         hintText: hint,
@@ -366,8 +406,10 @@ class _StyledTextField extends StatelessWidget {
         prefixIcon: prefixIcon != null
             ? Icon(prefixIcon, color: Colors.grey.shade400, size: 20)
             : null,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         filled: true,
         fillColor: Colors.grey.shade50,
         border: OutlineInputBorder(
@@ -404,15 +446,17 @@ class _PrimaryButton extends StatelessWidget {
           disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
           foregroundColor: Colors.white,
           elevation: 0,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
         child: Text(
           label,
           style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: Colors.white),
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
         ),
       ),
     );

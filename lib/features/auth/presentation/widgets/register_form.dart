@@ -4,6 +4,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../bloc/auth_bloc.dart';
 
 class RegisterForm extends StatefulWidget {
+  /// Dipanggil setelah state [Authenticated] — untuk UI feedback tambahan
+  /// (mis. switch tab). Navigasi ke home ditangani oleh AuthPage BlocListener.
   final VoidCallback onSuccess;
   final VoidCallback onSwitchToLogin;
 
@@ -49,9 +51,12 @@ class _RegisterFormState extends State<RegisterForm> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is Authenticated) {
+        if (state is Authenticated || state is RegistrationSuccess) {
+          // AuthPage BlocListener menangani navigasi ke home.
+          // Di sini hanya trigger callback untuk UI feedback (snackbar, tab switch).
           widget.onSuccess();
         }
+        // AuthError ditangani oleh AuthPage BlocListener (snackbar global)
       },
       child: Form(
         key: _formKey,
@@ -65,7 +70,9 @@ class _RegisterFormState extends State<RegisterForm> {
                 prefixIcon: Icons.person_outline,
                 keyboardType: TextInputType.name,
                 validator: (v) {
-                  if (v == null || v.isEmpty) return 'Masukkan nama kamu';
+                  if (v == null || v.trim().isEmpty) {
+                    return 'Masukkan nama kamu';
+                  }
                   return null;
                 },
               ),
@@ -100,7 +107,9 @@ class _RegisterFormState extends State<RegisterForm> {
                 prefixIcon: Icons.lock_outline,
                 obscure: true,
                 validator: (v) {
-                  if (v == null || v.isEmpty) return 'Konfirmasi password kamu';
+                  if (v == null || v.isEmpty) {
+                    return 'Konfirmasi password kamu';
+                  }
                   if (v != _passCtrl.text) return 'Password tidak cocok';
                   return null;
                 },

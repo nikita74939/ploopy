@@ -1,9 +1,20 @@
+// Manual Dependency Injection untuk seluruh fitur aplikasi.
+//
+// Pola yang digunakan: static getter (factory) — setiap getter membuat
+// instance baru. Jika suatu dependency perlu singleton (misal: Dio),
+// simpan dalam field static private seperti _dio di bawah.
+//
+// Urutan inisialisasi (dilakukan di main.dart):
+//   1. setIsar(isar)  ← harus dipanggil sebelum getter apapun diakses
+
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:isar/isar.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../config/api_config.dart';
 
 // Auth
 import '../../../features/auth/data/datasources/auth_local_data_source.dart';
@@ -47,56 +58,67 @@ import '../../../features/chat/data/repositories/chat_repository_impl.dart';
 import '../../../features/chat/domain/repositories/chat_repository.dart';
 import '../../../features/chat/presentation/bloc/chat_bloc.dart';
 
-// Activity
+// Activity (remote-only: Supabase)
 import '../../../features/activity/data/datasources/activity_remote_data_source.dart';
 import '../../../features/activity/data/repositories/activity_repository_impl.dart';
 import '../../../features/activity/domain/repositories/activity_repository.dart';
 import '../../../features/activity/presentation/bloc/activity_bloc.dart';
 
-// Event
+// Event (remote-only: Supabase)
 import '../../../features/event/data/datasources/event_remote_data_source.dart';
 import '../../../features/event/data/repositories/event_repository_impl.dart';
 import '../../../features/event/domain/repositories/event_repository.dart';
 import '../../../features/event/presentation/bloc/event_bloc.dart';
 
-// Profile
+// Profile (remote: Supabase + local: Isar)
 import '../../../features/profile/data/datasources/profile_local_data_source.dart';
+import '../../../features/profile/data/datasources/profile_remote_data_source.dart';
 import '../../../features/profile/data/repositories/profile_repository_impl.dart';
 import '../../../features/profile/domain/repositories/profile_repository.dart';
 import '../../../features/profile/presentation/bloc/profile_bloc.dart';
-import '../../features/profile/data/datasources/profile_remote_data_source.dart';
 
 class DependencyInjection {
-  static final FlutterSecureStorage _secureStorage =
-      const FlutterSecureStorage();
-  static final LocalAuthentication _localAuth = LocalAuthentication();
-  static final Dio _dio = Dio();
-  static final http.Client _httpClient = http.Client();
-  
-  // HTTP Client
-  static http.Client get httpClient => _httpClient;
+  // Konstruktor privat — kelas ini tidak boleh diinstansiasi
+  DependencyInjection._();
 
-  // Dio - Singleton
-  static Dio get dio {
-    _dio.options = BaseOptions(
+  // ─── Singleton shared dependencies ────────────────────────────────────────
+
+  /// Penyimpanan token/kunci secara enkripsi di perangkat
+  static const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+
+  /// Plugin autentikasi biometrik (sidik jari / Face ID)
+  static final LocalAuthentication _localAuth = LocalAuthentication();
+
+  /// HTTP client ringan untuk request sederhana
+  static final http.Client _httpClient = http.Client();
+
+  /// Dio HTTP client dengan timeout 30 detik (singleton)
+  static final Dio _dio = Dio(
+    BaseOptions(
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
       sendTimeout: const Duration(seconds: 30),
-    );
-    return _dio;
-  }
+    ),
+  );
 
+  /// Isar diset dari main.dart setelah database dibuka
   static Isar? _isar;
 
-  static void setIsar(Isar isar) {
-    _isar = isar;
-  }
+  // ─── Public accessors untuk shared dependencies ────────────────────────────
 
+  static http.Client get httpClient => _httpClient;
+  static Dio get dio => _dio;
+
+  /// Klien Supabase yang sudah diinisialisasi di main.dart
   static SupabaseClient get _supabase => Supabase.instance.client;
 
-  // ─────────────────────────────────────────
-  // Auth
-  // ─────────────────────────────────────────
+  /// Dipanggil sekali dari main.dart setelah IsarService.getInstance()
+  static void setIsar(Isar isar) => _isar = isar;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AUTH
+  // Mengelola login, register, logout, biometrik, dan sesi token
+  // ═══════════════════════════════════════════════════════════════════════════
 
   static AuthLocalDataSource get authLocalDataSource => AuthLocalDataSourceImpl(
     isar: _isar!,
@@ -105,21 +127,21 @@ class DependencyInjection {
   );
 
   static AuthRemoteDataSource get authRemoteDataSource =>
-      AuthRemoteDataSourceImpl(supabase: _supabase);
+      AuthRemoteDataSourceImpl(client: _httpClient, baseUrl: ApiConfig.baseUrl);
 
   static AuthRepository get authRepository => AuthRepositoryImpl(
     remoteDataSource: authRemoteDataSource,
     secureStorage: _secureStorage,
     localAuth: _localAuth,
     isar: _isar!,
-    supabase: _supabase,
   );
 
   static AuthBloc get authBloc => AuthBloc(repository: authRepository);
 
-  // ─────────────────────────────────────────
-  // Home
-  // ─────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HOME
+  // Agregasi data dari Schedule, Task, dan Study untuk dashboard utama
+  // ═══════════════════════════════════════════════════════════════════════════
 
   static HomeRepository get homeRepository => HomeRepositoryImpl(
     scheduleRepository: scheduleRepository,
@@ -129,9 +151,10 @@ class DependencyInjection {
 
   static HomeBloc get homeBloc => HomeBloc(repository: homeRepository);
 
-  // ─────────────────────────────────────────
-  // Schedule
-  // ─────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SCHEDULE
+  // Jadwal harian/mingguan — disimpan lokal di Isar
+  // ═══════════════════════════════════════════════════════════════════════════
 
   static ScheduleLocalDataSource get scheduleLocalDataSource =>
       ScheduleLocalDataSourceImpl(isar: _isar!);
@@ -142,9 +165,10 @@ class DependencyInjection {
   static ScheduleBloc get scheduleBloc =>
       ScheduleBloc(repository: scheduleRepository);
 
-  // ─────────────────────────────────────────
-  // Task
-  // ─────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+  // TASK
+  // Tugas/to-do — disimpan lokal di Isar
+  // ═══════════════════════════════════════════════════════════════════════════
 
   static TaskLocalDataSource get taskLocalDataSource =>
       TaskLocalDataSourceImpl(isar: _isar!);
@@ -154,9 +178,10 @@ class DependencyInjection {
 
   static TaskBloc get taskBloc => TaskBloc(repository: taskRepository);
 
-  // ─────────────────────────────────────────
-  // Study
-  // ─────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+  // STUDY
+  // Sesi belajar & timer pomodoro — disimpan lokal di Isar
+  // ═══════════════════════════════════════════════════════════════════════════
 
   static StudyLocalDataSource get studyLocalDataSource =>
       StudyLocalDataSourceImpl(isar: _isar!);
@@ -166,9 +191,10 @@ class DependencyInjection {
 
   static StudyBloc get studyBloc => StudyBloc(repository: studyRepository);
 
-  // ─────────────────────────────────────────
-  // Notification
-  // ─────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NOTIFICATION
+  // Notifikasi lokal terjadwal — disimpan lokal di Isar
+  // ═══════════════════════════════════════════════════════════════════════════
 
   static NotificationLocalDataSource get notificationLocalDataSource =>
       NotificationLocalDataSourceImpl(isar: _isar!);
@@ -179,9 +205,10 @@ class DependencyInjection {
   static NotificationBloc get notificationBloc =>
       NotificationBloc(repository: notificationRepository);
 
-  // ─────────────────────────────────────────
-  // Chat
-  // ─────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CHAT
+  // Pesan real-time antar pengguna — remote-only via Supabase Realtime
+  // ═══════════════════════════════════════════════════════════════════════════
 
   static ChatRemoteDataSource get chatRemoteDataSource =>
       ChatRemoteDataSourceImpl(supabase: _supabase);
@@ -191,9 +218,10 @@ class DependencyInjection {
 
   static ChatBloc get chatBloc => ChatBloc(repository: chatRepository);
 
-  // ─────────────────────────────────────────
-  // Activity  ← Supabase (remote only)
-  // ─────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ACTIVITY
+  // Feed aktivitas pengguna — remote-only via Supabase
+  // ═══════════════════════════════════════════════════════════════════════════
 
   static ActivityRemoteDataSource get activityRemoteDataSource =>
       ActivityRemoteDataSourceImpl(supabase: _supabase);
@@ -204,9 +232,10 @@ class DependencyInjection {
   static ActivityBloc get activityBloc =>
       ActivityBloc(repository: activityRepository);
 
-  // ─────────────────────────────────────────
-  // Event  ← Supabase (remote only)
-  // ─────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+  // EVENT
+  // Acara/kegiatan kampus — remote-only via Supabase
+  // ═══════════════════════════════════════════════════════════════════════════
 
   static EventRemoteDataSource get eventRemoteDataSource =>
       EventRemoteDataSourceImpl(supabase: _supabase);
@@ -216,10 +245,10 @@ class DependencyInjection {
 
   static EventBloc get eventBloc => EventBloc(repository: eventRepository);
 
-
-  // ─────────────────────────────────────────
-  // Profile
-  // ─────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PROFILE
+  // Data profil pengguna — sumber utama Supabase, cache lokal di Isar
+  // ═══════════════════════════════════════════════════════════════════════════
 
   static ProfileRemoteDataSource get profileRemoteDataSource =>
       ProfileRemoteDataSourceImpl(supabase: _supabase);

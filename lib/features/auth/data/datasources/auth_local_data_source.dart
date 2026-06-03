@@ -10,6 +10,7 @@ abstract class AuthLocalDataSource {
   Future<void> saveToken(String token);
   Future<String?> getToken();
   Future<void> deleteToken();
+  Future<void> clearUser();
   Future<bool> authenticateWithBiometrics();
 }
 
@@ -29,6 +30,14 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
     final token = await getToken();
     if (token == null) return null;
 
+    // Ambil user berdasarkan token yang tersimpan (userId disimpan terpisah)
+    final userId = await secureStorage.read(key: 'current_user_id');
+    if (userId != null) {
+      final user = await isar.userModels.getByUserId(userId);
+      if (user != null) return user;
+    }
+
+    // Fallback: ambil user pertama yang ada
     final users = await isar.userModels.where().findAll();
     return users.isNotEmpty ? users.first : null;
   }
@@ -36,13 +45,26 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   @override
   Future<void> saveUser(UserModel user) async {
     await isar.writeTxn(() async {
-      await isar.userModels.put(user);
+      // Cek apakah user sudah ada untuk preserve local-only fields
+      final existing = await isar.userModels.getByUserId(user.userId);
+      if (existing != null) {
+        // Preserve local-only stats agar tidak tertimpa saat refresh dari Supabase
+        user
+          ..streak = existing.streak
+          ..longestStreak = existing.longestStreak
+          ..totalStudyMinutes = existing.totalStudyMinutes
+          ..totalTasksCompleted = existing.totalTasksCompleted
+          ..appLockEnabled = existing.appLockEnabled;
+      }
+      await isar.userModels.putByUserId(user);
     });
+    // Simpan userId aktif agar getCurrentUser bisa menemukannya
+    await secureStorage.write(key: 'current_user_id', value: user.userId);
   }
 
   @override
   Future<UserModel?> getUserByEmail(String email) async {
-    return await isar.userModels.filter().emailEqualTo(email).findFirst();
+    return await isar.userModels.getByEmail(email);
   }
 
   @override
@@ -58,12 +80,22 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   @override
   Future<void> deleteToken() async {
     await secureStorage.delete(key: 'auth_token');
+    await secureStorage.delete(key: 'current_user_id');
+  }
+
+  @override
+  Future<void> clearUser() async {
+    await isar.writeTxn(() async {
+      await isar.userModels.clear();
+    });
+    await deleteToken();
   }
 
   @override
   Future<bool> authenticateWithBiometrics() async {
     try {
-      final canAuthenticate = await localAuth.canCheckBiometrics;
+      final canAuthenticate = await localAuth.canCheckBiometrics ||
+          await localAuth.isDeviceSupported();
       if (!canAuthenticate) return false;
 
       final availableBiometrics = await localAuth.getAvailableBiometrics();

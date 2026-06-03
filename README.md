@@ -1,16 +1,37 @@
-# ploopy
+# Ploopy
 
-A new Flutter project.
+Flutter app with a Node.js + Express backend.
 
-## Getting Started
+## Flutter setup
 
-This project is a starting point for a Flutter application.
+```bash
+flutter pub get
+cp .env.example .env
+flutter run
+```
 
-A few resources to get you started if this is your first Flutter project:
+Set `API_BASE_URL` in `.env`.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+For Android emulator:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```text
+API_BASE_URL=http://10.0.2.2:3000
+```
+
+For physical device, use your computer LAN IP:
+
+```text
+API_BASE_URL=http://192.168.x.x:3000
+```
+
+## Backend setup
+
+```bash
+cd backend
+npm install
+cp .env.example .env
+npm run dev
+```
+
+The auth flow now goes through HTTP requests to the Express backend. Some older
+features still use Supabase directly and can be migrated route by route.

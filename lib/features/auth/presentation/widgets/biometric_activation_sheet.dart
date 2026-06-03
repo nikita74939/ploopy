@@ -3,57 +3,31 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../bloc/auth_bloc.dart';
 
-class BiometricActivationSheet extends StatefulWidget {
+/// Sheet untuk mengaktifkan biometrik pertama kali.
+/// Dipanggil saat user sudah login (ada di AuthPage setelah tap tombol sidik jari
+/// dan belum punya biometric terdaftar).
+///
+/// Flow:
+/// 1. User menekan "Aktifkan Sidik Jari"
+/// 2. Bloc dispatch [EnableBiometricRequested]
+/// 3. Repository verifikasi sidik jari OS → set biometricEnabled = true
+/// 4. State [BiometricEnabled] → tutup sheet & panggil onSuccess
+class BiometricActivationSheet extends StatelessWidget {
   final VoidCallback onSuccess;
 
   const BiometricActivationSheet({super.key, required this.onSuccess});
 
   @override
-  State<BiometricActivationSheet> createState() =>
-      _BiometricActivationSheetState();
-}
-
-class _BiometricActivationSheetState extends State<BiometricActivationSheet> {
-  final _emailCtrl = TextEditingController();
-  final _passCtrl = TextEditingController();
-
-  @override
-  void dispose() {
-    _emailCtrl.dispose();
-    _passCtrl.dispose();
-    super.dispose();
-  }
-
-  void _activate() {
-    final email = _emailCtrl.text.trim();
-    final pass = _passCtrl.text;
-
-    if (email.isEmpty || !email.contains('@')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Masukkan email yang valid')),
-      );
-      return;
-    }
-    if (pass.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Masukkan password kamu')),
-      );
-      return;
-    }
-
-    // Login terlebih dahulu, lalu aktifkan biometrik
-    context
-        .read<AuthBloc>()
-        .add(LoginRequested(email: email, password: pass));
-  }
-
-  @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is Authenticated) {
-          // Setelah login berhasil, trigger biometric authentication
-          context.read<AuthBloc>().add(BiometricAuthRequested());
+        if (state is BiometricEnabled) {
+          Navigator.pop(context);
+          onSuccess();
+        } else if (state is AuthError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
         }
       },
       child: Container(
@@ -81,32 +55,22 @@ class _BiometricActivationSheetState extends State<BiometricActivationSheet> {
             ),
             const SizedBox(height: 6),
             Text(
-              'Masukkan email & password untuk mendaftarkan sidik jari kamu',
+              'Gunakan sidik jari perangkat kamu untuk login lebih cepat dan aman.',
               style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 20),
-            _AuthTextField(
-              controller: _emailCtrl,
-              hint: 'Email',
-              prefixIcon: Icons.email_outlined,
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 12),
-            _AuthTextField(
-              controller: _passCtrl,
-              hint: 'Password',
-              prefixIcon: Icons.lock_outline,
-              obscure: true,
-            ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             BlocBuilder<AuthBloc, AuthState>(
               builder: (context, state) {
                 return _PrimaryButton(
                   label: state is AuthLoading
                       ? 'Memproses...'
-                      : 'Daftarkan Sidik Jari',
-                  onPressed: state is AuthLoading ? null : _activate,
+                      : 'Aktifkan Sidik Jari',
+                  onPressed: state is AuthLoading
+                      ? null
+                      : () => context
+                          .read<AuthBloc>()
+                          .add(EnableBiometricRequested()),
                 );
               },
             ),
@@ -117,8 +81,8 @@ class _BiometricActivationSheetState extends State<BiometricActivationSheet> {
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
                       state.message,
-                      style: TextStyle(
-                          color: Colors.red.shade600, fontSize: 13),
+                      style:
+                          TextStyle(color: Colors.red.shade600, fontSize: 13),
                       textAlign: TextAlign.center,
                     ),
                   );
@@ -130,7 +94,7 @@ class _BiometricActivationSheetState extends State<BiometricActivationSheet> {
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
-                'Batal',
+                'Lewati',
                 style: TextStyle(color: Colors.grey.shade500),
               ),
             ),
@@ -167,77 +131,6 @@ class _BiometricActivationSheetState extends State<BiometricActivationSheet> {
   }
 }
 
-// ─── Shared widgets ───────────────────────────────────────────────────────────
-
-class _AuthTextField extends StatefulWidget {
-  final TextEditingController controller;
-  final String hint;
-  final IconData? prefixIcon;
-  final TextInputType? keyboardType;
-  final bool obscure;
-
-  const _AuthTextField({
-    required this.controller,
-    required this.hint,
-    this.prefixIcon,
-    this.keyboardType,
-    this.obscure = false,
-  });
-
-  @override
-  State<_AuthTextField> createState() => _AuthTextFieldState();
-}
-
-class _AuthTextFieldState extends State<_AuthTextField> {
-  bool _obscureText = true;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: widget.controller,
-      keyboardType: widget.keyboardType,
-      obscureText: widget.obscure ? _obscureText : false,
-      style: const TextStyle(fontSize: 15, color: Color(0xFF1A1A2E)),
-      decoration: InputDecoration(
-        hintText: widget.hint,
-        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 15),
-        prefixIcon: widget.prefixIcon != null
-            ? Icon(widget.prefixIcon, color: Colors.grey.shade400, size: 20)
-            : null,
-        suffixIcon: widget.obscure
-            ? GestureDetector(
-                onTap: () =>
-                    setState(() => _obscureText = !_obscureText),
-                child: Icon(
-                  _obscureText
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined,
-                  color: Colors.grey.shade400,
-                  size: 20,
-                ),
-              )
-            : null,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        filled: true,
-        fillColor: Colors.grey.shade50,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.grey.shade200),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.grey.shade200),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
-        ),
-      ),
-    );
-  }
-}
-
 class _PrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -255,15 +148,13 @@ class _PrimaryButton extends StatelessWidget {
           disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
           foregroundColor: Colors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
         child: Text(
           label,
           style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: Colors.white),
+              fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
         ),
       ),
     );

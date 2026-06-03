@@ -1,10 +1,10 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:local_auth/local_auth.dart';
 import 'package:isar/isar.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:local_auth/local_auth.dart';
+
 import '../../domain/repositories/auth_repository.dart';
-import '../datasources/auth_remote_data_source.dart';
 import '../datasources/auth_local_data_source.dart';
+import '../datasources/auth_remote_data_source.dart';
 import '../models/user_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -12,59 +12,68 @@ class AuthRepositoryImpl implements AuthRepository {
   final FlutterSecureStorage secureStorage;
   final LocalAuthentication localAuth;
   final Isar isar;
-  final SupabaseClient supabase;
 
   AuthRepositoryImpl({
     required this.remoteDataSource,
     required this.secureStorage,
     required this.localAuth,
     required this.isar,
-    required this.supabase,
   });
 
   AuthLocalDataSourceImpl get _local => AuthLocalDataSourceImpl(
-        isar: isar,
-        secureStorage: secureStorage,
-        localAuth: localAuth,
-      );
+    isar: isar,
+    secureStorage: secureStorage,
+    localAuth: localAuth,
+  );
 
   @override
   Future<UserModel?> login(String email, String password) async {
     try {
       final response = await remoteDataSource.login(email, password);
-      if (response['success'] == true) {
-        final user = UserModel.fromSupabase(
-            response['user'] as Map<String, dynamic>);
-        await _local.saveUser(user);
-        await _local.saveToken(response['token'] as String);
-        return user;
-      }
-      return null;
-    } on AuthException catch (e) {
-      throw Exception(e.message);
+      if (response['success'] != true) return null;
+
+      final user = UserModel.fromSupabase(
+        response['user'] as Map<String, dynamic>,
+      );
+      final token = response['token'] as String;
+
+      await _local.saveUser(user);
+      await _local.saveToken(token);
+      return user;
     } catch (e) {
-      throw Exception(e.toString());
+      throw Exception(_mapAuthError(_cleanError(e)));
     }
   }
 
   @override
-  Future<UserModel?> register(
-      String email, String password, String name) async {
+  Future<AuthRegisterResult?> register(
+    String email,
+    String password,
+    String name,
+  ) async {
     try {
-      final response =
-          await remoteDataSource.register(email, password, name);
-      if (response['success'] == true) {
-        final user = UserModel.fromSupabase(
-            response['user'] as Map<String, dynamic>);
-        await _local.saveUser(user);
-        await _local.saveToken(response['token'] as String);
-        return user;
+      final response = await remoteDataSource.register(email, password, name);
+      if (response['success'] != true) return null;
+
+      final user = UserModel.fromSupabase(
+        response['user'] as Map<String, dynamic>,
+      );
+      final token = response['token'] as String;
+      final requiresEmailConfirmation =
+          response['requiresEmailConfirmation'] as bool? ?? false;
+
+      await _local.saveUser(user);
+      if (token.isNotEmpty) {
+        await _local.saveToken(token);
       }
-      return null;
-    } on AuthException catch (e) {
-      throw Exception(e.message);
+
+      return AuthRegisterResult(
+        user: user,
+        isAuthenticated: token.isNotEmpty && !requiresEmailConfirmation,
+        requiresEmailConfirmation: requiresEmailConfirmation,
+      );
     } catch (e) {
-      throw Exception(e.toString());
+      throw Exception(_mapAuthError(_cleanError(e)));
     }
   }
 
@@ -75,13 +84,14 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<UserModel?> getCurrentUser() async {
-    // Coba ambil dari cache lokal dulu
     final localUser = await _local.getCurrentUser();
     if (localUser != null) return localUser;
 
-    // Fallback ke Supabase jika cache kosong
+    final token = await _local.getToken();
+    if (token == null || token.isEmpty) return null;
+
     try {
-      final data = await remoteDataSource.getCurrentUserData();
+      final data = await remoteDataSource.getCurrentUserData(token);
       if (data == null) return null;
       final user = UserModel.fromSupabase(data);
       await _local.saveUser(user);
@@ -93,8 +103,15 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> logout() async {
-    await remoteDataSource.logout();
-    await _local.deleteToken();
+    final token = await _local.getToken();
+    try {
+      if (token != null && token.isNotEmpty) {
+        await remoteDataSource.logout(token);
+      }
+    } catch (_) {
+      // Local logout still succeeds when backend is unavailable.
+    }
+    await _local.clearUser();
   }
 
   @override
@@ -103,21 +120,64 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<bool> isLoggedIn() async {
-    // Cek sesi aktif di Supabase
-    final session = supabase.auth.currentSession;
-    if (session != null && !_isTokenExpired(session.expiresAt)) {
-      return true;
+  Future<UserModel?> enableBiometric() async {
+    final ok = await _local.authenticateWithBiometrics();
+    if (!ok) return null;
+
+    final user = await _local.getCurrentUser();
+    if (user == null) return null;
+
+    await isar.writeTxn(() async {
+      user.biometricEnabled = true;
+      await isar.userModels.putByUserId(user);
+    });
+
+    try {
+      final token = await _local.getToken();
+      if (token != null && token.isNotEmpty) {
+        final data = await remoteDataSource.updateBiometricEnabled(
+          token,
+          user.userId,
+          true,
+        );
+        final syncedUser = UserModel.fromSupabase(data);
+        await _local.saveUser(syncedUser);
+        return syncedUser;
+      }
+    } catch (_) {
+      // Backend sync can be retried later; local biometric remains enabled.
     }
-    // Fallback: cek token lokal
-    final token = await _local.getToken();
-    return token != null;
+
+    return user;
   }
 
-  bool _isTokenExpired(int? expiresAt) {
-    if (expiresAt == null) return true;
-    final expiry =
-        DateTime.fromMillisecondsSinceEpoch(expiresAt * 1000);
-    return DateTime.now().isAfter(expiry);
+  @override
+  Future<bool> isLoggedIn() async {
+    final token = await _local.getToken();
+    return token != null && token.isNotEmpty;
+  }
+
+  String _cleanError(Object e) {
+    final msg = e.toString();
+    return msg.startsWith('Exception: ') ? msg.substring(11) : msg;
+  }
+
+  String _mapAuthError(String raw) {
+    final msg = raw.toLowerCase();
+    if (msg.contains('invalid login credentials') ||
+        msg.contains('invalid credentials')) {
+      return 'Email atau password salah.';
+    }
+    if (msg.contains('email not confirmed')) {
+      return 'Email belum dikonfirmasi. Periksa kotak masuk kamu.';
+    }
+    if (msg.contains('user already registered') ||
+        msg.contains('already registered')) {
+      return 'Email sudah terdaftar. Silakan login.';
+    }
+    if (msg.contains('password should be at least')) {
+      return 'Password minimal 6 karakter.';
+    }
+    return raw;
   }
 }

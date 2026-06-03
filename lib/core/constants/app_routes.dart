@@ -1,5 +1,9 @@
-// lib/core/constants/app_routes.dart
+// Pusat definisi nama route dan logika navigasi aplikasi.
+// Tambahkan route baru di sini — jangan buat navigasi ad-hoc di widget.
+
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../features/ai/presentation/pages/ai_page.dart';
 import '../../features/auth/presentation/pages/auth_page.dart';
 import '../../features/home/presentation/pages/main_page.dart';
@@ -13,6 +17,7 @@ import '../../features/notification/presentation/pages/notification_page.dart';
 import '../../features/activity/presentation/pages/activity_page.dart';
 import '../../features/event/presentation/pages/event_page.dart';
 import '../../features/chat/presentation/pages/chat_list_page.dart';
+import '../../features/chat/presentation/pages/chat_room_page.dart';
 import '../../features/social/presentation/pages/social_page.dart';
 import '../../features/tools/presentation/pages/tools_page.dart';
 import '../../features/tools/presentation/pages/currency_converter_page.dart';
@@ -23,91 +28,164 @@ import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 
 class AppRoutes {
-  static const String splash = '/';
-  static const String auth = '/auth';
-  static const String home = '/home';
-  static const String schedule = '/schedule';
-  static const String addSchedule = '/add-schedule';
-  static const String editSchedule = '/edit-schedule';
-  static const String task = '/task';
-  static const String addTask = '/add-task';
-  static const String editTask = '/edit-task';
-  static const String study = '/study';
-  static const String calendar = '/calendar';
-  static const String notification = '/notification';
-  static const String activity = '/activity';
-  static const String activityDetail = '/activity-detail';
-  static const String event = '/event';
-  static const String eventDetail = '/event-detail';
-  static const String chatList = '/chat-list';
-  static const String chatRoom = '/chat-room';
-  static const String social = '/social';
-  static const String aiChat = '/ai-chat';
-  static const String tools = '/tools';
-  static const String scanner = '/scanner';
-  static const String ocr = '/ocr';
+  // Konstruktor privat — kelas ini hanya berisi konstanta & factory method
+  AppRoutes._();
+
+  // ─── Nama-nama route ──────────────────────────────────────────────────────
+
+  static const String splash            = '/';
+  static const String auth              = '/auth';
+  static const String home              = '/home';
+
+  static const String schedule          = '/schedule';
+  static const String addSchedule       = '/add-schedule';
+  static const String editSchedule      = '/edit-schedule';   // args: Schedule
+
+  static const String task              = '/task';
+  static const String addTask           = '/add-task';
+  static const String editTask          = '/edit-task';       // args: Task
+
+  static const String study             = '/study';
+  static const String calendar          = '/calendar';
+  static const String notification      = '/notification';
+
+  static const String activity          = '/activity';
+  static const String activityDetail    = '/activity-detail'; // args: Activity
+
+  static const String event             = '/event';
+  static const String eventDetail       = '/event-detail';    // args: Event
+
+  // chatRoom membutuhkan args: {userId, otherUserId, otherUserName}
+  static const String chatList          = '/chat-list';
+  static const String chatRoom          = '/chat-room';
+
+  static const String social            = '/social';
+  static const String aiChat            = '/ai-chat';
+
+  static const String tools             = '/tools';
+  static const String scanner           = '/scanner';         // TODO: belum diimplementasi
+  static const String ocr               = '/ocr';             // TODO: belum diimplementasi
   static const String currencyConverter = '/currency-converter';
   static const String timezoneConverter = '/timezone-converter';
-  static const String unitConverter = '/unit-converter';
-  static const String memoryGame = '/memory-game';
-  static const String profile = '/profile';
-  static const String editProfile = '/edit-profile';
-  static const String achievement = '/achievement';
-  static const String settingsprofile = '/settings';
-  static const String security = '/security';
+  static const String unitConverter     = '/unit-converter';
+  static const String memoryGame        = '/memory-game';     // TODO: belum diimplementasi
 
+  static const String profile           = '/profile';
+  static const String editProfile       = '/edit-profile';    // TODO: belum diimplementasi
+  static const String achievement       = '/achievement';     // TODO: belum diimplementasi
+  static const String settingsprofile   = '/settings';
+  static const String security          = '/security';        // TODO: belum diimplementasi
+
+  // ─── Factory route ────────────────────────────────────────────────────────
+
+  /// Dipanggil oleh [MaterialApp.onGenerateRoute].
+  /// Semua navigasi harus melalui [Navigator.pushNamed] dengan nama di atas.
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
+
+      // ── Splash & Auth ──────────────────────────────────────────────────────
       case splash:
-        return MaterialPageRoute(builder: (_) => const SplashPage());
+        return _route(const SplashPage());
       case auth:
-        return MaterialPageRoute(builder: (_) => const AuthPage());
+        return _route(const AuthPage());
+
+      // ── Home ───────────────────────────────────────────────────────────────
       case home:
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+        return _route(const HomeScreen());
+
+      // ── Schedule ───────────────────────────────────────────────────────────
       case schedule:
-        return MaterialPageRoute(builder: (_) => const SchedulePage());
+        return _route(const SchedulePage());
       case addSchedule:
-        return MaterialPageRoute(builder: (_) => const AddSchedulePage());
+        return _route(const AddSchedulePage());
+      // case editSchedule:
+      //   final s = settings.arguments as Schedule;
+      //   return _route(AddSchedulePage(existingSchedule: s));
+
+      // ── Task ───────────────────────────────────────────────────────────────
       case task:
-        return MaterialPageRoute(builder: (_) => const TaskPage());
+        return _route(const TaskPage());
       case addTask:
-        return MaterialPageRoute(builder: (_) => const AddTaskPage());
+        return _route(const AddTaskPage());
+      // case editTask:
+      //   final t = settings.arguments as Task;
+      //   return _route(AddTaskPage(task: t));
+
+      // ── Study ──────────────────────────────────────────────────────────────
       case study:
-        return MaterialPageRoute(builder: (_) => const StudyPage());
+        return _route(const StudyPage());
+
+      // ── Calendar ───────────────────────────────────────────────────────────
       case calendar:
-        return MaterialPageRoute(builder: (_) => const CalendarPage());
+        return _route(const CalendarPage());
+
+      // ── Notification ───────────────────────────────────────────────────────
       case notification:
-        return MaterialPageRoute(builder: (_) => const NotificationPage());
-      case activity:
-        return MaterialPageRoute(builder: (_) => const ActivityPage());
-      case event:
-        return MaterialPageRoute(builder: (_) => const EventPage());
+        return _route(const NotificationPage());
+
+      // ── Chat ───────────────────────────────────────────────────────────────
+      // currentUserId diambil dari sesi Supabase yang sedang aktif
       case chatList:
-        return MaterialPageRoute(builder: (_) => const ChatListPage(currentUserId: '1'));
-      case social:
-        return MaterialPageRoute(builder: (_) => const SocialPage());
+        return _route(
+          ChatListPage(
+            currentUserId: Supabase.instance.client.auth.currentUser!.id,
+          ),
+        );
+      // args wajib: {userId, otherUserId, otherUserName}
+      case chatRoom:
+        final args = settings.arguments as Map<String, dynamic>;
+        return _route(
+          ChatRoomPage(
+            userId: args['userId'].toString(),
+            otherUserId: args['otherUserId'].toString(),
+            otherUserName: args['otherUserName']?.toString() ?? 'User',
+          ),
+        );
+
+      // ── Activity & Event ───────────────────────────────────────────────────
+      case activity:
+        return _route(const ActivityPage());
+      case event:
+        return _route(const EventPage());
+
+      // ── AI ─────────────────────────────────────────────────────────────────
       case aiChat:
-        return MaterialPageRoute(builder: (_) => const AiPage());
+        return _route(const AiPage());
+
+      // ── Social ─────────────────────────────────────────────────────────────
+      case social:
+        return _route(const SocialPage());
+
+      // ── Tools ──────────────────────────────────────────────────────────────
       case tools:
-        return MaterialPageRoute(builder: (_) => const ToolsPage());
+        return _route(const ToolsPage());
       case currencyConverter:
-        return MaterialPageRoute(builder: (_) => const CurrencyConverterPage());
+        return _route(const CurrencyConverterPage());
       case timezoneConverter:
-        return MaterialPageRoute(builder: (_) => const TimezoneConverterPage());
+        return _route(const TimezoneConverterPage());
       case unitConverter:
-        return MaterialPageRoute(builder: (_) => const UnitConverterPage());
+        return _route(const UnitConverterPage());
+
+      // ── Profile & Settings ─────────────────────────────────────────────────
       case profile:
-        return MaterialPageRoute(builder: (_) => const ProfilePage());
+        return _route(const ProfilePage());
       // case editProfile:
-      //   return MaterialPageRoute(builder: (_) => const EditProfilePage());
+      //   return _route(const EditProfilePage());
       // case achievement:
-      //   return MaterialPageRoute(builder: (_) => const AchievementPage());
+      //   return _route(const AchievementPage());
       case settingsprofile:
-        return MaterialPageRoute(builder: (_) => const SettingsPage());
+        return _route(const SettingsPage());
       // case security:
-      //   return MaterialPageRoute(builder: (_) => const SecurityPage());
+      //   return _route(const SecurityPage());
+
+      // Fallback jika route tidak dikenal → kembali ke auth
       default:
-        return MaterialPageRoute(builder: (_) => const AuthPage());
+        return _route(const AuthPage());
     }
+  }
+
+  /// Helper agar penulisan MaterialPageRoute tidak berulang-ulang
+  static MaterialPageRoute<dynamic> _route(Widget page) {
+    return MaterialPageRoute(builder: (_) => page);
   }
 }

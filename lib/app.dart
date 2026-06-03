@@ -1,7 +1,13 @@
+// Root widget aplikasi Ploopy.
+// Bertanggung jawab atas:
+//   - Inisialisasi timezone & system UI
+//   - Penyediaan semua BLoC global via MultiBlocProvider
+//   - Konfigurasi tema Material 3
+//   - Pendelegasian routing ke AppRoutes.generateRoute
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
 import 'core/constants/app_constants.dart' hide AppColors;
@@ -9,47 +15,26 @@ import 'core/constants/app_routes.dart';
 import 'core/di/injection_container.dart';
 import 'core/services/navigation_service.dart';
 import 'core/theme/app_colors.dart';
-import 'features/ai/presentation/pages/ai_page.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
-import 'features/auth/presentation/pages/auth_page.dart';
 import 'features/home/presentation/bloc/home_bloc.dart';
-import 'features/home/presentation/pages/main_page.dart';
 import 'features/schedule/presentation/bloc/schedule_bloc.dart';
-import 'features/schedule/presentation/pages/schedule_page.dart';
 import 'features/task/presentation/bloc/task_bloc.dart';
 import 'features/study/presentation/bloc/study_bloc.dart';
-import 'features/study/presentation/pages/study_page.dart';
-import 'features/calendar/presentation/pages/calendar_page.dart';
 import 'features/notification/presentation/bloc/notification_bloc.dart';
-import 'features/notification/presentation/pages/notification_page.dart';
 import 'features/chat/presentation/bloc/chat_bloc.dart';
-import 'features/chat/presentation/pages/chat_list_page.dart';
-import 'features/chat/presentation/pages/chat_room_page.dart';
 import 'features/activity/presentation/bloc/activity_bloc.dart';
-import 'features/activity/presentation/pages/activity_page.dart';
 import 'features/event/presentation/bloc/event_bloc.dart';
-import 'features/event/presentation/pages/event_page.dart';
-import 'features/social/presentation/pages/social_page.dart';
-import 'features/task/presentation/pages/add_task_page.dart';
-import 'features/task/presentation/pages/task_page.dart';
-import 'features/tools/presentation/pages/tools_page.dart';
-import 'features/tools/presentation/pages/currency_converter_page.dart';
-import 'features/tools/presentation/pages/timezone_converter_page.dart';
-import 'features/tools/presentation/pages/unit_converter_page.dart';
 import 'features/profile/presentation/bloc/profile_bloc.dart';
-import 'features/profile/presentation/pages/profile_page.dart';
-import 'features/settings/presentation/pages/settings_page.dart';
-import 'features/splash/presentation/pages/splash_page.dart';
 
 class PloopyApp extends StatelessWidget {
   const PloopyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Initialize timezone
+    // Inisialisasi data timezone (diperlukan untuk fitur jadwal & kalender)
     tz.initializeTimeZones();
 
-    // Set system UI overlay style
+    // Atur tampilan status bar & navigation bar agar transparan/terang
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -60,22 +45,35 @@ class PloopyApp extends StatelessWidget {
     );
 
     return MultiBlocProvider(
+      // Semua BLoC didaftarkan di level root agar bisa diakses di mana saja
       providers: [
-        BlocProvider<AuthBloc>(create: (_) => DependencyInjection.authBloc),
-        BlocProvider<HomeBloc>(create: (_) => DependencyInjection.homeBloc),
+        BlocProvider<AuthBloc>(
+          create: (_) => DependencyInjection.authBloc,
+        ),
+        BlocProvider<HomeBloc>(
+          create: (_) => DependencyInjection.homeBloc,
+        ),
         BlocProvider<ScheduleBloc>(
           create: (_) => DependencyInjection.scheduleBloc,
         ),
-        BlocProvider<TaskBloc>(create: (_) => DependencyInjection.taskBloc),
-        BlocProvider<StudyBloc>(create: (_) => DependencyInjection.studyBloc),
+        BlocProvider<TaskBloc>(
+          create: (_) => DependencyInjection.taskBloc,
+        ),
+        BlocProvider<StudyBloc>(
+          create: (_) => DependencyInjection.studyBloc,
+        ),
         BlocProvider<NotificationBloc>(
           create: (_) => DependencyInjection.notificationBloc,
         ),
-        BlocProvider<ChatBloc>(create: (_) => DependencyInjection.chatBloc),
+        BlocProvider<ChatBloc>(
+          create: (_) => DependencyInjection.chatBloc,
+        ),
         BlocProvider<ActivityBloc>(
           create: (_) => DependencyInjection.activityBloc,
         ),
-        BlocProvider<EventBloc>(create: (_) => DependencyInjection.eventBloc),
+        BlocProvider<EventBloc>(
+          create: (_) => DependencyInjection.eventBloc,
+        ),
         BlocProvider<ProfileBloc>(
           create: (_) => DependencyInjection.profileBloc,
         ),
@@ -83,188 +81,99 @@ class PloopyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Ploopy',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppColors.white,
-            brightness: Brightness.light,
-          ),
-          scaffoldBackgroundColor: AppColors.white,
-          appBarTheme: const AppBarTheme(
-            backgroundColor: AppColors.white,
-            elevation: 0,
-            centerTitle: true,
-            iconTheme: IconThemeData(color: AppColors.black),
-            titleTextStyle: TextStyle(
-              color: AppColors.black,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppStyle.borderRadius),
-              ),
-            ),
-          ),
-          textButtonTheme: TextButtonThemeData(
-            style: TextButton.styleFrom(foregroundColor: AppColors.primary),
-          ),
-          inputDecorationTheme: InputDecorationTheme(
-            filled: true,
-            fillColor: AppColors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppStyle.borderRadius),
-              borderSide: BorderSide(color: AppColors.greyBorder),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppStyle.borderRadius),
-              borderSide: BorderSide(color: AppColors.greyBorder),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppStyle.borderRadius),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppStyle.borderRadius),
-              borderSide: const BorderSide(color: AppColors.error),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
-          ),
-          cardTheme: CardThemeData(
-            color: AppColors.white,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppStyle.borderRadius),
-              side: BorderSide(color: AppColors.greyBorder),
-            ),
-          ),
-          snackBarTheme: SnackBarThemeData(
-            backgroundColor: AppColors.white,
-            contentTextStyle: const TextStyle(color: AppColors.black),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            behavior: SnackBarBehavior.floating,
-          ),
-        ),
+        theme: _buildTheme(),
         navigatorKey: NavigationService.navigatorKey,
         initialRoute: AppRoutes.splash,
-        onGenerateRoute: _generateRoute,
+        // Semua definisi route dipusatkan di AppRoutes agar tidak tersebar
+        onGenerateRoute: AppRoutes.generateRoute,
       ),
     );
   }
 
-  Route<dynamic>? _generateRoute(RouteSettings settings) {
-    switch (settings.name) {
-      // Splash
-      case AppRoutes.splash:
-        return MaterialPageRoute(builder: (_) => const SplashPage());
+  /// Konfigurasi tema global aplikasi (Material 3).
+  /// Ubah di sini jika ingin mengganti warna, bentuk, atau tipografi secara global.
+  ThemeData _buildTheme() {
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: AppColors.white,
+        brightness: Brightness.light,
+      ),
+      scaffoldBackgroundColor: AppColors.white,
 
-      // Auth
-      case AppRoutes.auth:
-        return MaterialPageRoute(builder: (_) => const AuthPage());
+      // AppBar: putih, tanpa elevasi, judul di tengah
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColors.white,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: IconThemeData(color: AppColors.black),
+        titleTextStyle: TextStyle(
+          color: AppColors.black,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
 
-      // Main
-      case AppRoutes.home:
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+      // ElevatedButton: warna primary, sudut membulat sesuai AppStyle
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppStyle.borderRadius),
+          ),
+        ),
+      ),
 
-      // Schedule
-      case AppRoutes.schedule:
-        return MaterialPageRoute(builder: (_) => const SchedulePage());
-      // case AppRoutes.addSchedule:
-      //   return MaterialPageRoute(builder: (_) => const AddSchedulePage(existingSchedule: null,));
-      // case AppRoutes.editSchedule:
-      //   final schedule = settings.arguments;
-      //   return MaterialPageRoute(
-      //     builder: (_) => AddSchedulePage(schedule: schedule),
-      //   );
+      // TextButton: warna primary
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+      ),
 
-      // Task
-      case AppRoutes.task:
-        return MaterialPageRoute(builder: (_) => const TaskPage());
-      case AppRoutes.addTask:
-        return MaterialPageRoute(builder: (_) => const AddTaskPage());
-      // case AppRoutes.editTask:
-      //   final task = settings.arguments;
-      //   return MaterialPageRoute(
-      //     builder: (_) => AddTaskPage(task: task),
-      //   );
+      // Input field: fill putih, border abu, fokus primary
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppStyle.borderRadius),
+          borderSide: BorderSide(color: AppColors.greyBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppStyle.borderRadius),
+          borderSide: BorderSide(color: AppColors.greyBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppStyle.borderRadius),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppStyle.borderRadius),
+          borderSide: const BorderSide(color: AppColors.error),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+      ),
 
-      // Study
-      case AppRoutes.study:
-        return MaterialPageRoute(builder: (_) => const StudyPage());
+      // Card: putih, tanpa bayangan, hanya border tipis
+      cardTheme: CardThemeData(
+        color: AppColors.white,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppStyle.borderRadius),
+          side: BorderSide(color: AppColors.greyBorder),
+        ),
+      ),
 
-      // Calendar
-      case AppRoutes.calendar:
-        return MaterialPageRoute(builder: (_) => const CalendarPage());
-
-      // Notification
-      case AppRoutes.notification:
-        return MaterialPageRoute(builder: (_) => const NotificationPage());
-
-      // Chat
-      case AppRoutes.chatList:
-        return MaterialPageRoute(
-          builder:
-              (_) => ChatListPage(
-                currentUserId: Supabase.instance.client.auth.currentUser!.id,
-              ),
-        );
-      case AppRoutes.chatRoom:
-        final args = settings.arguments as Map<String, dynamic>;
-        return MaterialPageRoute(
-          builder:
-              (_) => ChatRoomPage(
-                userId: args['userId'].toString(),
-                otherUserId: args['otherUserId'].toString(),
-                otherUserName: args['otherUserName']?.toString() ?? 'User',
-              ),
-        );
-
-      // Activity
-      case AppRoutes.activity:
-        return MaterialPageRoute(builder: (_) => const ActivityPage());
-
-      // Event
-      case AppRoutes.event:
-        return MaterialPageRoute(builder: (_) => const EventPage());
-
-      // AI
-      case AppRoutes.aiChat:
-        return MaterialPageRoute(builder: (_) => const AiPage());
-
-      // Social
-      case AppRoutes.social:
-        return MaterialPageRoute(builder: (_) => const SocialPage());
-
-      // Tools
-      case AppRoutes.tools:
-        return MaterialPageRoute(builder: (_) => const ToolsPage());
-      case AppRoutes.currencyConverter:
-        return MaterialPageRoute(builder: (_) => const CurrencyConverterPage());
-      case AppRoutes.timezoneConverter:
-        return MaterialPageRoute(builder: (_) => const TimezoneConverterPage());
-      case AppRoutes.unitConverter:
-        return MaterialPageRoute(builder: (_) => const UnitConverterPage());
-
-      // Profile
-      case AppRoutes.profile:
-        return MaterialPageRoute(builder: (_) => const ProfilePage());
-
-      // Settings
-      case AppRoutes.settingsprofile:
-        return MaterialPageRoute(builder: (_) => const SettingsPage());
-
-      default:
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
-    }
+      // SnackBar: floating, sudut membulat
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: AppColors.white,
+        contentTextStyle: const TextStyle(color: AppColors.black),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 }
