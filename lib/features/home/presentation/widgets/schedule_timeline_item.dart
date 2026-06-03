@@ -67,7 +67,9 @@ class _ScheduleTimelineItemState extends State<ScheduleTimelineItem> {
             child: Center(
               child: Container(
                 width: 1.5,
-                color: widget.isLast ? Colors.transparent : Colors.grey.shade200,
+                color: widget.isLast
+                    ? Colors.transparent
+                    : AppColors.greyBorder,
               ),
             ),
           ),
@@ -87,10 +89,10 @@ class _ScheduleTimelineItemState extends State<ScheduleTimelineItem> {
             width: 20,
             height: 20,
             decoration: BoxDecoration(
-              color: _isDone ? AppColors.primary : Colors.white,
+              color: _isDone ? AppColors.primary : AppColors.white,
               shape: BoxShape.circle,
               border: Border.all(
-                color: _isDone ? AppColors.primary : Colors.grey.shade300,
+                color: _isDone ? AppColors.primary : AppColors.primaryBorder,
                 width: 1.5,
               ),
             ),
@@ -113,12 +115,9 @@ class _ScheduleTimelineItemState extends State<ScheduleTimelineItem> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: _isDone ? Colors.grey.shade50 : Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: _isDone ? Colors.grey.shade200 : Colors.grey.shade100,
-            width: 1,
-          ),
+          color: _isDone ? AppColors.primaryLighter : AppColors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.greyBorder, width: 1),
         ),
         child: Row(
           children: [
@@ -139,10 +138,8 @@ class _ScheduleTimelineItemState extends State<ScheduleTimelineItem> {
       width: 38,
       height: 38,
       decoration: BoxDecoration(
-        color: _isDone
-            ? Colors.grey.shade200
-            : color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(10),
+        color: _isDone ? AppColors.greyBorder : color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Icon(
         widget.item['icon'] as IconData,
@@ -161,8 +158,10 @@ class _ScheduleTimelineItemState extends State<ScheduleTimelineItem> {
           style: GoogleFonts.poppins(
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: _isDone ? Colors.grey.shade400 : Colors.black87,
-            decoration: _isDone ? TextDecoration.lineThrough : TextDecoration.none,
+            color: _isDone ? AppColors.textMuted : AppColors.textMain,
+            decoration: _isDone
+                ? TextDecoration.lineThrough
+                : TextDecoration.none,
             decorationColor: Colors.grey.shade400,
           ),
           child: Text(widget.item['title']),
@@ -186,10 +185,7 @@ class _ScheduleTimelineItemState extends State<ScheduleTimelineItem> {
         const SizedBox(width: 3),
         Text(
           widget.item['duration'],
-          style: GoogleFonts.poppins(
-            fontSize: 11,
-            color: Colors.grey.shade400,
-          ),
+          style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade400),
         ),
       ],
     );

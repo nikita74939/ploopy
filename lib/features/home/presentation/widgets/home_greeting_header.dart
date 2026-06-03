@@ -30,7 +30,7 @@ class HomeGreetingHeader extends StatelessWidget {
                 style: GoogleFonts.poppins(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
-                  color: Colors.black87,
+                  color: AppColors.textMain,
                 ),
               ),
               const SizedBox(height: 2),
@@ -38,7 +38,7 @@ class HomeGreetingHeader extends StatelessWidget {
                 DateHelper.formatFullDate(now),
                 style: GoogleFonts.poppins(
                   fontSize: 12,
-                  color: Colors.grey.shade500,
+                  color: AppColors.textSecondary,
                 ),
               ),
             ],
@@ -51,7 +51,7 @@ class HomeGreetingHeader extends StatelessWidget {
             IconButton(
               icon: Icon(
                 Icons.notifications_outlined,
-                color: Colors.grey.shade700,
+                color: AppColors.textMain,
                 size: 22,
               ),
               onPressed: onNotifTap,
@@ -63,11 +63,13 @@ class HomeGreetingHeader extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade500,
+                    color: AppColors.error,
                     shape: BoxShape.circle,
                   ),
-                  constraints:
-                      const BoxConstraints(minWidth: 16, minHeight: 16),
+                  constraints: const BoxConstraints(
+                    minWidth: 16,
+                    minHeight: 16,
+                  ),
                   child: Text(
                     unreadNotifCount > 9 ? '9+' : '$unreadNotifCount',
                     style: GoogleFonts.poppins(

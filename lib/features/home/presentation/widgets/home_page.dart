@@ -299,19 +299,19 @@ class _ErrorCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.greyBorder),
       ),
       child: Column(
         children: [
-          Icon(Icons.wifi_off_rounded, size: 32, color: Colors.grey.shade300),
+          Icon(Icons.wifi_off_rounded, size: 32, color: AppColors.textMuted),
           const SizedBox(height: 8),
           Text(
             'Gagal memuat data',
             style: TextStyle(
               fontSize: 13,
-              color: Colors.grey.shade500,
+              color: AppColors.textSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -321,7 +321,7 @@ class _ErrorCard extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.black87,
+                color: AppColors.primary,
                 borderRadius: BorderRadius.circular(50),
               ),
               child: const Text(

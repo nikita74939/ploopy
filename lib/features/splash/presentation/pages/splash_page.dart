@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/constants/app_routes.dart';
-import '../../../../core/constants/app_constants.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/ploopy_mascot.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -23,48 +26,103 @@ class _SplashPageState extends State<SplashPage> {
     }
   }
 
+  void _goToAuth() {
+    Navigator.pushReplacementNamed(context, AppRoutes.auth);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: AppColors.border, width: 3),
-                boxShadow: const [
-                  BoxShadow(color: AppColors.border, offset: Offset(5, 5)),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 36),
+          child: Column(
+            children: [
+              const Spacer(),
+              Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  const PloopyMascot(size: 210),
+                  Positioned(
+                    left: -12,
+                    top: 20,
+                    child: _Sparkle(size: 18, color: AppColors.primary),
+                  ),
+                  Positioned(
+                    right: 6,
+                    top: -8,
+                    child: _Sparkle(size: 14, color: AppColors.warning),
+                  ),
+                  Positioned(
+                    right: -14,
+                    bottom: 44,
+                    child: _Sparkle(size: 18, color: AppColors.primaryBorder),
+                  ),
                 ],
               ),
-              child: const Icon(
-                Icons.school,
-                size: 60,
-                color: AppColors.primary,
+              const SizedBox(height: 20),
+              Text(
+                'ploopy',
+                style: AppTextStyles.display.copyWith(
+                  fontSize: 46,
+                  height: 0.95,
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0,
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'PLOOPY',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textMain,
+              const SizedBox(height: 10),
+              Text(
+                'Your study buddy, every day!',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.textMain,
+                  height: 1.45,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Your Study Companion',
-              style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
-            ),
-          ],
+              const Spacer(),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _goToAuth,
+                  child: const Text('Login'),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: OutlinedButton(
+                  onPressed: _goToAuth,
+                  child: const Text('Register'),
+                ),
+              ),
+              const SizedBox(height: 28),
+              Text(
+                'Study better, together',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+}
+
+class _Sparkle extends StatelessWidget {
+  final double size;
+  final Color color;
+
+  const _Sparkle({required this.size, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(Icons.auto_awesome_rounded, size: size, color: color);
   }
 }

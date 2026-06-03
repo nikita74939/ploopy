@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/tools_data.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../memory_game/presentation/pages/memory_game_page.dart';
 import '../../../ocr/presentation/pages/ocr_home_page.dart';
 import '../../../scanner/presentation/pages/scanner_home_page.dart';
@@ -16,7 +17,7 @@ class ToolsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -35,7 +36,7 @@ class ToolsPage extends StatelessWidget {
                           onToolTap: (tool) => _handleToolTap(context, tool),
                         ),
                       );
-                    }).toList(),
+                    }),
                   ],
                 ),
               ),
@@ -50,9 +51,9 @@ class ToolsPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.background,
         border: Border(
-          bottom: BorderSide(color: Colors.grey.shade100, width: 1),
+          bottom: BorderSide(color: AppColors.greyBorder, width: 1),
         ),
       ),
       child: Row(
@@ -65,14 +66,14 @@ class ToolsPage extends StatelessWidget {
                 style: GoogleFonts.poppins(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
-                  color: Colors.black87,
+                  color: AppColors.textMain,
                 ),
               ),
               Text(
                 'Alat bantu buat produktivitasmu',
                 style: GoogleFonts.poppins(
                   fontSize: 11,
-                  color: Colors.grey.shade500,
+                  color: AppColors.textSecondary,
                 ),
               ),
             ],
@@ -82,13 +83,13 @@ class ToolsPage extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: AppColors.primaryLighter,
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.search_rounded,
               size: 18,
-              color: Colors.grey.shade700,
+              color: AppColors.primary,
             ),
           ),
         ],
@@ -167,7 +168,7 @@ class ToolsPage extends StatelessWidget {
             ),
           ],
         ),
-        backgroundColor: Colors.black87,
+        backgroundColor: AppColors.textMain,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),

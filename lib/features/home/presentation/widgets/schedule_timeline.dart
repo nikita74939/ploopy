@@ -38,13 +38,10 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
       parent: _animController!,
       curve: Curves.easeOutCubic,
     );
-    _slideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.06),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animController!,
-      curve: Curves.easeOutCubic,
-    ));
+    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _animController!, curve: Curves.easeOutCubic),
+        );
     _animController!.forward();
   }
 
@@ -80,19 +77,19 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
             child: items.isEmpty
                 ? _buildEmpty()
                 : _showSchedule
-                    ? Column(
-                        children: List.generate(items.length, (i) {
-                          return ScheduleTimelineItem(
-                            item: items[i],
-                            isLast: i == items.length - 1,
-                          );
-                        }),
-                      )
-                    : Column(
-                        children: items
-                            .map((task) => _buildTaskItem(task))
-                            .toList(),
-                      ),
+                ? Column(
+                    children: List.generate(items.length, (i) {
+                      return ScheduleTimelineItem(
+                        item: items[i],
+                        isLast: i == items.length - 1,
+                      );
+                    }),
+                  )
+                : Column(
+                    children: items
+                        .map((task) => _buildTaskItem(task))
+                        .toList(),
+                  ),
           ),
         ),
         const SizedBox(height: 4),
@@ -117,7 +114,7 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
                 style: GoogleFonts.poppins(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: Colors.black87,
+                  color: AppColors.textMain,
                 ),
               ),
             ),
@@ -136,9 +133,9 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.grey.shade100),
+          border: Border.all(color: AppColors.greyBorder),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -169,9 +166,9 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
       height: 36,
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: AppColors.primaryLighter,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200, width: 1),
+        border: Border.all(color: AppColors.greyBorder, width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -208,12 +205,12 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
         width: 72,
         padding: const EdgeInsets.symmetric(vertical: 5),
         decoration: BoxDecoration(
-          color: active ? Colors.white : Colors.transparent,
+          color: active ? AppColors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(9),
           boxShadow: active
               ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.10),
+                    color: AppColors.shadow,
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -226,7 +223,7 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
             Icon(
               icon,
               size: 13,
-              color: active ? Colors.black87 : Colors.grey.shade400,
+              color: active ? AppColors.primary : AppColors.textMuted,
             ),
             const SizedBox(width: 5),
             Text(
@@ -234,7 +231,7 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-                color: active ? Colors.black87 : Colors.grey.shade400,
+                color: active ? AppColors.primary : AppColors.textMuted,
               ),
             ),
           ],
@@ -249,9 +246,9 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 36),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: AppColors.greyBorder),
       ),
       child: Column(
         children: [
@@ -266,7 +263,7 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
                 : 'Semua tugas selesai!',
             style: GoogleFonts.poppins(
               fontSize: 13,
-              color: Colors.grey.shade400,
+              color: AppColors.textMuted,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -308,16 +305,14 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
         decoration: BoxDecoration(
-          color: done ? Colors.grey.shade50 : Colors.white,
+          color: done ? AppColors.primaryLighter : AppColors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: done ? Colors.grey.shade200 : Colors.grey.shade100,
-          ),
+          border: Border.all(color: AppColors.greyBorder),
           boxShadow: done
               ? []
               : [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: AppColors.shadow,
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -332,7 +327,7 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
               decoration: BoxDecoration(
                 color: done
                     ? Colors.grey.shade200
-                    : itemColor.withOpacity(0.12),
+                    : itemColor.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(11),
               ),
               child: Icon(
@@ -402,8 +397,11 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
                 ),
               ),
               child: done
-                  ? const Icon(Icons.check_rounded,
-                      color: Colors.white, size: 14)
+                  ? const Icon(
+                      Icons.check_rounded,
+                      color: Colors.white,
+                      size: 14,
+                    )
                   : null,
             ),
           ],

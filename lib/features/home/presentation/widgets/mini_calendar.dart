@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/date_helper.dart';
 
 class MiniCalendar extends StatelessWidget {
@@ -20,114 +21,121 @@ class MiniCalendar extends StatelessWidget {
     final weekDates = DateHelper.getCurrentWeekDates();
     final now = DateTime.now();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Month + calendar button header
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              DateHelper.formatMonthYear(now), // e.g. "April 2025"
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.greyBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                DateHelper.formatMonthYear(now),
+                style: AppTextStyles.title.copyWith(fontSize: 13),
               ),
-            ),
-            GestureDetector(
-              onTap: () {
-                if (onOpenCalendar != null) {
-                  onOpenCalendar!();
-                } else {
-                  _showComingSoon(context);
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.black87,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.calendar_month_rounded,
-                      size: 14,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      'Kalender',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
+              GestureDetector(
+                onTap: () {
+                  if (onOpenCalendar != null) {
+                    onOpenCalendar!();
+                  } else {
+                    _showComingSoon(context);
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.calendar_month_rounded,
+                        size: 14,
                         color: Colors.white,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 5),
+                      Text(
+                        'Calendar',
+                        style: AppTextStyles.buttonPrimary.copyWith(
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        // Week day row
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: List.generate(7, (i) {
-            final d = weekDates[i];
-            final isSelected = d.day == selectedDay;
-            return _buildDayItem(
-              label: DateHelper.dayNames[i],
-              day: d.day,
-              isSelected: isSelected,
-              onTap: () => onDaySelected(d.day),
-            );
-          }),
-        ),
-      ],
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(7, (i) {
+              final d = weekDates[i];
+              final isSelected = d.day == selectedDay;
+              return _DayItem(
+                label: DateHelper.dayNames[i],
+                day: d.day,
+                isSelected: isSelected,
+                onTap: () => onDaySelected(d.day),
+              );
+            }),
+          ),
+        ],
+      ),
     );
   }
 
   void _showComingSoon(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.calendar_month_rounded, color: Colors.white, size: 16),
-            const SizedBox(width: 8),
-            Text(
-              'Kalender lengkap segera hadir! 🗓️',
-              style: GoogleFonts.poppins(fontSize: 13),
-            ),
-          ],
+        content: Text(
+          'Kalender lengkap segera hadir!',
+          style: AppTextStyles.body.copyWith(color: AppColors.white),
         ),
-        backgroundColor: Colors.black87,
+        backgroundColor: AppColors.textMain,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         duration: const Duration(seconds: 2),
       ),
     );
   }
+}
 
-  Widget _buildDayItem({
-    required String label,
-    required int day,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
+class _DayItem extends StatelessWidget {
+  final String label;
+  final int day;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _DayItem({
+    required this.label,
+    required this.day,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
         children: [
           Text(
             label,
-            style: GoogleFonts.poppins(
+            style: AppTextStyles.small.copyWith(
               fontSize: 11,
-              color: isSelected ? AppColors.primary : Colors.grey.shade400,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+              color: isSelected ? AppColors.primary : AppColors.textMuted,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
             ),
           ),
           const SizedBox(height: 6),
@@ -136,16 +144,16 @@ class MiniCalendar extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: isSelected ? Colors.black87 : Colors.transparent,
+              color: isSelected ? AppColors.primary : AppColors.primaryLighter,
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
             child: Text(
               '$day',
-              style: GoogleFonts.poppins(
+              style: AppTextStyles.small.copyWith(
                 fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : Colors.black87,
+                fontWeight: FontWeight.w700,
+                color: isSelected ? Colors.white : AppColors.textMain,
               ),
             ),
           ),

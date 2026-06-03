@@ -78,7 +78,7 @@ class _LoginFormState extends State<LoginForm> {
               );
             },
           ),
-          const Spacer(),
+          const SizedBox(height: 22),
           _buildDivider(),
           const SizedBox(height: 12),
           _buildBiometricButton(),
@@ -118,7 +118,7 @@ class _LoginFormState extends State<LoginForm> {
           side: BorderSide(color: AppColors.primary.withValues(alpha: 0.4)),
           backgroundColor: AppColors.primary.withValues(alpha: 0.06),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(18),
           ),
         ),
       ),
@@ -198,23 +198,23 @@ class _AuthTextFieldState extends State<_AuthTextField> {
         filled: true,
         fillColor: AppColors.surface,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(18),
           borderSide: const BorderSide(color: AppColors.greyBorder),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(18),
           borderSide: const BorderSide(color: AppColors.greyBorder),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(18),
           borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(18),
           borderSide: const BorderSide(color: AppColors.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(18),
           borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
       ),
@@ -231,7 +231,7 @@ class _PrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 48,
+      height: 54,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
@@ -240,7 +240,7 @@ class _PrimaryButton extends StatelessWidget {
           foregroundColor: AppColors.onPrimary,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(18),
           ),
         ),
         child: Text(label, style: AppTextStyles.buttonPrimary),

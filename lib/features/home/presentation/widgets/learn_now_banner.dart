@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/ploopy_mascot.dart';
 
 class LearnNowBanner extends StatelessWidget {
   final VoidCallback? onTap;
@@ -14,14 +15,22 @@ class LearnNowBanner extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFF0E0),
-          borderRadius: BorderRadius.circular(20),
+          color: AppColors.creamDeep,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.primaryBorder),
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.shadow,
+              blurRadius: 18,
+              offset: Offset(0, 8),
+            ),
+          ],
         ),
         child: Row(
           children: [
             Expanded(child: _buildContent()),
             const SizedBox(width: 12),
-            _buildIllustration(),
+            const PloopyMascot(size: 86, withBook: false),
           ],
         ),
       ),
@@ -33,55 +42,27 @@ class LearnNowBanner extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Belajar Sekarang',
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: Colors.black87,
-          ),
+          'AI Daily Plan',
+          style: AppTextStyles.title.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 4),
         Text(
-          'Lanjutkan sesimu hari ini!\nBuka meja belajar dan mulai.',
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            color: Colors.grey.shade600,
-            height: 1.4,
-          ),
+          'Ploopy bantu susun jadwal.\nMulai dari tugas terdekat.',
+          style: AppTextStyles.small.copyWith(height: 1.45),
         ),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
           decoration: BoxDecoration(
-            color: Colors.black87,
+            color: AppColors.primary,
             borderRadius: BorderRadius.circular(50),
           ),
           child: Text(
-            'Mulai',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
+            'See Plan',
+            style: AppTextStyles.buttonPrimary.copyWith(fontSize: 12),
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildIllustration() {
-    return Container(
-      width: 70,
-      height: 70,
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFD8A8),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Icon(
-        Icons.menu_book_rounded,
-        size: 38,
-        color: AppColors.primary,
-      ),
     );
   }
 }
