@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../bloc/auth_bloc.dart';
 
 class RegisterForm extends StatefulWidget {
@@ -51,7 +52,7 @@ class _RegisterFormState extends State<RegisterForm> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is Authenticated || state is RegistrationSuccess) {
+        if (state is Authenticated) {
           // AuthPage BlocListener menangani navigasi ke home.
           // Di sini hanya trigger callback untuk UI feedback (snackbar, tab switch).
           widget.onSuccess();
@@ -138,24 +139,12 @@ class _RegisterFormState extends State<RegisterForm> {
   Widget _buildTermsText() {
     return Text.rich(
       TextSpan(
-        style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+        style: AppTextStyles.small,
         children: [
           const TextSpan(text: 'Dengan mendaftar, kamu menyetujui '),
-          TextSpan(
-            text: 'Syarat & Ketentuan',
-            style: TextStyle(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          TextSpan(text: 'Syarat & Ketentuan', style: AppTextStyles.link),
           const TextSpan(text: ' serta '),
-          TextSpan(
-            text: 'Kebijakan Privasi',
-            style: TextStyle(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          TextSpan(text: 'Kebijakan Privasi', style: AppTextStyles.link),
           const TextSpan(text: ' kami.'),
         ],
       ),
@@ -167,20 +156,10 @@ class _RegisterFormState extends State<RegisterForm> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          'Sudah punya akun? ',
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-        ),
+        Text('Sudah punya akun? ', style: AppTextStyles.bodySmall),
         GestureDetector(
           onTap: widget.onSwitchToLogin,
-          child: Text(
-            'Masuk',
-            style: TextStyle(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-            ),
-          ),
+          child: Text('Masuk', style: AppTextStyles.link),
         ),
       ],
     );
@@ -219,13 +198,13 @@ class _AuthTextFieldState extends State<_AuthTextField> {
       controller: widget.controller,
       keyboardType: widget.keyboardType,
       obscureText: widget.obscure ? _obscureText : false,
-      style: const TextStyle(fontSize: 15, color: Color(0xFF1A1A2E)),
+      style: AppTextStyles.body,
       validator: widget.validator,
       decoration: InputDecoration(
         hintText: widget.hint,
-        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 15),
+        hintStyle: AppTextStyles.hint,
         prefixIcon: widget.prefixIcon != null
-            ? Icon(widget.prefixIcon, color: Colors.grey.shade400, size: 20)
+            ? Icon(widget.prefixIcon, color: AppColors.greyHint, size: 20)
             : null,
         suffixIcon: widget.obscure
             ? GestureDetector(
@@ -234,7 +213,7 @@ class _AuthTextFieldState extends State<_AuthTextField> {
                   _obscureText
                       ? Icons.visibility_off_outlined
                       : Icons.visibility_outlined,
-                  color: Colors.grey.shade400,
+                  color: AppColors.greyHint,
                   size: 20,
                 ),
               )
@@ -244,26 +223,26 @@ class _AuthTextFieldState extends State<_AuthTextField> {
           vertical: 14,
         ),
         filled: true,
-        fillColor: Colors.grey.shade50,
+        fillColor: AppColors.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.grey.shade200),
+          borderSide: const BorderSide(color: AppColors.greyBorder),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.grey.shade200),
+          borderSide: const BorderSide(color: AppColors.greyBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.red.shade400),
+          borderSide: const BorderSide(color: AppColors.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.red.shade400, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
       ),
     );
@@ -284,21 +263,14 @@ class _PrimaryButton extends StatelessWidget {
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
-          foregroundColor: Colors.white,
+          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
+          foregroundColor: AppColors.onPrimary,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
         ),
-        child: Text(
-          label,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
+        child: Text(label, style: AppTextStyles.buttonPrimary),
       ),
     );
   }

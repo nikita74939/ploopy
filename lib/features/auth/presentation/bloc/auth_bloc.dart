@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
-import '../../data/models/user_model.dart';
 
 // ─── Events ───────────────────────────────────────────────────────────────────
 
@@ -37,15 +37,6 @@ class RegisterRequested extends AuthEvent {
   List<Object?> get props => [email, password, name];
 }
 
-class ForgotPasswordRequested extends AuthEvent {
-  final String email;
-
-  ForgotPasswordRequested({required this.email});
-
-  @override
-  List<Object?> get props => [email];
-}
-
 /// Login menggunakan biometrik (user sudah terdaftar sebelumnya)
 class BiometricAuthRequested extends AuthEvent {}
 
@@ -66,7 +57,7 @@ class AuthInitial extends AuthState {}
 class AuthLoading extends AuthState {}
 
 class Authenticated extends AuthState {
-  final UserModel user;
+  final UserEntity user;
 
   Authenticated({required this.user});
 
@@ -85,24 +76,9 @@ class AuthError extends AuthState {
   List<Object?> get props => [message];
 }
 
-class PasswordResetSent extends AuthState {}
-
-class RegistrationSuccess extends AuthState {
-  final UserModel user;
-  final bool requiresEmailConfirmation;
-
-  RegistrationSuccess({
-    required this.user,
-    required this.requiresEmailConfirmation,
-  });
-
-  @override
-  List<Object?> get props => [user, requiresEmailConfirmation];
-}
-
 /// Biometrik berhasil diaktifkan (bukan login — hanya aktivasi)
 class BiometricEnabled extends AuthState {
-  final UserModel user;
+  final UserEntity user;
   BiometricEnabled({required this.user});
 
   @override
@@ -118,7 +94,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<CheckAuthStatus>(_onCheckAuthStatus);
     on<LoginRequested>(_onLoginRequested);
     on<RegisterRequested>(_onRegisterRequested);
-    on<ForgotPasswordRequested>(_onForgotPasswordRequested);
     on<BiometricAuthRequested>(_onBiometricAuthRequested);
     on<EnableBiometricRequested>(_onEnableBiometricRequested);
     on<LogoutRequested>(_onLogoutRequested);
@@ -169,36 +144,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     try {
-      final result = await repository.register(
+      final user = await repository.register(
         event.email,
         event.password,
         event.name,
       );
-      if (result == null) {
+      if (user == null) {
         emit(AuthError(message: 'Registrasi gagal. Coba lagi.'));
-      } else if (result.isAuthenticated) {
-        emit(Authenticated(user: result.user));
       } else {
-        emit(
-          RegistrationSuccess(
-            user: result.user,
-            requiresEmailConfirmation: result.requiresEmailConfirmation,
-          ),
-        );
+        emit(Authenticated(user: user));
       }
-    } catch (e) {
-      emit(AuthError(message: _cleanError(e)));
-    }
-  }
-
-  Future<void> _onForgotPasswordRequested(
-    ForgotPasswordRequested event,
-    Emitter<AuthState> emit,
-  ) async {
-    emit(AuthLoading());
-    try {
-      await repository.forgotPassword(event.email);
-      emit(PasswordResetSent());
     } catch (e) {
       emit(AuthError(message: _cleanError(e)));
     }

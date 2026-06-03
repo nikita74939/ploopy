@@ -9,6 +9,10 @@ abstract class AuthLocalDataSource {
   Future<UserModel?> getUserByEmail(String email);
   Future<void> saveToken(String token);
   Future<String?> getToken();
+  Future<void> saveBiometricToken(String token);
+  Future<String?> getBiometricToken();
+  Future<void> restoreBiometricToken();
+  Future<void> deleteSessionToken();
   Future<void> deleteToken();
   Future<void> clearUser();
   Future<bool> authenticateWithBiometrics();
@@ -27,10 +31,6 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
 
   @override
   Future<UserModel?> getCurrentUser() async {
-    final token = await getToken();
-    if (token == null) return null;
-
-    // Ambil user berdasarkan token yang tersimpan (userId disimpan terpisah)
     final userId = await secureStorage.read(key: 'current_user_id');
     if (userId != null) {
       final user = await isar.userModels.getByUserId(userId);
@@ -78,9 +78,33 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   }
 
   @override
+  Future<void> saveBiometricToken(String token) async {
+    await secureStorage.write(key: 'biometric_auth_token', value: token);
+  }
+
+  @override
+  Future<String?> getBiometricToken() async {
+    return await secureStorage.read(key: 'biometric_auth_token');
+  }
+
+  @override
+  Future<void> restoreBiometricToken() async {
+    final token = await getBiometricToken();
+    if (token != null && token.isNotEmpty) {
+      await saveToken(token);
+    }
+  }
+
+  @override
+  Future<void> deleteSessionToken() async {
+    await secureStorage.delete(key: 'auth_token');
+  }
+
+  @override
   Future<void> deleteToken() async {
     await secureStorage.delete(key: 'auth_token');
     await secureStorage.delete(key: 'current_user_id');
+    await secureStorage.delete(key: 'biometric_auth_token');
   }
 
   @override
@@ -94,7 +118,8 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   @override
   Future<bool> authenticateWithBiometrics() async {
     try {
-      final canAuthenticate = await localAuth.canCheckBiometrics ||
+      final canAuthenticate =
+          await localAuth.canCheckBiometrics ||
           await localAuth.isDeviceSupported();
       if (!canAuthenticate) return false;
 

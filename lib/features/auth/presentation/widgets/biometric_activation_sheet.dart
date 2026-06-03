@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../bloc/auth_bloc.dart';
 
 /// Sheet untuk mengaktifkan biometrik pertama kali.
@@ -13,9 +14,7 @@ import '../bloc/auth_bloc.dart';
 /// 3. Repository verifikasi sidik jari OS → set biometricEnabled = true
 /// 4. State [BiometricEnabled] → tutup sheet & panggil onSuccess
 class BiometricActivationSheet extends StatelessWidget {
-  final VoidCallback onSuccess;
-
-  const BiometricActivationSheet({super.key, required this.onSuccess});
+  const BiometricActivationSheet({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,17 +22,16 @@ class BiometricActivationSheet extends StatelessWidget {
       listener: (context, state) {
         if (state is BiometricEnabled) {
           Navigator.pop(context);
-          onSuccess();
         } else if (state is AuthError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
@@ -44,19 +42,15 @@ class BiometricActivationSheet extends StatelessWidget {
             const SizedBox(height: 20),
             Center(child: _buildIcon()),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'Aktifkan Sidik Jari',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1A1A2E),
-              ),
+              style: AppTextStyles.heading,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 6),
             Text(
               'Gunakan sidik jari perangkat kamu untuk login lebih cepat dan aman.',
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+              style: AppTextStyles.bodySmall,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -68,9 +62,9 @@ class BiometricActivationSheet extends StatelessWidget {
                       : 'Aktifkan Sidik Jari',
                   onPressed: state is AuthLoading
                       ? null
-                      : () => context
-                          .read<AuthBloc>()
-                          .add(EnableBiometricRequested()),
+                      : () => context.read<AuthBloc>().add(
+                          EnableBiometricRequested(),
+                        ),
                 );
               },
             ),
@@ -81,8 +75,7 @@ class BiometricActivationSheet extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
                       state.message,
-                      style:
-                          TextStyle(color: Colors.red.shade600, fontSize: 13),
+                      style: AppTextStyles.error,
                       textAlign: TextAlign.center,
                     ),
                   );
@@ -93,10 +86,7 @@ class BiometricActivationSheet extends StatelessWidget {
             const SizedBox(height: 8),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(
-                'Lewati',
-                style: TextStyle(color: Colors.grey.shade500),
-              ),
+              child: Text('Lewati', style: AppTextStyles.bodySmall),
             ),
           ],
         ),
@@ -109,7 +99,7 @@ class BiometricActivationSheet extends StatelessWidget {
       width: 40,
       height: 4,
       decoration: BoxDecoration(
-        color: Colors.grey.shade300,
+        color: AppColors.greyHandle,
         borderRadius: BorderRadius.circular(2),
       ),
     );
@@ -119,7 +109,7 @@ class BiometricActivationSheet extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.1),
+        color: AppColors.primary.withValues(alpha: 0.1),
         shape: BoxShape.circle,
       ),
       child: Icon(
@@ -145,17 +135,14 @@ class _PrimaryButton extends StatelessWidget {
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
-          foregroundColor: Colors.white,
+          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
+          foregroundColor: AppColors.onPrimary,
           elevation: 0,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
-        child: Text(
-          label,
-          style: const TextStyle(
-              fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
-        ),
+        child: Text(label, style: AppTextStyles.buttonPrimary),
       ),
     );
   }

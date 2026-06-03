@@ -28,7 +28,6 @@ http://10.0.2.2:3000
 - `GET /health`
 - `POST /api/auth/login`
 - `POST /api/auth/register`
-- `POST /api/auth/forgot-password`
 - `GET /api/auth/me`
 - `POST /api/auth/logout`
 - `PATCH /api/users/:id/biometric`

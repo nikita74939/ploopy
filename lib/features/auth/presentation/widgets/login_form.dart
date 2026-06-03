@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../bloc/auth_bloc.dart';
 
 class LoginForm extends StatefulWidget {
   final VoidCallback onNavigate;
   final VoidCallback onBiometricPressed;
-  final VoidCallback onForgotPassword;
   final VoidCallback onSwitchToRegister;
 
   const LoginForm({
     super.key,
     required this.onNavigate,
     required this.onBiometricPressed,
-    required this.onForgotPassword,
     required this.onSwitchToRegister,
   });
 
@@ -36,11 +35,8 @@ class _LoginFormState extends State<LoginForm> {
   void _submit() {
     if (_formKey.currentState!.validate()) {
       context.read<AuthBloc>().add(
-            LoginRequested(
-              email: _emailCtrl.text.trim(),
-              password: _passCtrl.text,
-            ),
-          );
+        LoginRequested(email: _emailCtrl.text.trim(), password: _passCtrl.text),
+      );
     }
   }
 
@@ -73,25 +69,7 @@ class _LoginFormState extends State<LoginForm> {
               return null;
             },
           ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: widget.onForgotPassword,
-              style: TextButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-              ),
-              child: Text(
-                'Lupa password?',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 16),
           BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
               return _PrimaryButton(
@@ -115,15 +93,12 @@ class _LoginFormState extends State<LoginForm> {
   Widget _buildDivider() {
     return Row(
       children: [
-        Expanded(child: Divider(color: Colors.grey.shade300)),
+        const Expanded(child: Divider(color: AppColors.greyHandle)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            'atau',
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-          ),
+          child: Text('atau', style: AppTextStyles.bodySmall),
         ),
-        Expanded(child: Divider(color: Colors.grey.shade300)),
+        const Expanded(child: Divider(color: AppColors.greyHandle)),
       ],
     );
   }
@@ -138,19 +113,13 @@ class _LoginFormState extends State<LoginForm> {
           color: AppColors.primary,
           size: 22,
         ),
-        label: Text(
-          'Gunakan Sidik Jari',
-          style: TextStyle(
-            color: AppColors.primary,
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
-          ),
-        ),
+        label: Text('Gunakan Sidik Jari', style: AppTextStyles.buttonSecondary),
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: AppColors.primary.withOpacity(0.4)),
-          backgroundColor: AppColors.primary.withOpacity(0.06),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          side: BorderSide(color: AppColors.primary.withValues(alpha: 0.4)),
+          backgroundColor: AppColors.primary.withValues(alpha: 0.06),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
       ),
     );
@@ -160,20 +129,10 @@ class _LoginFormState extends State<LoginForm> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          'Belum punya akun? ',
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-        ),
+        Text('Belum punya akun? ', style: AppTextStyles.bodySmall),
         GestureDetector(
           onTap: widget.onSwitchToRegister,
-          child: Text(
-            'Daftar',
-            style: TextStyle(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-            ),
-          ),
+          child: Text('Daftar', style: AppTextStyles.link),
         ),
       ],
     );
@@ -212,50 +171,51 @@ class _AuthTextFieldState extends State<_AuthTextField> {
       controller: widget.controller,
       keyboardType: widget.keyboardType,
       obscureText: widget.obscure ? _obscureText : false,
-      style: const TextStyle(fontSize: 15, color: Color(0xFF1A1A2E)),
+      style: AppTextStyles.body,
       validator: widget.validator,
       decoration: InputDecoration(
         hintText: widget.hint,
-        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 15),
+        hintStyle: AppTextStyles.hint,
         prefixIcon: widget.prefixIcon != null
-            ? Icon(widget.prefixIcon, color: Colors.grey.shade400, size: 20)
+            ? Icon(widget.prefixIcon, color: AppColors.greyHint, size: 20)
             : null,
         suffixIcon: widget.obscure
             ? GestureDetector(
-                onTap: () =>
-                    setState(() => _obscureText = !_obscureText),
+                onTap: () => setState(() => _obscureText = !_obscureText),
                 child: Icon(
                   _obscureText
                       ? Icons.visibility_off_outlined
                       : Icons.visibility_outlined,
-                  color: Colors.grey.shade400,
+                  color: AppColors.greyHint,
                   size: 20,
                 ),
               )
             : null,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         filled: true,
-        fillColor: Colors.grey.shade50,
+        fillColor: AppColors.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.grey.shade200),
+          borderSide: const BorderSide(color: AppColors.greyBorder),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.grey.shade200),
+          borderSide: const BorderSide(color: AppColors.greyBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.red.shade400),
+          borderSide: const BorderSide(color: AppColors.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.red.shade400, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
       ),
     );
@@ -276,19 +236,14 @@ class _PrimaryButton extends StatelessWidget {
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
-          foregroundColor: Colors.white,
+          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
+          foregroundColor: AppColors.onPrimary,
           elevation: 0,
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14)),
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
-        child: Text(
-          label,
-          style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: Colors.white),
-        ),
+        child: Text(label, style: AppTextStyles.buttonPrimary),
       ),
     );
   }

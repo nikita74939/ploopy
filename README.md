@@ -35,3 +35,9 @@ npm run dev
 
 The auth flow now goes through HTTP requests to the Express backend. Some older
 features still use Supabase directly and can be migrated route by route.
+
+## Architecture
+
+Flutter feature foldering follows `data-domain-presentation`. See
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the rules and the auth feature
+as the reference implementation.

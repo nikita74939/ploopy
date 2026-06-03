@@ -9,7 +9,6 @@ abstract class AuthRemoteDataSource {
     String password,
     String name,
   );
-  Future<void> forgotPassword(String email);
   Future<void> logout(String token);
   Future<Map<String, dynamic>?> getCurrentUserData(String token);
   Future<Map<String, dynamic>> updateBiometricEnabled(
@@ -61,20 +60,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       'token': data['token'] ?? '',
       'refreshToken': data['refreshToken'] ?? '',
       'expiresAt': data['expiresAt'],
-      'requiresEmailConfirmation': data['requiresEmailConfirmation'] ?? false,
       'user': data['user'],
     };
-  }
-
-  @override
-  Future<void> forgotPassword(String email) async {
-    final response = await client.post(
-      _uri('/api/auth/forgot-password'),
-      headers: _jsonHeaders(),
-      body: jsonEncode({'email': email}),
-    );
-
-    _decode(response);
   }
 
   @override

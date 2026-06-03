@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { supabase } from '../config/supabase.js';
+import { supabase, supabaseAdmin } from '../config/supabase.js';
 import { requireAuth } from '../middleware/auth.js';
 import { createUserProfile, getUserProfile } from '../services/userService.js';
 import { httpError } from '../utils/httpError.js';
@@ -44,48 +44,39 @@ authRoutes.post('/register', async (req, res, next) => {
       throw httpError(400, 'Nama, email, dan password wajib diisi.');
     }
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    const { data: created, error: createError } =
+      await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+      });
 
-    if (error || !data.user) {
-      throw httpError(400, error?.message ?? 'Registrasi gagal.');
+    if (createError || !created.user) {
+      throw httpError(400, createError?.message ?? 'Registrasi gagal.');
     }
 
     const user = await createUserProfile({
-      id: data.user.id,
+      id: created.user.id,
       email,
       name,
     });
 
+    const { data: sessionData, error: sessionError } =
+      await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+    if (sessionError || !sessionData.session) {
+      throw httpError(500, 'Akun dibuat, tetapi login otomatis gagal.');
+    }
+
     return res.status(201).json({
-      token: data.session?.access_token ?? '',
-      refreshToken: data.session?.refresh_token ?? '',
-      expiresAt: data.session?.expires_at ?? null,
+      token: sessionData.session.access_token,
+      refreshToken: sessionData.session.refresh_token,
+      expiresAt: sessionData.session.expires_at,
       user,
-      requiresEmailConfirmation: !data.session,
     });
-  } catch (err) {
-    return next(err);
-  }
-});
-
-authRoutes.post('/forgot-password', async (req, res, next) => {
-  try {
-    const { email } = req.body;
-
-    if (!email) {
-      throw httpError(400, 'Email wajib diisi.');
-    }
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
-
-    if (error) {
-      throw httpError(400, error.message);
-    }
-
-    return res.json({ success: true });
   } catch (err) {
     return next(err);
   }

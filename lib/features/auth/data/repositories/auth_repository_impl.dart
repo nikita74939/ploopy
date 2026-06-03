@@ -2,6 +2,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:isar/isar.dart';
 import 'package:local_auth/local_auth.dart';
 
+import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_local_data_source.dart';
 import '../datasources/auth_remote_data_source.dart';
@@ -27,7 +28,7 @@ class AuthRepositoryImpl implements AuthRepository {
   );
 
   @override
-  Future<UserModel?> login(String email, String password) async {
+  Future<UserEntity?> login(String email, String password) async {
     try {
       final response = await remoteDataSource.login(email, password);
       if (response['success'] != true) return null;
@@ -39,14 +40,17 @@ class AuthRepositoryImpl implements AuthRepository {
 
       await _local.saveUser(user);
       await _local.saveToken(token);
-      return user;
+      if (user.biometricEnabled) {
+        await _local.saveBiometricToken(token);
+      }
+      return user.toEntity();
     } catch (e) {
       throw Exception(_mapAuthError(_cleanError(e)));
     }
   }
 
   @override
-  Future<AuthRegisterResult?> register(
+  Future<UserEntity?> register(
     String email,
     String password,
     String name,
@@ -59,33 +63,20 @@ class AuthRepositoryImpl implements AuthRepository {
         response['user'] as Map<String, dynamic>,
       );
       final token = response['token'] as String;
-      final requiresEmailConfirmation =
-          response['requiresEmailConfirmation'] as bool? ?? false;
 
       await _local.saveUser(user);
-      if (token.isNotEmpty) {
-        await _local.saveToken(token);
-      }
+      await _local.saveToken(token);
 
-      return AuthRegisterResult(
-        user: user,
-        isAuthenticated: token.isNotEmpty && !requiresEmailConfirmation,
-        requiresEmailConfirmation: requiresEmailConfirmation,
-      );
+      return user.toEntity();
     } catch (e) {
       throw Exception(_mapAuthError(_cleanError(e)));
     }
   }
 
   @override
-  Future<void> forgotPassword(String email) async {
-    await remoteDataSource.forgotPassword(email);
-  }
-
-  @override
-  Future<UserModel?> getCurrentUser() async {
+  Future<UserEntity?> getCurrentUser() async {
     final localUser = await _local.getCurrentUser();
-    if (localUser != null) return localUser;
+    if (localUser != null) return localUser.toEntity();
 
     final token = await _local.getToken();
     if (token == null || token.isEmpty) return null;
@@ -95,7 +86,7 @@ class AuthRepositoryImpl implements AuthRepository {
       if (data == null) return null;
       final user = UserModel.fromSupabase(data);
       await _local.saveUser(user);
-      return user;
+      return user.toEntity();
     } catch (_) {
       return null;
     }
@@ -103,6 +94,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> logout() async {
+    final currentUser = await _local.getCurrentUser();
     final token = await _local.getToken();
     try {
       if (token != null && token.isNotEmpty) {
@@ -111,16 +103,27 @@ class AuthRepositoryImpl implements AuthRepository {
     } catch (_) {
       // Local logout still succeeds when backend is unavailable.
     }
-    await _local.clearUser();
+    if (currentUser?.biometricEnabled == true) {
+      await _local.deleteSessionToken();
+    } else {
+      await _local.clearUser();
+    }
   }
 
   @override
   Future<bool> authenticateWithBiometrics() async {
-    return await _local.authenticateWithBiometrics();
+    final authenticated = await _local.authenticateWithBiometrics();
+    if (!authenticated) return false;
+
+    final token = await _local.getBiometricToken();
+    if (token == null || token.isEmpty) return false;
+
+    await _local.restoreBiometricToken();
+    return true;
   }
 
   @override
-  Future<UserModel?> enableBiometric() async {
+  Future<UserEntity?> enableBiometric() async {
     final ok = await _local.authenticateWithBiometrics();
     if (!ok) return null;
 
@@ -135,6 +138,7 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final token = await _local.getToken();
       if (token != null && token.isNotEmpty) {
+        await _local.saveBiometricToken(token);
         final data = await remoteDataSource.updateBiometricEnabled(
           token,
           user.userId,
@@ -142,13 +146,13 @@ class AuthRepositoryImpl implements AuthRepository {
         );
         final syncedUser = UserModel.fromSupabase(data);
         await _local.saveUser(syncedUser);
-        return syncedUser;
+        return syncedUser.toEntity();
       }
     } catch (_) {
       // Backend sync can be retried later; local biometric remains enabled.
     }
 
-    return user;
+    return user.toEntity();
   }
 
   @override
@@ -167,9 +171,6 @@ class AuthRepositoryImpl implements AuthRepository {
     if (msg.contains('invalid login credentials') ||
         msg.contains('invalid credentials')) {
       return 'Email atau password salah.';
-    }
-    if (msg.contains('email not confirmed')) {
-      return 'Email belum dikonfirmasi. Periksa kotak masuk kamu.';
     }
     if (msg.contains('user already registered') ||
         msg.contains('already registered')) {

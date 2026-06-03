@@ -1,5 +1,7 @@
 import 'package:isar/isar.dart';
 
+import '../../domain/entities/user_entity.dart';
+
 part 'user_model.g.dart';
 
 @collection
@@ -17,8 +19,8 @@ class UserModel {
 
   /// password_hash tidak disimpan lokal — Supabase yang mengelola
   String? bio;
-  String? avatarUrl;       // avatar_url di Supabase
-  late DateTime joinedAt;  // joined_at di Supabase
+  String? avatarUrl; // avatar_url di Supabase
+  late DateTime joinedAt; // joined_at di Supabase
   bool biometricEnabled = false;
 
   // Kolom lokal (tidak ada di Supabase, hanya di Isar)
@@ -58,6 +60,24 @@ class UserModel {
       'joined_at': joinedAt.toIso8601String(),
       'biometric_enabled': biometricEnabled,
     };
+  }
+
+  UserEntity toEntity() {
+    return UserEntity(
+      id: id,
+      userId: userId,
+      name: name,
+      email: email,
+      bio: bio,
+      avatarUrl: avatarUrl,
+      joinedAt: joinedAt,
+      biometricEnabled: biometricEnabled,
+      streak: streak,
+      longestStreak: longestStreak,
+      totalStudyMinutes: totalStudyMinutes,
+      totalTasksCompleted: totalTasksCompleted,
+      appLockEnabled: appLockEnabled,
+    );
   }
 }
 

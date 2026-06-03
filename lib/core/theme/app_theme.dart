@@ -1,43 +1,46 @@
-// lib/core/theme/app_theme.dart
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
+import 'app_text_styles.dart';
 
 class AppTheme {
+  AppTheme._();
+
   static ThemeData get lightTheme {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: AppColors.primary,
+      brightness: Brightness.light,
+      primary: AppColors.primary,
+      surface: AppColors.surface,
+      error: AppColors.error,
+    );
+
     return ThemeData(
       useMaterial3: true,
-      scaffoldBackgroundColor: AppColors.white,
-      primaryColor: AppColors.white,
-      colorSchemeSeed: AppColors.white,
-
-      textTheme: GoogleFonts.poppinsTextTheme(),
-
-      colorScheme: ColorScheme.light(
-        primary: AppColors.white,
-        surface: AppColors.white,
-        error: AppColors.error,
-      ),
+      brightness: Brightness.light,
+      colorScheme: colorScheme,
+      primaryColor: AppColors.primary,
+      scaffoldBackgroundColor: AppColors.background,
+      textTheme: AppTextStyles.textTheme,
+      fontFamily: AppTextStyles.textTheme.bodyMedium?.fontFamily,
 
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.white,
-        surfaceTintColor: Colors.transparent,
+        backgroundColor: AppColors.surface,
+        foregroundColor: AppColors.textMain,
+        surfaceTintColor: AppColors.transparent,
         elevation: 0,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: AppColors.black),
-        titleTextStyle: GoogleFonts.poppins(
-          color: AppColors.black,
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-        ),
+        iconTheme: const IconThemeData(color: AppColors.textMain),
+        titleTextStyle: AppTextStyles.title,
       ),
 
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
+          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.45),
           foregroundColor: AppColors.white,
           elevation: 0,
+          textStyle: AppTextStyles.buttonPrimary,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
@@ -45,66 +48,84 @@ class AppTheme {
         ),
       ),
 
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          textStyle: AppTextStyles.buttonSecondary,
+          side: const BorderSide(color: AppColors.primaryBorder),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+      ),
+
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          textStyle: AppTextStyles.link,
+        ),
+      ),
+
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.greyLighter,
-
-        hintStyle: GoogleFonts.poppins(color: AppColors.greyHint, fontSize: 14),
-
+        fillColor: AppColors.surface,
+        hintStyle: AppTextStyles.hint,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
         ),
-
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.greyBorder),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.greyBorder),
         ),
-
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.greyBorder),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.greyBorder),
         ),
-
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.primaryBorder, width: 1.5),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.6),
         ),
-
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppColors.error),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.6),
         ),
       ),
 
       cardTheme: CardThemeData(
-        color: AppColors.white,
+        color: AppColors.surface,
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: AppColors.greyBorder),
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: AppColors.greyBorder),
         ),
+      ),
+
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: AppColors.textMain,
+        contentTextStyle: AppTextStyles.body.copyWith(color: AppColors.white),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
 
       dividerColor: AppColors.greyBorder,
-
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: AppColors.white,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.greyText,
-        selectedLabelStyle: GoogleFonts.poppins(
+        unselectedItemColor: AppColors.textSecondary,
+        selectedLabelStyle: AppTextStyles.small.copyWith(
+          color: AppColors.primary,
           fontWeight: FontWeight.w600,
-          fontSize: 12,
         ),
-        unselectedLabelStyle: GoogleFonts.poppins(
-          fontWeight: FontWeight.w500,
-          fontSize: 12,
-        ),
+        unselectedLabelStyle: AppTextStyles.small,
         type: BottomNavigationBarType.fixed,
       ),
-
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,

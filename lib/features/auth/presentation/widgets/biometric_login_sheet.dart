@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../bloc/auth_bloc.dart';
 
 class BiometricLoginSheet extends StatelessWidget {
-  final VoidCallback onSuccess;
-
-  const BiometricLoginSheet({super.key, required this.onSuccess});
+  const BiometricLoginSheet({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,17 +13,16 @@ class BiometricLoginSheet extends StatelessWidget {
       listener: (context, state) {
         if (state is Authenticated) {
           Navigator.pop(context);
-          onSuccess();
         } else if (state is AuthError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
@@ -34,18 +32,11 @@ class BiometricLoginSheet extends StatelessWidget {
             const SizedBox(height: 20),
             _buildIcon(),
             const SizedBox(height: 20),
-            const Text(
-              'Login dengan Biometric',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1A1A2E),
-              ),
-            ),
+            Text('Login dengan Biometric', style: AppTextStyles.heading),
             const SizedBox(height: 8),
             Text(
               'Gunakan sidik jari untuk masuk dengan cepat dan aman',
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+              style: AppTextStyles.bodySmall,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -57,19 +48,16 @@ class BiometricLoginSheet extends StatelessWidget {
                       : 'Gunakan Sidik Jari',
                   onPressed: state is AuthLoading
                       ? null
-                      : () => context
-                          .read<AuthBloc>()
-                          .add(BiometricAuthRequested()),
+                      : () => context.read<AuthBloc>().add(
+                          BiometricAuthRequested(),
+                        ),
                 );
               },
             ),
             const SizedBox(height: 8),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(
-                'Batal',
-                style: TextStyle(color: Colors.grey.shade500),
-              ),
+              child: Text('Batal', style: AppTextStyles.bodySmall),
             ),
           ],
         ),
@@ -82,7 +70,7 @@ class BiometricLoginSheet extends StatelessWidget {
       width: 40,
       height: 4,
       decoration: BoxDecoration(
-        color: Colors.grey.shade300,
+        color: AppColors.greyHandle,
         borderRadius: BorderRadius.circular(2),
       ),
     );
@@ -92,7 +80,7 @@ class BiometricLoginSheet extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.1),
+        color: AppColors.primary.withValues(alpha: 0.1),
         shape: BoxShape.circle,
       ),
       child: Icon(
@@ -119,19 +107,14 @@ class _PrimaryButton extends StatelessWidget {
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
-          foregroundColor: Colors.white,
+          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
+          foregroundColor: AppColors.onPrimary,
           elevation: 0,
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14)),
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
-        child: Text(
-          label,
-          style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: Colors.white),
-        ),
+        child: Text(label, style: AppTextStyles.buttonPrimary),
       ),
     );
   }
