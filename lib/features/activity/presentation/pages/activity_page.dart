@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/bottom_sheet_insets.dart';
 import '../../../../core/utils/date_utils.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/activity_bloc.dart';
 import '../../data/models/activity_model.dart';
 
@@ -16,7 +16,10 @@ class ActivityPage extends StatefulWidget {
 }
 
 class _ActivityPageState extends State<ActivityPage> {
-  String? get _currentUserId => Supabase.instance.client.auth.currentUser?.id;
+  String? get _currentUserId {
+    final state = context.read<AuthBloc>().state;
+    return state is Authenticated ? state.user.userId : null;
+  }
 
   @override
   void initState() {
@@ -83,7 +86,7 @@ class _ActivityPageState extends State<ActivityPage> {
           Icon(
             Icons.article_outlined,
             size: 80,
-            color: AppColors.textSecondary.withOpacity(0.5),
+            color: AppColors.textSecondary.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -222,9 +225,9 @@ class _ActivityCard extends StatelessWidget {
       width: 50,
       height: 50,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         shape: BoxShape.circle,
-        border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
       ),
       alignment: Alignment.center,
       child: activity.userPhoto != null
@@ -369,10 +372,10 @@ class _ActivityCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFB347).withOpacity(0.15),
+        color: const Color(0xFFFFB347).withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFFFFB347).withOpacity(0.3),
+          color: const Color(0xFFFFB347).withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -659,10 +662,14 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                 width: 36,
                                 height: 36,
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.12),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.12,
+                                  ),
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: AppColors.primary.withOpacity(0.25),
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.25,
+                                    ),
                                     width: 1.5,
                                   ),
                                 ),

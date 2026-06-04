@@ -12,7 +12,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:isar/isar.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/api_config.dart';
 
@@ -62,13 +61,13 @@ import '../../../features/activity/data/repositories/activity_repository_impl.da
 import '../../../features/activity/domain/repositories/activity_repository.dart';
 import '../../../features/activity/presentation/bloc/activity_bloc.dart';
 
-// Event (remote-only: Supabase)
+// Event
 import '../../../features/event/data/datasources/event_remote_data_source.dart';
 import '../../../features/event/data/repositories/event_repository_impl.dart';
 import '../../../features/event/domain/repositories/event_repository.dart';
 import '../../../features/event/presentation/bloc/event_bloc.dart';
 
-// Profile (remote: Supabase + local: Isar)
+// Profile
 import '../../../features/profile/data/datasources/profile_local_data_source.dart';
 import '../../../features/profile/data/datasources/profile_remote_data_source.dart';
 import '../../../features/profile/data/repositories/profile_repository_impl.dart';
@@ -106,9 +105,6 @@ class DependencyInjection {
 
   static http.Client get httpClient => _httpClient;
   static Dio get dio => _dio;
-
-  /// Klien Supabase yang sudah diinisialisasi di main.dart
-  static SupabaseClient get _supabase => Supabase.instance.client;
 
   /// Dipanggil sekali dari main.dart setelah IsarService.getInstance()
   static void setIsar(Isar isar) => _isar = isar;
@@ -260,11 +256,15 @@ class DependencyInjection {
 
   // ═══════════════════════════════════════════════════════════════════════════
   // EVENT
-  // Acara/kegiatan kampus — remote-only via Supabase
+  // Acara/kegiatan kampus — via backend API
   // ═══════════════════════════════════════════════════════════════════════════
 
   static EventRemoteDataSource get eventRemoteDataSource =>
-      EventRemoteDataSourceImpl(supabase: _supabase);
+      EventRemoteDataSourceImpl(
+        client: _httpClient,
+        baseUrl: ApiConfig.baseUrl,
+        secureStorage: _secureStorage,
+      );
 
   static EventRepository get eventRepository =>
       EventRepositoryImpl(remoteDataSource: eventRemoteDataSource);
@@ -273,12 +273,11 @@ class DependencyInjection {
 
   // ═══════════════════════════════════════════════════════════════════════════
   // PROFILE
-  // Data profil pengguna — sumber utama Supabase, cache lokal di Isar
+  // Data profil pengguna — via backend API, cache lokal di Isar
   // ═══════════════════════════════════════════════════════════════════════════
 
   static ProfileRemoteDataSource get profileRemoteDataSource =>
       ProfileRemoteDataSourceImpl(
-        supabase: _supabase,
         client: _httpClient,
         baseUrl: ApiConfig.baseUrl,
         secureStorage: _secureStorage,

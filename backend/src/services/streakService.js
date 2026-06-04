@@ -44,3 +44,16 @@ export async function checkInStreak(userId) {
   });
   return data;
 }
+
+export async function updateStreak({ userId, input }) {
+  await getStreak(userId);
+  const payload = {};
+  if (Object.hasOwn(input, 'currentStreak') || Object.hasOwn(input, 'current_streak')) payload.current_streak = input.currentStreak ?? input.current_streak;
+  if (Object.hasOwn(input, 'longestStreak') || Object.hasOwn(input, 'longest_streak')) payload.longest_streak = input.longestStreak ?? input.longest_streak;
+  if (Object.hasOwn(input, 'lastActiveDate') || Object.hasOwn(input, 'last_active_date')) payload.last_active_date = input.lastActiveDate ?? input.last_active_date ?? null;
+  if (Object.hasOwn(input, 'freezeUsedThisWeek') || Object.hasOwn(input, 'freeze_used_this_week')) payload.freeze_used_this_week = input.freezeUsedThisWeek ?? input.freeze_used_this_week;
+
+  const { data, error } = await supabaseAdmin.from('streaks').update(payload).eq('user_id', userId).select(select).single();
+  if (error) throw httpError(500, error.message);
+  return data;
+}

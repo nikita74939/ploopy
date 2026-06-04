@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/date_utils.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../data/models/event_model.dart';
 import '../bloc/event_bloc.dart';
 
@@ -20,7 +20,10 @@ class _EventPageState extends State<EventPage>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
 
-  String? get _currentUserId => Supabase.instance.client.auth.currentUser?.id;
+  String? get _currentUserId {
+    final state = context.read<AuthBloc>().state;
+    return state is Authenticated ? state.user.userId : null;
+  }
 
   @override
   void initState() {

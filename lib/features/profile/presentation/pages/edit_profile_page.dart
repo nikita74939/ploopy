@@ -1,10 +1,14 @@
 import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/config/api_config.dart';
+import '../../../../core/network/auth_session_guard.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../auth/data/models/user_model.dart';
@@ -24,6 +28,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _nameController = TextEditingController();
   final _bioController = TextEditingController();
   final _picker = ImagePicker();
+  static const _secureStorage = FlutterSecureStorage();
 
   String? _avatarUrl;
   Uint8List? _pickedBytes;
@@ -105,17 +110,43 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   Future<String> _uploadAvatar(Uint8List bytes) async {
     final extension = _pickedExtension ?? 'jpg';
-    final path =
-        '${widget.user.userId}/avatar_${DateTime.now().millisecondsSinceEpoch}.$extension';
     final contentType = extension == 'png' ? 'image/png' : 'image/jpeg';
-
-    final storage = Supabase.instance.client.storage.from('avatars');
-    await storage.uploadBinary(
-      path,
-      bytes,
-      fileOptions: FileOptions(contentType: contentType, upsert: true),
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/api/users/${widget.user.userId}/avatar'),
+      headers: await _jsonHeaders(),
+      body: jsonEncode({
+        'base64': base64Encode(bytes),
+        'contentType': contentType,
+      }),
     );
-    return storage.getPublicUrl(path);
+    final data = _decode(response);
+    final user = data['user'] as Map<String, dynamic>?;
+    final avatarUrl = user?['avatar_url']?.toString();
+    if (avatarUrl == null || avatarUrl.isEmpty) {
+      throw Exception('Upload foto profil gagal.');
+    }
+    return avatarUrl;
+  }
+
+  Future<Map<String, String>> _jsonHeaders() async {
+    final token = await _secureStorage.read(key: 'auth_token');
+    return {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+  }
+
+  Map<String, dynamic> _decode(http.Response response) {
+    final body = response.body.isEmpty
+        ? <String, dynamic>{}
+        : jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode == 401) AuthSessionGuard.notifyExpired();
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        body['message']?.toString() ?? 'Request gagal. Coba lagi.',
+      );
+    }
+    return body;
   }
 
   String? _nullableText(String value) {

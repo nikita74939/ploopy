@@ -56,6 +56,29 @@ export async function updateUserProfile({ userId, input }) {
   return data;
 }
 
+export async function uploadUserAvatar({ userId, input }) {
+  const base64 = input.base64 ?? input.imageBase64 ?? input.image_base64;
+  if (!base64 || typeof base64 !== 'string') throw httpError(400, 'Foto profil wajib diisi.');
+
+  const contentType = input.contentType ?? input.content_type ?? 'image/jpeg';
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(contentType)) {
+    throw httpError(400, 'Format foto profil tidak didukung.');
+  }
+
+  const extension = contentType === 'image/png' ? 'png' : contentType === 'image/webp' ? 'webp' : 'jpg';
+  const bytes = Buffer.from(base64.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+  if (!bytes.length) throw httpError(400, 'Foto profil tidak valid.');
+
+  const path = `${userId}/avatar_${Date.now()}.${extension}`;
+  const { error } = await supabaseAdmin.storage
+    .from('avatars')
+    .upload(path, bytes, { contentType, upsert: true });
+  if (error) throw httpError(500, error.message);
+
+  const { data: publicUrlData } = supabaseAdmin.storage.from('avatars').getPublicUrl(path);
+  return updateUserProfile({ userId, input: { avatarUrl: publicUrlData.publicUrl } });
+}
+
 export async function updateBiometricEnabled({ userId, enabled }) {
   const { data, error } = await supabaseAdmin.from('users').update({ biometric_enabled: enabled }).eq('id', userId).select(publicUserSelect).single();
   if (error) throw httpError(500, error.message);

@@ -20,7 +20,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
   @override
   Future<UserModel?> getUserById(String userId) async {
     try {
-      // Coba ambil dari remote (Supabase) dulu
+      // Coba ambil dari backend API dulu.
       final remoteUser = await remoteDataSource.getUserById(userId);
       if (remoteUser != null) {
         // Cache ke Isar
@@ -35,7 +35,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
   @override
   Future<void> updateUser(UserModel user) async {
-    // Update ke Supabase
+    // Update ke backend API.
     await remoteDataSource.updateUser(user);
     // Update cache lokal
     await localDataSource.updateUser(user);

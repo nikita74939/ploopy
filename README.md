@@ -33,8 +33,10 @@ cp .env.example .env
 npm run dev
 ```
 
-The auth flow now goes through HTTP requests to the Express backend. Some older
-features still use Supabase directly and can be migrated route by route.
+The auth flow and main app features now go through HTTP requests to the Express
+backend. Flutter stores session tokens in `flutter_secure_storage` and sends
+them as Bearer tokens to the API. Supabase access is centralized behind the
+backend services.
 
 ## Architecture
 

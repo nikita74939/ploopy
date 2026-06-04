@@ -1,16 +1,16 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
-import { createEvent, deleteEvent, getEventById, getEvents, joinEvent, leaveEvent, updateEvent } from '../services/eventService.js';
+import { createEvent, deleteEvent, getEventById, getEventsForUser, joinEvent, leaveEvent, updateEvent } from '../services/eventService.js';
 
 export const eventRoutes = Router();
 eventRoutes.use(requireAuth);
 
 eventRoutes.get('/', async (req, res, next) => {
-  try { return res.json({ events: await getEvents({ upcoming: req.query.upcoming === 'true', q: req.query.q }) }); }
+  try { return res.json({ events: await getEventsForUser({ userId: req.authUser.id, upcoming: req.query.upcoming === 'true', q: req.query.q }) }); }
   catch (err) { return next(err); }
 });
 eventRoutes.get('/:id', async (req, res, next) => {
-  try { return res.json({ event: await getEventById(req.params.id) }); }
+  try { return res.json({ event: await getEventById(req.params.id, req.authUser.id) }); }
   catch (err) { return next(err); }
 });
 eventRoutes.post('/', async (req, res, next) => {

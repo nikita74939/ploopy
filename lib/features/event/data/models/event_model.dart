@@ -40,6 +40,10 @@ class EventModel {
   });
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
+    final participants = (json['event_participants'] as List?) ?? const [];
+    final creator =
+        json['creator'] as Map<String, dynamic>? ??
+        json['profiles'] as Map<String, dynamic>?;
     return EventModel(
       id: json['id'] as String,
       creatorId: json['creator_id'] as String,
@@ -50,27 +54,33 @@ class EventModel {
       location: json['location'] as String?,
       isOnline: json['is_online'] as bool? ?? false,
       maxParticipants: json['max_participants'] as int?,
-      currentParticipants: (json['current_participants'] as num?)?.toInt() ?? 0,
+      currentParticipants:
+          (json['current_participants'] as num?)?.toInt() ??
+          participants.length,
       description: json['description'] as String?,
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       isJoinedByMe: json['is_joined_by_me'] as bool? ?? false,
       createdAt: DateTime.parse(json['created_at'] as String),
-      creatorName: json['profiles']?['name'] as String?,
-      creatorPhoto: json['profiles']?['avatar_url'] as String?,
+      creatorName: creator?['name'] as String?,
+      creatorPhoto: creator?['avatar_url'] as String?,
     );
   }
 
-  Map<String, dynamic> toInsertJson() => {
-    'creator_id': creatorId,
+  Map<String, dynamic> toApiJson() => {
     'name': name,
     if (icon != null) 'icon': icon,
     'color': color,
-    'event_date': eventDate.toIso8601String(),
+    'eventDate': eventDate.toIso8601String(),
     if (location != null) 'location': location,
-    'is_online': isOnline,
-    if (maxParticipants != null) 'max_participants': maxParticipants,
+    'isOnline': isOnline,
+    if (maxParticipants != null) 'maxParticipants': maxParticipants,
     if (description != null) 'description': description,
     'price': price,
+  };
+
+  Map<String, dynamic> toInsertJson() => {
+    'creator_id': creatorId,
+    ...toApiJson(),
   };
 
   Map<String, dynamic> toUpdateJson() => {

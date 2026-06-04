@@ -14,11 +14,25 @@ export async function getEvents({ upcoming = false, q }) {
   return data ?? [];
 }
 
-export async function getEventById(eventId) {
+function decorateEvent(event, userId) {
+  const participants = event.event_participants ?? [];
+  return {
+    ...event,
+    current_participants: participants.length,
+    is_joined_by_me: Boolean(userId && participants.some((item) => item.user_id === userId)),
+  };
+}
+
+export async function getEventsForUser({ userId, upcoming = false, q }) {
+  const events = await getEvents({ upcoming, q });
+  return events.map((event) => decorateEvent(event, userId));
+}
+
+export async function getEventById(eventId, userId = null) {
   const { data, error } = await supabaseAdmin.from('events').select(eventSelect).eq('id', eventId).maybeSingle();
   if (error) throw httpError(500, error.message);
   if (!data) throw httpError(404, 'Event tidak ditemukan.');
-  return data;
+  return decorateEvent(data, userId);
 }
 
 export async function createEvent({ userId, input }) {

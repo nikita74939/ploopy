@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/network/auth_session_guard.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../models/achievement_supabase_model.dart';
@@ -33,13 +32,11 @@ abstract class ProfileRemoteDataSource {
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
-  final SupabaseClient supabase;
   final http.Client client;
   final String baseUrl;
   final FlutterSecureStorage secureStorage;
 
   ProfileRemoteDataSourceImpl({
-    required this.supabase,
     required this.client,
     required this.baseUrl,
     required this.secureStorage,
@@ -59,10 +56,12 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
   @override
   Future<void> updateUser(UserModel user) async {
-    await supabase
-        .from('users')
-        .update(user.toSupabase())
-        .eq('id', user.userId);
+    final response = await client.patch(
+      _uri('/api/users/${user.userId}'),
+      headers: await _jsonHeaders(),
+      body: jsonEncode(user.toSupabase()),
+    );
+    _decode(response);
   }
 
   // ─── ACHIEVEMENTS ────────────────────────────────────────────────────────────
@@ -141,40 +140,21 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
   @override
   Future<List<FriendshipModel>> getFriends(String userId) async {
-    // Ambil semua friendship dengan status accepted
-    // Join ke tabel users untuk mendapatkan data teman
-    final asRequester = await supabase
-        .from('friendships')
-        .select('*, addressee:users!friendships_addressee_id_fkey(*)')
-        .eq('requester_id', userId)
-        .eq('status', 'accepted');
-
-    final asAddressee = await supabase
-        .from('friendships')
-        .select('*, requester:users!friendships_requester_id_fkey(*)')
-        .eq('addressee_id', userId)
-        .eq('status', 'accepted');
-
-    final List<FriendshipModel> friends = [];
-
-    for (final row in (asRequester as List)) {
-      friends.add(
-        FriendshipModel.fromJson(
-          row as Map<String, dynamic>,
-          currentUserId: userId,
-        ),
-      );
-    }
-    for (final row in (asAddressee as List)) {
-      friends.add(
-        FriendshipModel.fromJson(
-          row as Map<String, dynamic>,
-          currentUserId: userId,
-        ),
-      );
-    }
-
-    return friends;
+    final response = await client.get(
+      _uri('/api/friends'),
+      headers: await _jsonHeaders(),
+    );
+    final data = _decode(response);
+    final rows = (data['friendships'] as List?) ?? [];
+    return rows
+        .map(
+          (row) => FriendshipModel.fromJson(
+            row as Map<String, dynamic>,
+            currentUserId: userId,
+          ),
+        )
+        .where((friendship) => friendship.isAccepted)
+        .toList();
   }
 
   @override
@@ -182,75 +162,80 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     String requesterId,
     String addresseeId,
   ) async {
-    final response = await supabase
-        .from('friendships')
-        .insert({
-          'requester_id': requesterId,
-          'addressee_id': addresseeId,
-          'status': 'pending',
-        })
-        .select()
-        .single();
-
-    return FriendshipModel.fromJson(response);
+    final response = await client.post(
+      _uri('/api/friends'),
+      headers: await _jsonHeaders(),
+      body: jsonEncode({'addresseeId': addresseeId}),
+    );
+    return FriendshipModel.fromJson(
+      _decode(response)['friendship'] as Map<String, dynamic>,
+    );
   }
 
   @override
   Future<void> acceptFriendRequest(String friendshipId) async {
-    await supabase
-        .from('friendships')
-        .update({'status': 'accepted'})
-        .eq('id', friendshipId);
+    final response = await client.patch(
+      _uri('/api/friends/$friendshipId'),
+      headers: await _jsonHeaders(),
+      body: jsonEncode({'status': 'accepted'}),
+    );
+    _decode(response);
   }
 
   @override
   Future<void> removeFriend(String friendshipId) async {
-    await supabase.from('friendships').delete().eq('id', friendshipId);
+    final response = await client.delete(
+      _uri('/api/friends/$friendshipId'),
+      headers: await _jsonHeaders(),
+    );
+    _decode(response);
   }
 
   // ─── APP SETTINGS ────────────────────────────────────────────────────────────
 
   @override
   Future<AppSettingsModel> getAppSettings(String userId) async {
-    final response = await supabase
-        .from('app_settings')
-        .select()
-        .eq('user_id', userId)
-        .maybeSingle();
-
-    if (response == null) {
-      return AppSettingsModel.defaultFor(userId);
-    }
-    return AppSettingsModel.fromJson(response);
+    final response = await client.get(
+      _uri('/api/settings/me'),
+      headers: await _jsonHeaders(),
+    );
+    final settings = _decode(response)['settings'] as Map<String, dynamic>?;
+    return settings == null
+        ? AppSettingsModel.defaultFor(userId)
+        : AppSettingsModel.fromJson(settings);
   }
 
   @override
   Future<void> upsertAppSettings(AppSettingsModel settings) async {
-    await supabase
-        .from('app_settings')
-        .upsert(settings.toUpsertJson(), onConflict: 'user_id');
+    final response = await client.patch(
+      _uri('/api/settings/me'),
+      headers: await _jsonHeaders(),
+      body: jsonEncode(settings.toUpsertJson()),
+    );
+    _decode(response);
   }
 
   // ─── STREAKS ─────────────────────────────────────────────────────────────────
 
   @override
   Future<StreakModel> getStreak(String userId) async {
-    final response = await supabase
-        .from('streaks')
-        .select()
-        .eq('user_id', userId)
-        .maybeSingle();
-
-    if (response == null) {
-      return StreakModel.defaultFor(userId);
-    }
-    return StreakModel.fromJson(response);
+    final response = await client.get(
+      _uri('/api/streaks/me'),
+      headers: await _jsonHeaders(),
+    );
+    final streak = _decode(response)['streak'] as Map<String, dynamic>?;
+    return streak == null
+        ? StreakModel.defaultFor(userId)
+        : StreakModel.fromJson(streak);
   }
 
   @override
   Future<void> upsertStreak(StreakModel streak) async {
-    await supabase
-        .from('streaks')
-        .upsert(streak.toUpsertJson(), onConflict: 'user_id');
+    final response = await client.patch(
+      _uri('/api/streaks/me'),
+      headers: await _jsonHeaders(),
+      body: jsonEncode(streak.toUpsertJson()),
+    );
+    _decode(response);
   }
 }

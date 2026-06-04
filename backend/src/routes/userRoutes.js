@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
-import { getPublicUsers, getUserProfile, updateBiometricEnabled, updateUserProfile } from '../services/userService.js';
+import { getPublicUsers, getUserProfile, updateBiometricEnabled, updateUserProfile, uploadUserAvatar } from '../services/userService.js';
 import { httpError } from '../utils/httpError.js';
 
 export const userRoutes = Router();
@@ -24,6 +24,14 @@ userRoutes.patch('/:id', async (req, res, next) => {
   try {
     if (req.authUser.id !== req.params.id) throw httpError(403, 'Tidak boleh mengubah user lain.');
     const user = await updateUserProfile({ userId: req.params.id, input: req.body });
+    return res.json({ user });
+  } catch (err) { return next(err); }
+});
+
+userRoutes.post('/:id/avatar', async (req, res, next) => {
+  try {
+    if (req.authUser.id !== req.params.id) throw httpError(403, 'Tidak boleh mengubah user lain.');
+    const user = await uploadUserAvatar({ userId: req.params.id, input: req.body });
     return res.json({ user });
   } catch (err) { return next(err); }
 });
