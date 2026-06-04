@@ -1,6 +1,7 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../../../core/constants/app_constants.dart';
 import '../../domain/ocr_result_model.dart';
 
 class OcrHistoryItem extends StatelessWidget {
@@ -17,179 +18,133 @@ class OcrHistoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.grey.shade100, width: 1),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildThumbnail(),
-              const SizedBox(width: 12),
-              Expanded(child: _buildContent()),
-              _buildMoreButton(context),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildThumbnail() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        width: 50,
-        height: 50,
-        color: Colors.grey.shade100,
-        child: result.imagePath != null && File(result.imagePath!).existsSync()
-            ? Image.file(
-                File(result.imagePath!),
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _fallbackIcon(),
-              )
-            : _fallbackIcon(),
-      ),
-    );
-  }
-
-  Widget _fallbackIcon() {
-    return Container(
-      color: const Color(0xFFE0F2FE),
-      alignment: Alignment.center,
-      child: const Text('📝', style: TextStyle(fontSize: 22)),
-    );
-  }
-
-  Widget _buildContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          result.title,
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 2),
-        Text(
-          result.preview.isEmpty ? '(Teks kosong)' : result.preview,
-          style: GoogleFonts.poppins(
-            fontSize: 10,
-            color: Colors.grey.shade600,
-            height: 1.4,
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            _buildStat(
-              icon: Icons.format_list_bulleted_rounded,
-              text: '${result.wordCount} kata',
-            ),
-            const SizedBox(width: 10),
-            _buildStat(
-              icon: Icons.schedule_rounded,
-              text: _formatDate(result.createdAt),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-      ],
-    );
-  }
-
-  Widget _buildStat({required IconData icon, required String text}) {
-    return Row(
-      children: [
-        Icon(icon, size: 10, color: Colors.grey.shade500),
-        const SizedBox(width: 3),
-        Text(
-          text,
-          style: GoogleFonts.poppins(
-            fontSize: 9,
-            color: Colors.grey.shade500,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMoreButton(BuildContext context) {
-    return IconButton(
-      icon: Icon(
-        Icons.more_vert_rounded,
-        color: Colors.grey.shade600,
-        size: 20,
-      ),
-      onPressed: () => _showOptions(context),
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
-    );
-  }
-
-  void _showOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 42,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 16),
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(4),
+                color: AppColors.primary.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.text_snippet_rounded,
+                color: AppColors.primary,
+                size: 22,
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.visibility_rounded),
-              title: Text(
-                'Lihat Hasil',
-                style: GoogleFonts.poppins(fontSize: 13),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    result.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    result.preview.isEmpty ? 'Tidak ada pratinjau teks.' : result.preview,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      height: 1.4,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.segment_rounded,
+                        size: 14,
+                        color: Colors.grey.shade500,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${result.wordCount} kata',
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Icon(
+                        Icons.calendar_today_rounded,
+                        size: 13,
+                        color: Colors.grey.shade500,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _formatDate(result.createdAt),
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              onTap: () {
-                Navigator.pop(context);
-                onTap();
+            ),
+            PopupMenuButton<String>(
+              tooltip: 'Opsi',
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              onSelected: (value) {
+                if (value == 'delete') onDelete();
               },
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.delete_outline_rounded,
-                color: Colors.red.shade400,
-              ),
-              title: Text(
-                'Hapus',
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: Colors.red.shade400,
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.delete_outline_rounded,
+                        color: Colors.red.shade400,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Hapus',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.red.shade400,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+              ],
+              child: Icon(
+                Icons.more_vert_rounded,
+                color: Colors.grey.shade600,
               ),
-              onTap: () {
-                Navigator.pop(context);
-                onDelete();
-              },
             ),
           ],
         ),
@@ -198,18 +153,9 @@ class OcrHistoryItem extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final diff = now.difference(date);
-
-    if (diff.inSeconds < 60) return 'Baru saja';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m lalu';
-    if (diff.inHours < 24) return '${diff.inHours}j lalu';
-    if (diff.inDays < 7) return '${diff.inDays}h lalu';
-
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'
-    ];
-    return '${date.day} ${months[date.month - 1]}';
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = date.year.toString();
+    return '$day/$month/$year';
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/services/ocr_service.dart';
 import '../../domain/ocr_result_model.dart';
@@ -30,6 +31,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
   Future<void> _loadResults() async {
     final results = await OcrService.getAll();
     if (!mounted) return;
+
     setState(() {
       _results = results;
       _isLoading = false;
@@ -39,50 +41,50 @@ class _OcrHomePageState extends State<OcrHomePage> {
   Future<void> _startOcr() async {
     if (_isProcessing) return;
 
-    // Tampilkan picker Camera/Gallery
     final source = await OcrSourcePicker.show(context);
     if (source == null) return;
 
     setState(() => _isProcessing = true);
     HapticFeedback.mediumImpact();
 
+    var isDialogVisible = false;
+
     try {
-      // 1. Pick image
-      String? imagePath;
-      if (source == OcrSource.camera) {
-        imagePath = await OcrService.pickFromCamera();
-      } else {
-        imagePath = await OcrService.pickFromGallery();
-      }
+      final imagePath = source == OcrSource.camera
+          ? await OcrService.pickFromCamera()
+          : await OcrService.pickFromGallery();
+
+      if (!mounted) return;
 
       if (imagePath == null) {
-        if (mounted) setState(() => _isProcessing = false);
+        _showSnackbar('Pengambilan gambar dibatalkan.', Colors.grey.shade700);
         return;
       }
 
-      // 2. Show processing dialog
-      if (!mounted) return;
       _showProcessingDialog();
+      isDialogVisible = true;
 
-      // 3. Extract text
       final ocrResult = await OcrService.extractText(imagePath);
 
       if (!mounted) return;
-      Navigator.pop(context); // Tutup dialog
+      if (isDialogVisible) {
+        Navigator.pop(context);
+        isDialogVisible = false;
+      }
 
       if (ocrResult == null) {
-        _showSnackbar('Gagal ekstrak teks', Colors.red.shade400);
-        setState(() => _isProcessing = false);
+        _showSnackbar('Gagal mengekstrak teks.', Colors.red.shade400);
         return;
       }
 
-      if (ocrResult.text.isEmpty) {
-        _showSnackbar('Tidak ada teks terdeteksi', Colors.orange.shade400);
-        setState(() => _isProcessing = false);
+      if (ocrResult.text.trim().isEmpty) {
+        _showSnackbar(
+          'Tidak ada teks yang terdeteksi.',
+          Colors.orange.shade500,
+        );
         return;
       }
 
-      // 4. Save result
       final saved = await OcrService.save(
         title: 'OCR ${DateTime.now().day}/${DateTime.now().month}',
         extractedText: ocrResult.text,
@@ -90,34 +92,39 @@ class _OcrHomePageState extends State<OcrHomePage> {
         imagePath: imagePath,
       );
 
-      if (saved != null) {
-        await _loadResults();
-        _showSnackbar(
-          '${ocrResult.blockCount} blok teks ditemukan! ✨',
-          Colors.green.shade600,
-        );
+      if (!mounted) return;
 
-        // Buka result page
-        if (!mounted) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => OcrResultPage(result: saved, isNew: true),
-          ),
-        ).then((_) => _loadResults());
+      if (saved == null) {
+        _showSnackbar('Hasil OCR gagal disimpan.', Colors.red.shade400);
+        return;
       }
+
+      await _loadResults();
+      _showSnackbar(
+        '${ocrResult.blockCount} blok teks berhasil ditemukan.',
+        Colors.green.shade600,
+      );
+
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => OcrResultPage(result: saved, isNew: true),
+        ),
+      ).then((_) => _loadResults());
     } catch (e) {
-      if (mounted) {
-        Navigator.pop(context); // Tutup dialog kalau masih terbuka
-        _showSnackbar('Error: $e', Colors.red.shade400);
+      if (!mounted) return;
+      if (isDialogVisible) {
+        Navigator.pop(context);
       }
+      _showSnackbar('Terjadi kesalahan saat memproses OCR.', Colors.red.shade400);
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }
   }
 
   void _showProcessingDialog() {
-    showDialog(
+    showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (_) => PopScope(
@@ -144,7 +151,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Menganalisis Gambar...',
+                'Menganalisis gambar...',
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -153,7 +160,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
               ),
               const SizedBox(height: 4),
               Text(
-                'AI sedang mengekstrak teks',
+                'OCR sedang mengekstrak teks.',
                 style: GoogleFonts.poppins(
                   fontSize: 11,
                   color: Colors.grey.shade600,
@@ -181,7 +188,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
           ),
         ),
         content: Text(
-          '"${result.title}" akan dihapus permanen',
+          '"${result.title}" akan dihapus permanen.',
           style: GoogleFonts.poppins(fontSize: 12),
         ),
         actions: [
@@ -192,18 +199,20 @@ class _OcrHomePageState extends State<OcrHomePage> {
               style: GoogleFonts.poppins(color: Colors.grey.shade600),
             ),
           ),
-          ElevatedButton(
+          ElevatedButton.icon(
             onPressed: () => Navigator.pop(ctx, true),
+            icon: const Icon(Icons.delete_outline_rounded, size: 16),
+            label: Text(
+              'Hapus',
+              style: GoogleFonts.poppins(color: Colors.white),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade400,
+              foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
-            ),
-            child: Text(
-              'Hapus',
-              style: GoogleFonts.poppins(color: Colors.white),
             ),
           ),
         ],
@@ -213,7 +222,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
     if (confirm == true) {
       await OcrService.delete(result.id);
       await _loadResults();
-      _showSnackbar('Hasil dihapus 🗑️', Colors.grey.shade800);
+      _showSnackbar('Hasil berhasil dihapus.', Colors.grey.shade800);
     }
   }
 
@@ -268,18 +277,11 @@ class _OcrHomePageState extends State<OcrHomePage> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(strokeWidth: 2),
-      );
+      return const Center(child: CircularProgressIndicator(strokeWidth: 2));
     }
 
-    if (_isProcessing) {
-      return _buildProcessingState();
-    }
-
-    if (_results.isEmpty) {
-      return OcrEmptyState(onStart: _startOcr);
-    }
+    if (_isProcessing) return _buildProcessingState();
+    if (_results.isEmpty) return OcrEmptyState(onStart: _startOcr);
 
     return _buildResultsList();
   }
@@ -313,7 +315,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
           ),
           const SizedBox(height: 6),
           Text(
-            'AI sedang menganalisis gambar',
+            'OCR sedang membaca teks pada gambar.',
             style: GoogleFonts.poppins(
               fontSize: 11,
               color: Colors.grey.shade600,
@@ -382,7 +384,11 @@ class _OcrHomePageState extends State<OcrHomePage> {
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: const Text('🔍', style: TextStyle(fontSize: 22)),
+            child: Icon(
+              Icons.document_scanner_rounded,
+              color: AppColors.primary,
+              size: 22,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -408,7 +414,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
             ),
           ),
           Icon(
-            Icons.auto_awesome_rounded,
+            Icons.text_snippet_rounded,
             color: AppColors.primary,
             size: 20,
           ),
@@ -423,7 +429,7 @@ class _OcrHomePageState extends State<OcrHomePage> {
       backgroundColor: AppColors.primary,
       elevation: 6,
       icon: const Icon(
-        Icons.text_fields_rounded,
+        Icons.document_scanner_rounded,
         color: Colors.white,
         size: 20,
       ),

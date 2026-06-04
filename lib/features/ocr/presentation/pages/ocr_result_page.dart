@@ -1,16 +1,17 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
+
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/services/ocr_service.dart';
-import '../../../ai/presentation/pages/ai_page.dart';
 import '../../domain/ocr_result_model.dart';
 
 class OcrResultPage extends StatefulWidget {
   final OcrResult result;
-  final bool isNew; // true = baru selesai ekstrak, false = view history
+  final bool isNew;
 
   const OcrResultPage({
     super.key,
@@ -24,233 +25,81 @@ class OcrResultPage extends StatefulWidget {
 
 class _OcrResultPageState extends State<OcrResultPage> {
   late OcrResult _result;
-  late TextEditingController _textController;
   late TextEditingController _titleController;
+  late TextEditingController _textController;
   bool _isEditing = false;
-  bool _showImage = true;
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
     _result = widget.result;
-    _textController = TextEditingController(text: _result.extractedText);
     _titleController = TextEditingController(text: _result.title);
-    _isEditing = widget.isNew; // auto-edit mode kalau baru
+    _textController = TextEditingController(text: _result.extractedText);
   }
 
   @override
   void dispose() {
-    _textController.dispose();
     _titleController.dispose();
+    _textController.dispose();
     super.dispose();
   }
 
-  Future<void> _saveChanges() async {
-    final updated = _result.copyWith(
-      title: _titleController.text.trim().isEmpty
-          ? _result.title
-          : _titleController.text.trim(),
-      extractedText: _textController.text,
-    );
-
-    await OcrService.update(updated);
-
-    if (!mounted) return;
-    setState(() {
-      _result = updated;
-      _isEditing = false;
-    });
-
-    _showSnackbar('Perubahan disimpan ✨', Colors.green.shade600);
-  }
-
   Future<void> _copyText() async {
-    if (_textController.text.isEmpty) return;
-    HapticFeedback.lightImpact();
-    await Clipboard.setData(ClipboardData(text: _textController.text));
-    if (!mounted) return;
-    _showSnackbar('Teks disalin ke clipboard! 📋', Colors.green.shade600);
+    await Clipboard.setData(ClipboardData(text: _result.extractedText));
+    _showSnackbar('Teks berhasil disalin.', Colors.green.shade600);
   }
 
   Future<void> _shareText() async {
-    if (_textController.text.isEmpty) return;
-    HapticFeedback.lightImpact();
-
-    await Share.share(
-      _textController.text,
-      subject: _result.title,
-    );
+    await Share.share(_result.extractedText, subject: _result.title);
   }
 
-  void _openInAi(String prompt) {
-    HapticFeedback.lightImpact();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AiPage(
-          initialPrompt: '$prompt\n\n---\n${_textController.text}',
-        ),
-      ),
-    );
-  }
+  Future<void> _saveChanges() async {
+    final title = _titleController.text.trim();
+    final text = _textController.text.trim();
 
-  void _showAiOptions() {
-    if (_textController.text.trim().isEmpty) {
-      _showSnackbar('Teks masih kosong', Colors.red.shade400);
+    if (title.isEmpty) {
+      _showSnackbar('Judul tidak boleh kosong.', Colors.orange.shade500);
       return;
     }
 
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 42,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-            Row(
-              children: [
-                const Text('🤖', style: TextStyle(fontSize: 22)),
-                const SizedBox(width: 8),
-                Text(
-                  'Proses dengan AI',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Kirim teks ke AI Assistant untuk:',
-              style: GoogleFonts.poppins(
-                fontSize: 11,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            const SizedBox(height: 14),
-            _buildAiOption(
-              icon: '📝',
-              title: 'Rangkum',
-              subtitle: 'Buat ringkasan poin-poin penting',
-              onTap: () {
-                Navigator.pop(context);
-                _openInAi('Tolong buatkan rangkuman dari teks berikut:');
-              },
-            ),
-            _buildAiOption(
-              icon: '💡',
-              title: 'Jelaskan',
-              subtitle: 'Jelasin konsep dengan bahasa sederhana',
-              onTap: () {
-                Navigator.pop(context);
-                _openInAi('Tolong jelasin maksud dari teks berikut dengan bahasa yang mudah dipahami:');
-              },
-            ),
-            _buildAiOption(
-              icon: '🌐',
-              title: 'Translate ke Indonesia',
-              subtitle: 'Terjemahin ke Bahasa Indonesia',
-              onTap: () {
-                Navigator.pop(context);
-                _openInAi('Tolong terjemahkan teks berikut ke Bahasa Indonesia:');
-              },
-            ),
-            _buildAiOption(
-              icon: '🎯',
-              title: 'Buat Soal Latihan',
-              subtitle: 'Generate pertanyaan dari teks ini',
-              onTap: () {
-                Navigator.pop(context);
-                _openInAi('Tolong buatkan 5 soal latihan (pilihan ganda) dari teks berikut, beserta jawabannya:');
-              },
-            ),
-          ],
-        ),
-      ),
+    if (text.isEmpty) {
+      _showSnackbar('Teks hasil OCR tidak boleh kosong.', Colors.orange.shade500);
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    final updated = _result.copyWith(
+      title: title,
+      extractedText: text,
+    );
+    final success = await OcrService.update(updated);
+
+    if (!mounted) return;
+
+    setState(() {
+      _isSaving = false;
+      if (success) {
+        _result = updated;
+        _isEditing = false;
+      }
+    });
+
+    _showSnackbar(
+      success ? 'Perubahan berhasil disimpan.' : 'Perubahan gagal disimpan.',
+      success ? Colors.green.shade600 : Colors.red.shade400,
     );
   }
 
-  Widget _buildAiOption({
-    required String icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child: Text(icon, style: const TextStyle(fontSize: 18)),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: GoogleFonts.poppins(
-                        fontSize: 10,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 14,
-                color: Colors.grey.shade400,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  void _toggleEdit() {
+    setState(() {
+      if (_isEditing) {
+        _titleController.text = _result.title;
+        _textController.text = _result.extractedText;
+      }
+      _isEditing = !_isEditing;
+    });
   }
 
   void _showSnackbar(String message, Color color) {
@@ -263,9 +112,7 @@ class _OcrResultPageState extends State<OcrResultPage> {
         ),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 2),
       ),
@@ -274,18 +121,32 @@ class _OcrResultPageState extends State<OcrResultPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: _buildAppBar(),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildTitleCard(),
-            if (_showImage && _result.imagePath != null) _buildImageCard(),
-            Expanded(child: _buildTextCard()),
-            _buildActionBar(),
-          ],
+    return PopScope(
+      canPop: !_isSaving,
+      child: Scaffold(
+        backgroundColor: Colors.grey.shade50,
+        appBar: _buildAppBar(),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (widget.isNew) _buildNewResultBanner(),
+                _buildTitleCard(),
+                const SizedBox(height: 14),
+                _buildStatsCard(),
+                if (_result.imagePath != null) ...[
+                  const SizedBox(height: 14),
+                  _buildImagePreview(),
+                ],
+                const SizedBox(height: 14),
+                _buildTextCard(),
+              ],
+            ),
+          ),
         ),
+        bottomNavigationBar: _buildBottomBar(),
       ),
     );
   }
@@ -299,103 +160,47 @@ class _OcrResultPageState extends State<OcrResultPage> {
         onPressed: () => Navigator.pop(context),
       ),
       title: Text(
-        'Hasil Ekstraksi',
+        _isEditing ? 'Edit Hasil OCR' : 'Hasil OCR',
         style: GoogleFonts.poppins(
-          fontSize: 15,
+          fontSize: 16,
           fontWeight: FontWeight.w600,
           color: Colors.black87,
         ),
       ),
       centerTitle: true,
       actions: [
-        if (_result.imagePath != null)
-          IconButton(
-            icon: Icon(
-              _showImage
-                  ? Icons.image_rounded
-                  : Icons.hide_image_outlined,
-              color: Colors.grey.shade700,
-              size: 20,
-            ),
-            onPressed: () => setState(() => _showImage = !_showImage),
-            tooltip: _showImage ? 'Sembunyikan' : 'Tampilkan',
+        IconButton(
+          tooltip: _isEditing ? 'Batal edit' : 'Edit hasil',
+          onPressed: _isSaving ? null : _toggleEdit,
+          icon: Icon(
+            _isEditing ? Icons.close_rounded : Icons.edit_note_rounded,
+            color: Colors.black87,
           ),
-        if (_isEditing)
-          IconButton(
-            icon: const Icon(
-              Icons.check_rounded,
-              color: Colors.green,
-              size: 22,
-            ),
-            onPressed: _saveChanges,
-          )
-        else
-          IconButton(
-            icon: Icon(
-              Icons.edit_rounded,
-              color: Colors.grey.shade700,
-              size: 18,
-            ),
-            onPressed: () => setState(() => _isEditing = true),
-          ),
+        ),
       ],
     );
   }
 
-  Widget _buildTitleCard() {
+  Widget _buildNewResultBanner() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade100, width: 1),
+        color: AppColors.primary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primary.withOpacity(0.25)),
       ),
       child: Row(
         children: [
-          const Text('📝', style: TextStyle(fontSize: 18)),
+          Icon(Icons.check_circle_rounded, color: AppColors.primary),
           const SizedBox(width: 10),
           Expanded(
-            child: _isEditing
-                ? TextField(
-                    controller: _titleController,
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'Judul...',
-                      hintStyle: GoogleFonts.poppins(
-                        fontSize: 13,
-                        color: Colors.grey.shade400,
-                      ),
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                      border: InputBorder.none,
-                    ),
-                  )
-                : Text(
-                    _result.title,
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
             child: Text(
-              '${_result.wordCount} kata',
+              'Teks berhasil diekstrak dari gambar.',
               style: GoogleFonts.poppins(
-                fontSize: 9,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
               ),
             ),
           ),
@@ -404,57 +209,148 @@ class _OcrResultPageState extends State<OcrResultPage> {
     );
   }
 
-  Widget _buildImageCard() {
+  Widget _buildTitleCard() {
     return Container(
-      height: 140,
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.grey.shade200,
-      ),
+      padding: const EdgeInsets.all(16),
+      decoration: _cardDecoration(),
+      child: _isEditing
+          ? TextField(
+              controller: _titleController,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
+              ),
+              decoration: InputDecoration(
+                labelText: 'Judul hasil OCR',
+                labelStyle: GoogleFonts.poppins(fontSize: 12),
+                prefixIcon: const Icon(Icons.title_rounded),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            )
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.document_scanner_rounded,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _result.title,
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _formatDate(_result.createdAt),
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildStatsCard() {
+    return Row(
+      children: [
+        Expanded(
+          child: _StatTile(
+            icon: Icons.view_agenda_rounded,
+            label: 'Blok',
+            value: '${_result.blockCount}',
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _StatTile(
+            icon: Icons.segment_rounded,
+            label: 'Kata',
+            value: '${_result.wordCount}',
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _StatTile(
+            icon: Icons.text_fields_rounded,
+            label: 'Karakter',
+            value: '${_result.charCount}',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImagePreview() {
+    final imagePath = _result.imagePath;
+    if (imagePath == null) return const SizedBox.shrink();
+
+    final file = File(imagePath);
+
+    return Container(
       clipBehavior: Clip.antiAlias,
-      child: Stack(
+      decoration: _cardDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Positioned.fill(
-            child: Image.file(
-              File(_result.imagePath!),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Icon(Icons.image_rounded, color: AppColors.primary, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Gambar Sumber',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (file.existsSync())
+            Image.file(
+              file,
+              height: 180,
+              width: double.infinity,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => const Center(
-                child: Icon(
-                  Icons.broken_image_rounded,
-                  color: Colors.grey,
-                  size: 40,
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+              child: Text(
+                'File gambar tidak ditemukan di penyimpanan lokal.',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
                 ),
               ),
             ),
-          ),
-          Positioned(
-            right: 8,
-            top: 8,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.6),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.image_rounded,
-                      size: 10, color: Colors.white),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Sumber',
-                    style: GoogleFonts.poppins(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -462,176 +358,238 @@ class _OcrResultPageState extends State<OcrResultPage> {
 
   Widget _buildTextCard() {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade100, width: 1),
-      ),
+      padding: const EdgeInsets.all(16),
+      decoration: _cardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.text_fields_rounded,
-                size: 16,
-                color: AppColors.primary,
-              ),
-              const SizedBox(width: 6),
+              Icon(Icons.notes_rounded, color: AppColors.primary, size: 20),
+              const SizedBox(width: 8),
               Text(
-                'Teks Terdeteksi',
+                'Teks Hasil OCR',
                 style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
                   color: Colors.black87,
                 ),
               ),
-              const Spacer(),
-              if (_result.blockCount > 0)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    '${_result.blockCount} block',
-                    style: GoogleFonts.poppins(
-                      fontSize: 8,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ),
             ],
           ),
-          const Divider(height: 18),
-          Expanded(
-            child: _isEditing
-                ? TextField(
-                    controller: _textController,
-                    maxLines: null,
-                    expands: true,
-                    textAlignVertical: TextAlignVertical.top,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: Colors.black87,
-                      height: 1.5,
+          const SizedBox(height: 12),
+          _isEditing
+              ? TextField(
+                  controller: _textController,
+                  minLines: 10,
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    height: 1.55,
+                    color: Colors.black87,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Edit teks hasil OCR di sini.',
+                    hintStyle: GoogleFonts.poppins(fontSize: 12),
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
                     ),
-                    decoration: InputDecoration(
-                      hintText: 'Teks hasil ekstraksi...',
-                      hintStyle: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: Colors.grey.shade400,
-                      ),
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                      border: InputBorder.none,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
                     ),
-                  )
-                : SingleChildScrollView(
-                    child: SelectableText(
-                      _textController.text.isEmpty
-                          ? '(Tidak ada teks terdeteksi)'
-                          : _textController.text,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: _textController.text.isEmpty
-                            ? Colors.grey.shade400
-                            : Colors.black87,
-                        height: 1.6,
-                      ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppColors.primary, width: 1.4),
                     ),
                   ),
-          ),
+                )
+              : SelectableText(
+                  _result.extractedText,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    height: 1.55,
+                    color: Colors.black87,
+                  ),
+                ),
         ],
       ),
     );
   }
 
-  Widget _buildActionBar() {
+  Widget _buildBottomBar() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.grey.shade100, width: 1),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildActionButton(
-              icon: Icons.copy_rounded,
-              label: 'Copy',
-              color: const Color(0xFF4D96FF),
-              onTap: _copyText,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _buildActionButton(
-              icon: Icons.share_rounded,
-              label: 'Share',
-              color: const Color(0xFF6BCB77),
-              onTap: _shareText,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            flex: 2,
-            child: _buildActionButton(
-              icon: Icons.auto_awesome_rounded,
-              label: 'Proses AI',
-              color: const Color(0xFFB79CED),
-              onTap: _showAiOptions,
-              isPrimary: true,
-            ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
           ),
         ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: _isEditing
+            ? ElevatedButton.icon(
+                onPressed: _isSaving ? null : _saveChanges,
+                icon: _isSaving
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.save_rounded, size: 18),
+                label: Text(
+                  _isSaving ? 'Menyimpan...' : 'Simpan Perubahan',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              )
+            : Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _copyText,
+                      icon: const Icon(Icons.copy_rounded, size: 18),
+                      label: Text(
+                        'Salin',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                        side: BorderSide(color: AppColors.primary),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _shareText,
+                      icon: const Icon(Icons.ios_share_rounded, size: 18),
+                      label: Text(
+                        'Bagikan',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }
 
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-    bool isPrimary = false,
-  }) {
-    return Material(
-      color: isPrimary ? color : color.withOpacity(0.12),
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 16,
-                color: isPrimary ? Colors.white : color,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: isPrimary ? Colors.white : color,
-                ),
-              ),
-            ],
-          ),
+  BoxDecoration _cardDecoration() {
+    return BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.04),
+          blurRadius: 12,
+          offset: const Offset(0, 4),
         ),
+      ],
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = date.year.toString();
+    final hour = date.hour.toString().padLeft(2, '0');
+    final minute = date.minute.toString().padLeft(2, '0');
+    return '$day/$month/$year, $hour:$minute';
+  }
+}
+
+class _StatTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _StatTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: AppColors.primary, size: 20),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: Colors.black87,
+            ),
+          ),
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 10,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ],
       ),
     );
   }

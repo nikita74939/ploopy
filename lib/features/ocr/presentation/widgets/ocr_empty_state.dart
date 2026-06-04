@@ -19,8 +19,8 @@ class OcrEmptyState extends StatelessWidget {
             Container(
               width: 100,
               height: 100,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [Color(0xFFE0F2FE), Color(0xFFBAE6FD)],
@@ -28,33 +28,38 @@ class OcrEmptyState extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
-              child: const Text('🔍', style: TextStyle(fontSize: 48)),
+              child: Icon(
+                Icons.document_scanner_rounded,
+                color: AppColors.primary,
+                size: 42,
+              ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             Text(
-              'Ekstrak Teks dari Gambar',
+              'Belum ada hasil OCR',
+              textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
-                fontSize: 16,
+                fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: Colors.black87,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Text(
-              'Foto atau upload gambar, biar AI\nubah jadi teks yang bisa diedit!',
+              'Ambil gambar atau pilih dari galeri untuk mengekstrak teks dari catatan, buku, atau dokumen.',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 12,
+                height: 1.6,
                 color: Colors.grey.shade600,
-                height: 1.5,
               ),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: onStart,
-              icon: const Icon(Icons.text_fields_rounded, size: 18),
+              icon: const Icon(Icons.add_photo_alternate_rounded, size: 18),
               label: Text(
-                'Mulai Ekstrak',
+                'Mulai OCR',
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -65,59 +70,17 @@ class OcrEmptyState extends StatelessWidget {
                 foregroundColor: Colors.white,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 28,
+                  horizontal: 20,
                   vertical: 14,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            _buildFeatureChips(),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildFeatureChips() {
-    final features = [
-      {'emoji': '📷', 'label': 'Kamera'},
-      {'emoji': '🖼️', 'label': 'Gallery'},
-      {'emoji': '🤖', 'label': 'AI On-device'},
-      {'emoji': '📋', 'label': 'Copy & Share'},
-    ];
-
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      alignment: WrapAlignment.center,
-      children: features.map((f) {
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.grey.shade200, width: 1),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(f['emoji']!, style: const TextStyle(fontSize: 12)),
-              const SizedBox(width: 4),
-              Text(
-                f['label']!,
-                style: GoogleFonts.poppins(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey.shade700,
-                ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
     );
   }
 }
