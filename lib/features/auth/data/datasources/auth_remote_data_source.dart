@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../../../../core/network/auth_session_guard.dart';
+
 abstract class AuthRemoteDataSource {
   Future<Map<String, dynamic>> login(String email, String password);
   Future<Map<String, dynamic>> register(
@@ -116,6 +118,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         : jsonDecode(response.body) as Map<String, dynamic>;
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
+      if (response.statusCode == 401) AuthSessionGuard.notifyExpired();
       throw Exception(
         body['message']?.toString() ?? 'Request gagal. Coba lagi.',
       );

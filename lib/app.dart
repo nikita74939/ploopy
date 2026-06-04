@@ -5,6 +5,8 @@
 //   - Konfigurasi tema Material 3
 //   - Pendelegasian routing ke AppRoutes.generateRoute
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +14,7 @@ import 'package:timezone/data/latest.dart' as tz;
 
 import 'core/constants/app_routes.dart';
 import 'core/di/injection_container.dart';
+import 'core/network/auth_session_guard.dart';
 import 'core/services/navigation_service.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
@@ -64,15 +67,55 @@ class PloopyApp extends StatelessWidget {
           create: (_) => DependencyInjection.profileBloc,
         ),
       ],
-      child: MaterialApp(
-        title: 'Ploopy',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        navigatorKey: NavigationService.navigatorKey,
-        initialRoute: AppRoutes.auth,
-        // Semua definisi route dipusatkan di AppRoutes agar tidak tersebar
-        onGenerateRoute: AppRoutes.generateRoute,
+      child: _SessionExpiredListener(
+        child: MaterialApp(
+          title: 'Ploopy',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          navigatorKey: NavigationService.navigatorKey,
+          initialRoute: AppRoutes.auth,
+          // Semua definisi route dipusatkan di AppRoutes agar tidak tersebar
+          onGenerateRoute: AppRoutes.generateRoute,
+        ),
       ),
     );
   }
+}
+
+class _SessionExpiredListener extends StatefulWidget {
+  final Widget child;
+
+  const _SessionExpiredListener({required this.child});
+
+  @override
+  State<_SessionExpiredListener> createState() =>
+      _SessionExpiredListenerState();
+}
+
+class _SessionExpiredListenerState extends State<_SessionExpiredListener> {
+  late final StreamSubscription<void> _subscription;
+  bool _handlingExpiredSession = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _subscription = AuthSessionGuard.expiredStream.listen((_) {
+      if (!mounted || _handlingExpiredSession) return;
+      _handlingExpiredSession = true;
+      context.read<AuthBloc>().add(LogoutRequested());
+      NavigationService.navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        AppRoutes.auth,
+        (route) => false,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

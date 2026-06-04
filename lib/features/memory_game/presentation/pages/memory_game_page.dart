@@ -17,16 +17,15 @@ class MemoryGamePage extends StatefulWidget {
 
 class _MemoryGamePageState extends State<MemoryGamePage>
     with WidgetsBindingObserver {
-  // Emoji pairs untuk kartu - tema produktivitas belajar
-  static const List<String> _emojis = [
-    '🧠',
-    '📚',
-    '💡',
-    '🎯',
-    '🔬',
-    '🎨',
-    '🚀',
-    '🌟',
+  static const List<IconData> _cardIcons = [
+    Icons.psychology_rounded,
+    Icons.menu_book_rounded,
+    Icons.lightbulb_rounded,
+    Icons.track_changes_rounded,
+    Icons.science_rounded,
+    Icons.palette_rounded,
+    Icons.rocket_launch_rounded,
+    Icons.auto_awesome_rounded,
   ];
 
   late List<_CardModel> _cards;
@@ -97,14 +96,13 @@ class _MemoryGamePageState extends State<MemoryGamePage>
   }
 
   void _initGame() {
-    final pairs = [..._emojis, ..._emojis];
+    final pairs = [..._cardIcons, ..._cardIcons];
     pairs.shuffle();
-    _cards =
-        pairs
-            .asMap()
-            .entries
-            .map((e) => _CardModel(id: e.key, emoji: e.value))
-            .toList();
+    _cards = pairs
+        .asMap()
+        .entries
+        .map((e) => _CardModel(id: e.key, icon: e.value))
+        .toList();
     _flippedIndices = [];
     _moves = 0;
     _matchedPairs = 0;
@@ -169,7 +167,7 @@ class _MemoryGamePageState extends State<MemoryGamePage>
     final first = _cards[_flippedIndices[0]];
     final second = _cards[_flippedIndices[1]];
 
-    if (first.emoji == second.emoji) {
+    if (first.icon == second.icon) {
       HapticFeedback.mediumImpact();
       setState(() {
         _cards[_flippedIndices[0]].isMatched = true;
@@ -179,7 +177,7 @@ class _MemoryGamePageState extends State<MemoryGamePage>
         _isChecking = false;
       });
 
-      if (_matchedPairs == _emojis.length) {
+      if (_matchedPairs == _cardIcons.length) {
         _timer?.cancel();
         _saveBestScore();
         Future.delayed(const Duration(milliseconds: 500), () {
@@ -245,35 +243,32 @@ class _MemoryGamePageState extends State<MemoryGamePage>
   void _showNewRecordDialog() {
     showDialog(
       context: context,
-      builder:
-          (_) => AlertDialog(
-            backgroundColor: AppColors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            title: Row(
-              children: [
-                Icon(Icons.emoji_events, color: AppColors.primary),
-                const SizedBox(width: 8),
-                Text('Rekor Baru! 🎉', style: AppTextStyles.heading),
-              ],
-            ),
-            content: Text(
-              'Selamat! Kamu memecahkan rekor terbaikmu!',
-              style: AppTextStyles.body,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  'OK',
-                  style: AppTextStyles.buttonPrimary.copyWith(
-                    color: AppColors.primary,
-                  ),
-                ),
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(Icons.emoji_events, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Text('Rekor Baru!', style: AppTextStyles.heading),
+          ],
+        ),
+        content: Text(
+          'Selamat! Kamu memecahkan rekor terbaikmu!',
+          style: AppTextStyles.body,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'OK',
+              style: AppTextStyles.buttonPrimary.copyWith(
+                color: AppColors.primary,
               ),
-            ],
+            ),
           ),
+        ],
+      ),
     );
   }
 
@@ -340,42 +335,41 @@ class _MemoryGamePageState extends State<MemoryGamePage>
             onPressed: () {
               showDialog(
                 context: context,
-                builder:
-                    (_) => AlertDialog(
-                      backgroundColor: AppColors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      title: Text('Mulai Ulang?', style: AppTextStyles.heading),
-                      content: Text(
-                        'Progress saat ini akan hilang.',
-                        style: AppTextStyles.body,
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text(
-                            'Batal',
-                            style: AppTextStyles.body.copyWith(
-                              color: AppColors.grey,
-                            ),
-                          ),
+                builder: (_) => AlertDialog(
+                  backgroundColor: AppColors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  title: Text('Mulai Ulang?', style: AppTextStyles.heading),
+                  content: Text(
+                    'Progress saat ini akan hilang.',
+                    style: AppTextStyles.body,
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        'Batal',
+                        style: AppTextStyles.body.copyWith(
+                          color: AppColors.grey,
                         ),
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _restartGame();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                          ),
-                          child: Text(
-                            'Mulai Ulang',
-                            style: AppTextStyles.buttonPrimary,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _restartGame();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                      ),
+                      child: Text(
+                        'Mulai Ulang',
+                        style: AppTextStyles.buttonPrimary,
+                      ),
+                    ),
+                  ],
+                ),
               );
             },
           ),
@@ -396,7 +390,7 @@ class _MemoryGamePageState extends State<MemoryGamePage>
             GameStatsBar(
               moves: _moves,
               matches: _matchedPairs,
-              totalPairs: _emojis.length,
+              totalPairs: _cardIcons.length,
               seconds: _seconds,
             ),
 
@@ -420,7 +414,7 @@ class _MemoryGamePageState extends State<MemoryGamePage>
                     return Stack(
                       children: [
                         MemoryCardWidget(
-                          emoji: card.emoji,
+                          icon: card.icon,
                           isFlipped: isFlipped || card.isMatched,
                           isMatched: card.isMatched,
                           onTap: () => _onCardTap(index),
@@ -486,9 +480,9 @@ class _MemoryGamePageState extends State<MemoryGamePage>
 
 class _CardModel {
   final int id;
-  final String emoji;
+  final IconData icon;
   bool isMatched;
 
   // ignore: unused_element_parameter
-  _CardModel({required this.id, required this.emoji, this.isMatched = false});
+  _CardModel({required this.id, required this.icon, this.isMatched = false});
 }

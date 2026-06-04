@@ -5,14 +5,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../notification/presentation/bloc/notification_bloc.dart';
 import '../../../notification/presentation/pages/notification_page.dart';
 import '../../../schedule/data/models/schedule_model.dart';
+import '../../../schedule/presentation/bloc/schedule_bloc.dart';
 import '../../../task/data/models/task_model.dart';
+import '../../../task/presentation/bloc/task_bloc.dart';
 import '../bloc/home_bloc.dart';
 import 'home_greeting_header.dart';
 import 'learn_now_banner.dart' show LearnNowBanner;
 import 'mini_calendar.dart';
 import 'schedule_timeline.dart';
+import 'schedule_task_add_sheet.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -131,6 +135,32 @@ class _HomePageState extends State<HomePage> {
     }).toList();
   }
 
+  Future<void> _showAddSheet() async {
+    final userId = _loadedUserId;
+    if (userId == null) return;
+    final homeBloc = context.read<HomeBloc>();
+
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.transparent,
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: context.read<ScheduleBloc>()),
+          BlocProvider.value(value: context.read<TaskBloc>()),
+        ],
+        child: ScheduleTaskAddSheet(userId: userId),
+      ),
+    );
+
+    if (!mounted) return;
+    if (saved == true) {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      if (!mounted) return;
+      homeBloc.add(RefreshHomeData(userId: userId));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
@@ -145,6 +175,7 @@ class _HomePageState extends State<HomePage> {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (!mounted) return;
               context.read<HomeBloc>().add(LoadHomeData(userId: userId));
+              context.read<NotificationBloc>().add(LoadNotifications());
             });
           }
         } else if (authState is AuthLoading || authState is AuthInitial) {
@@ -158,111 +189,150 @@ class _HomePageState extends State<HomePage> {
           name = 'Pengguna';
         }
 
-        return SafeArea(
-          child: RefreshIndicator(
-            color: AppColors.primary,
-            onRefresh: () async {
-              final userId = _loadedUserId;
-              if (userId != null) {
-                context.read<HomeBloc>().add(RefreshHomeData(userId: userId));
-              }
-              await Future.delayed(const Duration(milliseconds: 600));
-            },
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ── Header Greeting ───────────────────────────────────
-                  HomeGreetingHeader(
-                    name: name,
-                    unreadNotifCount: 3,
-                    onNotifTap: () {
-                      HapticFeedback.lightImpact();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const NotificationPage(),
-                        ),
-                      );
-                    },
+        return Stack(
+          children: [
+            SafeArea(
+              child: RefreshIndicator(
+                color: AppColors.primary,
+                onRefresh: () async {
+                  final userId = _loadedUserId;
+                  if (userId != null) {
+                    context.read<HomeBloc>().add(
+                      RefreshHomeData(userId: userId),
+                    );
+                  }
+                  await Future.delayed(const Duration(milliseconds: 600));
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 20,
                   ),
-                  const SizedBox(height: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── Header Greeting ───────────────────────────────────
+                      BlocBuilder<NotificationBloc, NotificationState>(
+                        builder: (context, notificationState) {
+                          final unreadCount =
+                              notificationState is NotificationLoaded
+                              ? notificationState.unreadCount
+                              : 0;
+                          final notificationBloc = context
+                              .read<NotificationBloc>();
 
-                  // ── Mini Calendar ─────────────────────────────────────
-                  MiniCalendar(
-                    selectedDay: _selectedDay,
-                    onDaySelected: (day) => setState(() => _selectedDay = day),
-                    onOpenCalendar: () =>
-                        Navigator.pushNamed(context, AppRoutes.calendar),
-                  ),
-                  const SizedBox(height: 20),
+                          return HomeGreetingHeader(
+                            name: name,
+                            unreadNotifCount: unreadCount,
+                            onNotifTap: () async {
+                              HapticFeedback.lightImpact();
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const NotificationPage(),
+                                ),
+                              );
+                              if (!mounted) return;
+                              notificationBloc.add(LoadNotifications());
+                            },
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 20),
 
-                  // ── Banner Belajar ────────────────────────────────────
-                  LearnNowBanner(
-                    onTap: () {
-                      // TODO: navigate to desk page
-                    },
-                  ),
-                  const SizedBox(height: 16),
+                      // ── Mini Calendar ─────────────────────────────────────
+                      MiniCalendar(
+                        selectedDay: _selectedDay,
+                        onDaySelected: (day) =>
+                            setState(() => _selectedDay = day),
+                        onOpenCalendar: () =>
+                            Navigator.pushNamed(context, AppRoutes.calendar),
+                      ),
+                      const SizedBox(height: 20),
 
-                  BlocBuilder<HomeBloc, HomeState>(
-                    builder: (context, homeState) {
-                      final minutes = homeState is HomeLoaded
-                          ? homeState.todayStudyMinutes
-                          : 0;
-                      return _StudyDeskCard(
-                        minutes: minutes,
+                      // ── Banner Belajar ────────────────────────────────────
+                      LearnNowBanner(
                         onTap: () =>
                             Navigator.pushNamed(context, AppRoutes.study),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24),
+                      ),
+                      const SizedBox(height: 16),
 
-                  // ── Schedule & Task dari HomeBloc ─────────────────────
-                  BlocBuilder<HomeBloc, HomeState>(
-                    builder: (context, homeState) {
-                      if (homeState is HomeLoading ||
-                          homeState is HomeInitial) {
-                        return const _ScheduleSkeleton();
-                      }
+                      BlocBuilder<HomeBloc, HomeState>(
+                        builder: (context, homeState) {
+                          final minutes = homeState is HomeLoaded
+                              ? homeState.todayStudyMinutes
+                              : 0;
+                          return _StudyDeskCard(
+                            minutes: minutes,
+                            onTap: () =>
+                                Navigator.pushNamed(context, AppRoutes.study),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 24),
 
-                      if (homeState is HomeError) {
-                        return _ErrorCard(
-                          message: homeState.message,
-                          onRetry: () {
-                            final userId = _loadedUserId;
-                            if (userId == null) return;
-                            context.read<HomeBloc>().add(
-                              LoadHomeData(userId: userId),
+                      // ── Schedule & Task dari HomeBloc ─────────────────────
+                      BlocBuilder<HomeBloc, HomeState>(
+                        builder: (context, homeState) {
+                          if (homeState is HomeLoading ||
+                              homeState is HomeInitial) {
+                            return const _ScheduleSkeleton();
+                          }
+
+                          if (homeState is HomeError) {
+                            return _ErrorCard(
+                              message: homeState.message,
+                              onRetry: () {
+                                final userId = _loadedUserId;
+                                if (userId == null) return;
+                                context.read<HomeBloc>().add(
+                                  LoadHomeData(userId: userId),
+                                );
+                              },
                             );
-                          },
-                        );
-                      }
+                          }
 
-                      if (homeState is HomeLoaded) {
-                        return ScheduleTimeline(
-                          scheduleItems: _mapSchedules(
-                            homeState.todaySchedules,
-                          ),
-                          taskItems: _mapTasks(homeState.tasks),
-                          onSeeAll: () {
-                            Navigator.pushNamed(context, AppRoutes.calendar);
-                          },
-                        );
-                      }
+                          if (homeState is HomeLoaded) {
+                            return ScheduleTimeline(
+                              scheduleItems: _mapSchedules(
+                                homeState.todaySchedules,
+                              ),
+                              taskItems: _mapTasks(homeState.tasks),
+                              onSeeAll: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.schedule,
+                                );
+                              },
+                            );
+                          }
 
-                      return const SizedBox.shrink();
-                    },
+                          return const SizedBox.shrink();
+                        },
+                      ),
+
+                      const SizedBox(height: 80),
+                    ],
                   ),
-
-                  const SizedBox(height: 80),
-                ],
+                ),
               ),
             ),
-          ),
+            Positioned(
+              right: 24,
+              bottom: 22,
+              child: SafeArea(
+                child: FloatingActionButton(
+                  onPressed: _showAddSheet,
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.white,
+                  elevation: 0,
+                  shape: const CircleBorder(),
+                  child: const Icon(Icons.add_rounded, size: 30),
+                ),
+              ),
+            ),
+          ],
         );
       },
     );

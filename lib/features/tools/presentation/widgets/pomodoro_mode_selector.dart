@@ -25,19 +25,19 @@ class PomodoroModeSelector extends StatelessWidget {
         children: [
           _buildTab(
             label: 'Fokus',
-            emoji: '🎯',
+            icon: Icons.track_changes_rounded,
             mode: PomodoroMode.focus,
             selectedColor: const Color(0xFFFF6B6B),
           ),
           _buildTab(
             label: 'Istirahat',
-            emoji: '☕',
+            icon: Icons.free_breakfast_rounded,
             mode: PomodoroMode.shortBreak,
             selectedColor: const Color(0xFF6BCB77),
           ),
           _buildTab(
             label: 'Panjang',
-            emoji: '😴',
+            icon: Icons.nights_stay_rounded,
             mode: PomodoroMode.longBreak,
             selectedColor: const Color(0xFF4D96FF),
           ),
@@ -48,7 +48,7 @@ class PomodoroModeSelector extends StatelessWidget {
 
   Widget _buildTab({
     required String label,
-    required String emoji,
+    required IconData icon,
     required PomodoroMode mode,
     required Color selectedColor,
   }) {
@@ -77,7 +77,11 @@ class PomodoroModeSelector extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 13)),
+              Icon(
+                icon,
+                size: 14,
+                color: isSelected ? selectedColor : Colors.grey.shade500,
+              ),
               const SizedBox(width: 5),
               Text(
                 label,

@@ -34,7 +34,7 @@ class ProfileSettingsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildHeader('⚙️', 'Pengaturan Akun'),
+        _buildHeader(Icons.settings_rounded, 'Pengaturan Akun'),
         const SizedBox(height: 12),
         _buildCard([
           ProfileMenuItem(
@@ -65,9 +65,7 @@ class ProfileSettingsSection extends StatelessWidget {
               value: settings.notifEnabled,
               activeColor: const Color(0xFFFFD166),
               onChanged: (val) {
-                onSettingsChanged?.call(
-                  settings.copyWith(notifEnabled: val),
-                );
+                onSettingsChanged?.call(settings.copyWith(notifEnabled: val));
               },
             ),
           ),
@@ -84,15 +82,13 @@ class ProfileSettingsSection extends StatelessWidget {
               value: settings.darkMode,
               activeColor: const Color(0xFF9C88FF),
               onChanged: (val) {
-                onSettingsChanged?.call(
-                  settings.copyWith(darkMode: val),
-                );
+                onSettingsChanged?.call(settings.copyWith(darkMode: val));
               },
             ),
           ),
         ]),
         const SizedBox(height: 20),
-        _buildHeader('💬', 'Dukungan'),
+        _buildHeader(Icons.chat_bubble_outline_rounded, 'Dukungan'),
         const SizedBox(height: 12),
         _buildCard([
           ProfileMenuItem(
@@ -126,12 +122,12 @@ class ProfileSettingsSection extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(String emoji, String title) {
+  Widget _buildHeader(IconData icon, String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 4),
       child: Row(
         children: [
-          Text(emoji, style: GoogleFonts.poppins(fontSize: 14)),
+          Icon(icon, size: 14, color: Colors.grey.shade600),
           const SizedBox(width: 6),
           Text(
             title,
@@ -157,9 +153,6 @@ class ProfileSettingsSection extends StatelessWidget {
     );
   }
 
-  Widget _divider() => Divider(
-        height: 1,
-        color: Colors.grey.shade100,
-        indent: 64,
-      );
+  Widget _divider() =>
+      Divider(height: 1, color: Colors.grey.shade100, indent: 64);
 }

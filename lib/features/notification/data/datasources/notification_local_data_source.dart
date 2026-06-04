@@ -5,6 +5,8 @@ abstract class NotificationLocalDataSource {
   Future<List<NotificationModel>> getAllNotifications();
   Future<List<NotificationModel>> getUnreadNotifications();
   Future<void> addNotification(NotificationModel notification);
+  Future<void> replaceNotifications(List<NotificationModel> notifications);
+  Future<NotificationModel?> getNotificationById(int id);
   Future<void> markAsRead(int id);
   Future<void> markAllAsRead();
   Future<int> getUnreadCount();
@@ -38,6 +40,21 @@ class NotificationLocalDataSourceImpl implements NotificationLocalDataSource {
     await isar.writeTxn(() async {
       await isar.notificationModels.put(notification);
     });
+  }
+
+  @override
+  Future<void> replaceNotifications(
+    List<NotificationModel> notifications,
+  ) async {
+    await isar.writeTxn(() async {
+      await isar.notificationModels.clear();
+      await isar.notificationModels.putAll(notifications);
+    });
+  }
+
+  @override
+  Future<NotificationModel?> getNotificationById(int id) {
+    return isar.notificationModels.get(id);
   }
 
   @override

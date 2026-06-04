@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../config/supabase.js';
 import { httpError } from '../utils/httpError.js';
+import { createNotification } from './notificationService.js';
 
 const select = 'id, user_id, current_streak, longest_streak, last_active_date, freeze_used_this_week';
 
@@ -31,5 +32,15 @@ export async function checkInStreak(userId) {
   const payload = { current_streak: current, longest_streak: Math.max(current, streak.longest_streak ?? 0), last_active_date: today };
   const { data, error } = await supabaseAdmin.from('streaks').update(payload).eq('user_id', userId).select(select).single();
   if (error) throw httpError(500, error.message);
+  await createNotification({
+    userId,
+    input: {
+      title: 'Streak diperbarui',
+      description: `Streak kamu sekarang ${data.current_streak} hari.`,
+      tag: 'streak_update',
+      refId: data.id,
+      refType: 'streak',
+    },
+  });
   return data;
 }

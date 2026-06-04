@@ -53,7 +53,11 @@ class ProfileStreakCard extends StatelessWidget {
         shape: BoxShape.circle,
       ),
       alignment: Alignment.center,
-      child: const Text('🔥', style: TextStyle(fontSize: 32)),
+      child: const Icon(
+        Icons.local_fire_department_rounded,
+        size: 32,
+        color: Colors.white,
+      ),
     );
   }
 
@@ -97,8 +101,8 @@ class ProfileStreakCard extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           currentStreak > 0
-              ? 'Pertahankan semangatmu! 💪'
-              : 'Yuk mulai streak hari ini! 🚀',
+              ? 'Pertahankan semangatmu!'
+              : 'Yuk mulai streak hari ini!',
           style: GoogleFonts.poppins(
             fontSize: 10,
             color: Colors.white.withOpacity(0.85),
@@ -117,7 +121,7 @@ class ProfileStreakCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text('🏆', style: GoogleFonts.poppins(fontSize: 14)),
+          const Icon(Icons.emoji_events_rounded, size: 14, color: Colors.white),
           const SizedBox(height: 2),
           Text(
             '$longestStreak',

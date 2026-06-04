@@ -100,10 +100,9 @@ class _UnitConverterPageState extends State<UnitConverterPage> {
       _categoryId = id;
       // Reset ke 2 unit pertama dari kategori baru
       _fromUnitCode = _category.units.first.code;
-      _toUnitCode =
-          _category.units.length > 1
-              ? _category.units[1].code
-              : _category.units.first.code;
+      _toUnitCode = _category.units.length > 1
+          ? _category.units[1].code
+          : _category.units.first.code;
     });
     _convert();
   }
@@ -256,7 +255,7 @@ class _UnitConverterPageState extends State<UnitConverterPage> {
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: Text(_category.emoji, style: const TextStyle(fontSize: 22)),
+            child: Icon(_category.icon, color: _category.color, size: 22),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -346,8 +345,10 @@ class _UnitConverterPageState extends State<UnitConverterPage> {
 
   Widget _buildQuickTable() {
     final value = double.tryParse(_fromCtrl.text) ?? 1;
-    final otherUnits =
-        _category.units.where((u) => u.code != _fromUnitCode).take(5).toList();
+    final otherUnits = _category.units
+        .where((u) => u.code != _fromUnitCode)
+        .take(5)
+        .toList();
 
     if (otherUnits.isEmpty) return const SizedBox.shrink();
 
@@ -392,96 +393,92 @@ class _UnitConverterPageState extends State<UnitConverterPage> {
             border: Border.all(color: Colors.grey.shade100, width: 1),
           ),
           child: Column(
-            children:
-                otherUnits.map((u) {
-                  final isLast = u == otherUnits.last;
-                  double result;
-                  if (_categoryId == 'temperature') {
-                    result = UnitData.convertTemperature(
-                      value: value,
-                      fromCode: _fromUnitCode,
-                      toCode: u.code,
-                    );
-                  } else {
-                    result = UnitData.convertGeneral(
-                      value: value,
-                      from: _fromUnit,
-                      to: u,
-                    );
-                  }
+            children: otherUnits.map((u) {
+              final isLast = u == otherUnits.last;
+              double result;
+              if (_categoryId == 'temperature') {
+                result = UnitData.convertTemperature(
+                  value: value,
+                  fromCode: _fromUnitCode,
+                  toCode: u.code,
+                );
+              } else {
+                result = UnitData.convertGeneral(
+                  value: value,
+                  from: _fromUnit,
+                  to: u,
+                );
+              }
 
-                  return Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color:
-                              isLast
-                                  ? Colors.transparent
-                                  : Colors.grey.shade100,
-                          width: 1,
+              return Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: isLast ? Colors.transparent : Colors.grey.shade100,
+                      width: 1,
+                    ),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: _category.color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          u.symbol,
+                          style: GoogleFonts.poppins(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: _category.color,
+                          ),
                         ),
                       ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: _category.color.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(10),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              u.name,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
                             ),
-                            alignment: Alignment.center,
-                            child: Text(
+                            Text(
                               u.symbol,
                               style: GoogleFonts.poppins(
                                 fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: _category.color,
+                                color: Colors.grey.shade500,
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  u.name,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                Text(
-                                  u.symbol,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 10,
-                                    color: Colors.grey.shade500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Text(
-                            _formatNumber(result),
-                            style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                }).toList(),
+                      Text(
+                        _formatNumber(result),
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
           ),
         ),
       ],

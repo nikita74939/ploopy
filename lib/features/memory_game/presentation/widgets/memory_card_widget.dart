@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class MemoryCardWidget extends StatelessWidget {
-  final String emoji;
+  final IconData icon;
   final bool isFlipped;
   final bool isMatched;
   final VoidCallback onTap;
 
   const MemoryCardWidget({
     super.key,
-    required this.emoji,
+    required this.icon,
     required this.isFlipped,
     required this.isMatched,
     required this.onTap,
@@ -51,7 +51,9 @@ class MemoryCardWidget extends StatelessWidget {
         color: isMatched ? const Color(0xFFE8F5E9) : AppColors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isMatched ? Colors.green.withOpacity(0.5) : AppColors.greyBorder,
+          color: isMatched
+              ? Colors.green.withOpacity(0.5)
+              : AppColors.greyBorder,
           width: 1.5,
         ),
         boxShadow: [
@@ -62,12 +64,7 @@ class MemoryCardWidget extends StatelessWidget {
           ),
         ],
       ),
-      child: Center(
-        child: Text(
-          emoji,
-          style: const TextStyle(fontSize: 32),
-        ),
-      ),
+      child: Center(child: Icon(icon, size: 32, color: AppColors.primary)),
     );
   }
 
@@ -76,10 +73,13 @@ class MemoryCardWidget extends StatelessWidget {
     return Container(
       key: const ValueKey(false),
       decoration: BoxDecoration(
-        color: AppColors.primaryLight, // Warna krem oranye sangat lembut[cite: 6]
+        color:
+            AppColors.primaryLight, // Warna krem oranye sangat lembut[cite: 6]
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.primary.withOpacity(0.3), // Border oranye tipis[cite: 7]
+          color: AppColors.primary.withOpacity(
+            0.3,
+          ), // Border oranye tipis[cite: 7]
           width: 2,
         ),
         boxShadow: [

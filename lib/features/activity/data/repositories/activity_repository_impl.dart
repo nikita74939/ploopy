@@ -27,18 +27,22 @@ class ActivityRepositoryImpl implements ActivityRepository {
     String? location,
     String? achievementId,
     List<String>? imageUrls,
-  }) =>
-      remoteDataSource.createActivity(
-        userId: userId,
-        text: text,
-        location: location,
-        achievementId: achievementId,
-        imageUrls: imageUrls,
-      );
+  }) => remoteDataSource.createActivity(
+    userId: userId,
+    text: text,
+    location: location,
+    achievementId: achievementId,
+    imageUrls: imageUrls,
+  );
 
   @override
-  Future<void> deleteActivity(String id) =>
-      remoteDataSource.deleteActivity(id);
+  Future<String> uploadImage({
+    required List<int> bytes,
+    required String contentType,
+  }) => remoteDataSource.uploadImage(bytes: bytes, contentType: contentType);
+
+  @override
+  Future<void> deleteActivity(String id) => remoteDataSource.deleteActivity(id);
 
   @override
   Future<void> toggleLike(String activityId, String userId) =>
@@ -53,10 +57,9 @@ class ActivityRepositoryImpl implements ActivityRepository {
     required String activityId,
     required String userId,
     required String content,
-  }) =>
-      remoteDataSource.addComment(
-        activityId: activityId,
-        userId: userId,
-        content: content,
-      );
+  }) => remoteDataSource.addComment(
+    activityId: activityId,
+    userId: userId,
+    content: content,
+  );
 }

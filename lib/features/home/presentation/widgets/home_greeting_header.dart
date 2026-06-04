@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/date_helper.dart';
 
 class HomeGreetingHeader extends StatelessWidget {
@@ -27,16 +27,12 @@ class HomeGreetingHeader extends StatelessWidget {
             children: [
               Text(
                 DateHelper.getGreeting(name),
-                style: GoogleFonts.poppins(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textMain,
-                ),
+                style: AppTextStyles.heading.copyWith(fontSize: 22),
               ),
               const SizedBox(height: 2),
               Text(
                 DateHelper.formatFullDate(now),
-                style: GoogleFonts.poppins(
+                style: AppTextStyles.caption.copyWith(
                   fontSize: 12,
                   color: AppColors.textSecondary,
                 ),
@@ -49,12 +45,14 @@ class HomeGreetingHeader extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             IconButton(
-              icon: Icon(
-                Icons.notifications_outlined,
-                color: AppColors.textMain,
-                size: 22,
-              ),
+              icon: const Icon(Icons.notifications_rounded, size: 22),
               onPressed: onNotifTap,
+              style: IconButton.styleFrom(
+                backgroundColor: AppColors.white,
+                foregroundColor: AppColors.textMain,
+                shape: const CircleBorder(),
+                side: const BorderSide(color: AppColors.greyBorder),
+              ),
             ),
             if (unreadNotifCount > 0)
               Positioned(
@@ -72,10 +70,10 @@ class HomeGreetingHeader extends StatelessWidget {
                   ),
                   child: Text(
                     unreadNotifCount > 9 ? '9+' : '$unreadNotifCount',
-                    style: GoogleFonts.poppins(
+                    style: AppTextStyles.small.copyWith(
                       fontSize: 8,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: AppColors.white,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -95,14 +93,14 @@ class HomeGreetingHeader extends StatelessWidget {
       width: 46,
       height: 46,
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF3E9),
+        color: AppColors.primaryLighter,
         shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFFFFD0A8), width: 1.5),
+        border: Border.all(color: AppColors.primaryBorder, width: 1.5),
       ),
       alignment: Alignment.center,
       child: Text(
         name.substring(0, 1).toUpperCase(),
-        style: GoogleFonts.poppins(
+        style: AppTextStyles.title.copyWith(
           fontSize: 19,
           fontWeight: FontWeight.w700,
           color: AppColors.primary,

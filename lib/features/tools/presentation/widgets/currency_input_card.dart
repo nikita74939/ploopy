@@ -69,10 +69,7 @@ class CurrencyInputCard extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              currency?['flag'] ?? '🏳️',
-              style: const TextStyle(fontSize: 20),
-            ),
+            Icon(Icons.payments_rounded, size: 20, color: Colors.grey.shade600),
             const SizedBox(width: 8),
             Text(
               currency?['code'] ?? '---',

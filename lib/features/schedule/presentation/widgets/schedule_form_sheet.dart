@@ -14,12 +14,14 @@ import 'recurrence_picker_widget.dart';
 class ScheduleFormSheet extends StatefulWidget {
   final String userId;
   final ScheduleEntity? schedule;
+  final DateTime? initialDate;
   final VoidCallback? onSaved;
 
   const ScheduleFormSheet({
     super.key,
     required this.userId,
     this.schedule,
+    this.initialDate,
     this.onSaved,
   });
 
@@ -49,7 +51,17 @@ class _ScheduleFormSheetState extends State<ScheduleFormSheet> {
   void initState() {
     super.initState();
     final schedule = widget.schedule;
-    final now = DateTime.now();
+    final current = DateTime.now();
+    final initialDate = widget.initialDate;
+    final now = initialDate == null
+        ? current
+        : DateTime(
+            initialDate.year,
+            initialDate.month,
+            initialDate.day,
+            current.hour,
+            current.minute,
+          );
 
     if (schedule == null) {
       _startDate = now;
@@ -134,7 +146,7 @@ class _ScheduleFormSheetState extends State<ScheduleFormSheet> {
       context.read<ScheduleBloc>().add(AddSchedule(schedule: schedule));
     }
 
-    Navigator.pop(context);
+    Navigator.pop(context, true);
     widget.onSaved?.call();
   }
 

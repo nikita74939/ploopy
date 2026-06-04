@@ -20,6 +20,7 @@ class HomeRepositoryImpl implements HomeRepository {
   @override
   Future<List<ScheduleModel>> getTodaySchedules(String userId) async {
     final schedules = await scheduleRepository.getSchedulesByDate(
+      userId,
       DateTime.now(),
     );
     return schedules.map((e) => ScheduleModel.fromEntity(e)).toList();
@@ -58,7 +59,7 @@ class HomeRepositoryImpl implements HomeRepository {
     String userId,
     DateTime date,
   ) async {
-    final schedules = await scheduleRepository.getSchedulesByDate(date);
+    final schedules = await scheduleRepository.getSchedulesByDate(userId, date);
     return schedules.map((e) => ScheduleModel.fromEntity(e)).toList();
   }
 

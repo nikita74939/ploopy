@@ -14,8 +14,11 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   });
 
   @override
-  Future<List<ScheduleEntity>> getSchedulesByDate(DateTime date) async {
-    final models = await _getFreshOrCachedSchedulesByDate(date);
+  Future<List<ScheduleEntity>> getSchedulesByDate(
+    String userId,
+    DateTime date,
+  ) async {
+    final models = await _getFreshOrCachedSchedulesByDate(userId, date);
     return models.map((m) => m.toEntity()).toList();
   }
 
@@ -96,27 +99,18 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   Future<List<ScheduleModel>> _getFreshOrCachedSchedulesByDate(
+    String userId,
     DateTime date,
   ) async {
-    final cached = await localDataSource.getAllSchedules();
-    final userId = cached.isNotEmpty ? cached.first.userId : null;
-    if (userId != null) await _syncPending(userId);
+    await _syncPending(userId);
 
     try {
       final remoteSchedules = await remoteDataSource.getAllSchedules();
-      final effectiveUserId =
-          userId ??
-          (remoteSchedules.isNotEmpty ? remoteSchedules.first.userId : null);
-      if (effectiveUserId != null) {
-        await localDataSource.cacheRemoteSchedules(
-          effectiveUserId,
-          remoteSchedules,
-        );
-      }
+      await localDataSource.cacheRemoteSchedules(userId, remoteSchedules);
     } catch (_) {
       // Offline or backend unavailable.
     }
-    return localDataSource.getSchedulesByDate(date);
+    return localDataSource.getSchedulesByDate(userId, date);
   }
 
   Future<void> _syncPending(String userId) async {

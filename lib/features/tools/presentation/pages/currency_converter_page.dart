@@ -194,7 +194,11 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: const Text('💱', style: TextStyle(fontSize: 26)),
+            child: const Icon(
+              Icons.currency_exchange_rounded,
+              size: 26,
+              color: Colors.white,
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -273,10 +277,14 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
   Widget _buildPopularRates() {
     if (_rates == null || _loading) return const SizedBox.shrink();
 
-    final popular = ['USD', 'EUR', 'GBP', 'JPY', 'SGD', 'IDR']
-        .where((c) => c != _fromCode)
-        .take(5)
-        .toList();
+    final popular = [
+      'USD',
+      'EUR',
+      'GBP',
+      'JPY',
+      'SGD',
+      'IDR',
+    ].where((c) => c != _fromCode).take(5).toList();
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -291,7 +299,7 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
           Row(
             children: [
               Text(
-                '📊 Rate Populer',
+                'Rate Populer',
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -316,9 +324,10 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
               padding: const EdgeInsets.only(bottom: 10),
               child: Row(
                 children: [
-                  Text(
-                    currency?['flag'] ?? '🏳️',
-                    style: const TextStyle(fontSize: 20),
+                  Icon(
+                    Icons.payments_rounded,
+                    size: 20,
+                    color: Colors.grey.shade500,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -366,18 +375,11 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
-          Icons.access_time_rounded,
-          size: 11,
-          color: Colors.grey.shade400,
-        ),
+        Icon(Icons.access_time_rounded, size: 11, color: Colors.grey.shade400),
         const SizedBox(width: 4),
         Text(
           'Update: ${_formatUpdateTime(_lastUpdate!)}',
-          style: GoogleFonts.poppins(
-            fontSize: 10,
-            color: Colors.grey.shade400,
-          ),
+          style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey.shade400),
         ),
       ],
     );
@@ -399,7 +401,11 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('📡', style: TextStyle(fontSize: 56)),
+            Icon(
+              Icons.signal_wifi_connected_no_internet_4_rounded,
+              size: 56,
+              color: Colors.grey.shade400,
+            ),
             const SizedBox(height: 16),
             Text(
               'Oops!',

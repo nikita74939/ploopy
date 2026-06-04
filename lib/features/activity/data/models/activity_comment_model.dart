@@ -23,14 +23,17 @@ class ActivityCommentModel {
   });
 
   factory ActivityCommentModel.fromJson(Map<String, dynamic> json) {
+    final userJson =
+        json['users'] as Map<String, dynamic>? ??
+        json['profiles'] as Map<String, dynamic>?;
     return ActivityCommentModel(
       id: json['id'] as String,
       activityId: json['activity_id'] as String,
       userId: json['user_id'] as String,
       content: json['content'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
-      userName: json['profiles']?['name'] as String?,
-      userPhoto: json['profiles']?['avatar_url'] as String?,
+      userName: userJson?['name'] as String?,
+      userPhoto: userJson?['avatar_url'] as String?,
     );
   }
 

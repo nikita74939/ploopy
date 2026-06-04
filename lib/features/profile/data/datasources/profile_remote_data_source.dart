@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/network/auth_session_guard.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../models/achievement_supabase_model.dart';
 import '../models/app_settings_model.dart';
@@ -48,14 +49,12 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
   @override
   Future<UserModel?> getUserById(String userId) async {
-    final response = await supabase
-        .from('users')
-        .select()
-        .eq('id', userId)
-        .maybeSingle();
-
-    if (response == null) return null;
-    return UserModel.fromSupabase(response);
+    final response = await client.get(
+      _uri('/api/users/$userId'),
+      headers: await _jsonHeaders(),
+    );
+    final data = _decode(response)['user'] as Map<String, dynamic>?;
+    return data == null ? null : UserModel.fromSupabase(data);
   }
 
   @override
@@ -129,6 +128,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         : jsonDecode(response.body) as Map<String, dynamic>;
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
+      if (response.statusCode == 401) AuthSessionGuard.notifyExpired();
       throw Exception(
         body['message']?.toString() ?? 'Request gagal. Coba lagi.',
       );

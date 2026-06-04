@@ -127,34 +127,38 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
 
   // ── See All ──────────────────────────────────────
   Widget _buildSeeAll() {
-    return GestureDetector(
-      onTap: widget.onSeeAll,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.greyBorder),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Lihat semua',
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+    return Material(
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: widget.onSeeAll,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.greyBorder),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Lihat semua',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.arrow_forward_rounded,
+                size: 15,
                 color: AppColors.primary,
               ),
-            ),
-            const SizedBox(width: 4),
-            Icon(
-              Icons.arrow_forward_rounded,
-              size: 15,
-              color: AppColors.primary,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -252,9 +256,12 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
       ),
       child: Column(
         children: [
-          Text(
-            _showSchedule ? '📅' : '✅',
-            style: const TextStyle(fontSize: 34),
+          Icon(
+            _showSchedule
+                ? Icons.calendar_month_rounded
+                : Icons.task_alt_rounded,
+            size: 34,
+            color: AppColors.primary,
           ),
           const SizedBox(height: 8),
           Text(

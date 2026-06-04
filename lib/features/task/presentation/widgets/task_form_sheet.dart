@@ -10,8 +10,14 @@ import '../bloc/task_bloc.dart';
 class TaskFormSheet extends StatefulWidget {
   final String userId;
   final TaskEntity? task;
+  final DateTime? initialDate;
 
-  const TaskFormSheet({super.key, required this.userId, this.task});
+  const TaskFormSheet({
+    super.key,
+    required this.userId,
+    this.task,
+    this.initialDate,
+  });
 
   @override
   State<TaskFormSheet> createState() => _TaskFormSheetState();
@@ -53,9 +59,15 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
   void initState() {
     super.initState();
     final task = widget.task;
-    _deadline = task?.deadline ?? DateTime.now().add(const Duration(days: 1));
+    final current = DateTime.now();
+    final initialDate = widget.initialDate;
+    _deadline =
+        task?.deadline ??
+        (initialDate == null
+            ? current.add(const Duration(days: 1))
+            : DateTime(initialDate.year, initialDate.month, initialDate.day));
     _deadlineTime = TimeOfDay.fromDateTime(
-      task?.deadline ?? DateTime.now().copyWith(hour: 23, minute: 59),
+      task?.deadline ?? _deadline.copyWith(hour: 23, minute: 59),
     );
     _selectedColor = task == null ? AppColors.primary : Color(task.color);
     _selectedIcon = task?.iconName ?? 'task';

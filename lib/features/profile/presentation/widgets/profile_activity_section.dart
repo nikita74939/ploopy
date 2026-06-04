@@ -40,7 +40,7 @@ class ProfileActivitySection extends StatelessWidget {
   Widget _buildHeader() {
     return Row(
       children: [
-        Text('📝', style: GoogleFonts.poppins(fontSize: 15)),
+        Icon(Icons.edit_note_rounded, size: 15, color: Colors.grey.shade700),
         const SizedBox(width: 6),
         Text(
           'Aktivitas',
@@ -90,22 +90,33 @@ class ProfileActivitySection extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
-              child: Icon(Icons.edit_rounded,
-                  color: AppColors.primary, size: 18),
+              child: Icon(
+                Icons.edit_rounded,
+                color: AppColors.primary,
+                size: 18,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 'Ceritakan hari ini, yuk! ✨',
                 style: GoogleFonts.poppins(
-                    fontSize: 13, color: Colors.grey.shade500),
+                  fontSize: 13,
+                  color: Colors.grey.shade500,
+                ),
               ),
             ),
-            Icon(Icons.photo_library_rounded,
-                color: Colors.grey.shade400, size: 20),
+            Icon(
+              Icons.photo_library_rounded,
+              color: Colors.grey.shade400,
+              size: 20,
+            ),
             const SizedBox(width: 8),
-            Icon(Icons.emoji_emotions_rounded,
-                color: Colors.grey.shade400, size: 20),
+            Icon(
+              Icons.emoji_emotions_rounded,
+              color: Colors.grey.shade400,
+              size: 20,
+            ),
           ],
         ),
       ),
@@ -122,13 +133,15 @@ class ProfileActivitySection extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Text('🌱', style: TextStyle(fontSize: 24)),
+          Icon(Icons.eco_rounded, size: 24, color: Colors.green.shade400),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               'Belum ada aktivitas. Mulai buat postingan pertamamu!',
               style: GoogleFonts.poppins(
-                  fontSize: 12, color: Colors.grey.shade500),
+                fontSize: 12,
+                color: Colors.grey.shade500,
+              ),
             ),
           ),
         ],

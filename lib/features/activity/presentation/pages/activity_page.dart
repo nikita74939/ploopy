@@ -387,7 +387,11 @@ class _ActivityCard extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: const Text('🏆', style: TextStyle(fontSize: 16)),
+            child: const Icon(
+              Icons.emoji_events_rounded,
+              size: 16,
+              color: Colors.white,
+            ),
           ),
           const SizedBox(width: 10),
           Text(
@@ -479,7 +483,11 @@ class _ActivityCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Text('📍', style: TextStyle(fontSize: 14)),
+          Icon(
+            Icons.location_on_rounded,
+            size: 14,
+            color: Colors.grey.shade500,
+          ),
           const SizedBox(width: 8),
           Text(
             activity.location!,

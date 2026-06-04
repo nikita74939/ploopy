@@ -3,22 +3,44 @@ class DateHelper {
 
   // ── Nama hari pendek (Senin–Minggu, mulai Senin) ─────────────────────────
   static const List<String> dayNames = [
-    'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min',
+    'Sen',
+    'Sel',
+    'Rab',
+    'Kam',
+    'Jum',
+    'Sab',
+    'Min',
   ];
 
   // ── Nama hari panjang ────────────────────────────────────────────────────
   static const List<String> dayNamesFull = [
-    'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu',
+    'Senin',
+    'Selasa',
+    'Rabu',
+    'Kamis',
+    'Jumat',
+    'Sabtu',
+    'Minggu',
   ];
 
   // ── Nama bulan Bahasa Indonesia ──────────────────────────────────────────
   static const List<String> monthNames = [
-    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+    'Januari',
+    'Februari',
+    'Maret',
+    'April',
+    'Mei',
+    'Juni',
+    'Juli',
+    'Agustus',
+    'September',
+    'Oktober',
+    'November',
+    'Desember',
   ];
 
   // ── Greeting berdasarkan jam ─────────────────────────────────────────────
-  // Contoh hasil: "Selamat Pagi, Budi 👋"
+  // Contoh hasil: "Selamat Pagi, Budi"
   static String getGreeting(String name) {
     final hour = DateTime.now().hour;
     final String greeting;
@@ -33,7 +55,7 @@ class DateHelper {
       greeting = 'Selamat Malam';
     }
 
-    return '$greeting, $name 👋';
+    return '$greeting, $name';
   }
 
   // ── Format tanggal lengkap ───────────────────────────────────────────────
@@ -89,8 +111,7 @@ class DateHelper {
   static String getRelativeDueLabel(DateTime deadline) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final deadlineDay =
-        DateTime(deadline.year, deadline.month, deadline.day);
+    final deadlineDay = DateTime(deadline.year, deadline.month, deadline.day);
     final diff = deadlineDay.difference(today).inDays;
 
     if (diff < 0) return 'Kemarin';

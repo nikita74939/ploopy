@@ -22,11 +22,12 @@ class LoadSchedules extends ScheduleEvent {
 }
 
 class LoadSchedulesByDate extends ScheduleEvent {
+  final String userId;
   final DateTime date;
-  LoadSchedulesByDate({required this.date});
+  LoadSchedulesByDate({required this.userId, required this.date});
 
   @override
-  List<Object?> get props => [date];
+  List<Object?> get props => [userId, date];
 }
 
 class AddSchedule extends ScheduleEvent {
@@ -113,7 +114,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       if (isOnline && _lastUserId != null && !isClosed) {
         final date = _lastDate;
         if (date != null) {
-          add(LoadSchedulesByDate(date: date));
+          add(LoadSchedulesByDate(userId: _lastUserId!, date: date));
         } else {
           add(LoadSchedules(userId: _lastUserId!));
         }
@@ -140,10 +141,14 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     LoadSchedulesByDate event,
     Emitter<ScheduleState> emit,
   ) async {
+    _lastUserId = event.userId;
     _lastDate = event.date;
     emit(ScheduleLoading());
     try {
-      final schedules = await repository.getSchedulesByDate(event.date);
+      final schedules = await repository.getSchedulesByDate(
+        event.userId,
+        event.date,
+      );
       emit(ScheduleLoaded(schedules: schedules));
     } catch (e) {
       emit(ScheduleError(message: e.toString()));
@@ -158,7 +163,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     try {
       await repository.addSchedule(event.schedule);
       emit(ScheduleOperationSuccess(message: 'Jadwal berhasil ditambahkan'));
-      add(LoadSchedules(userId: event.schedule.userId));
+      _reloadLastView(event.schedule.userId);
     } catch (e) {
       emit(ScheduleError(message: e.toString()));
     }
@@ -172,7 +177,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     try {
       await repository.updateSchedule(event.schedule);
       emit(ScheduleOperationSuccess(message: 'Jadwal berhasil diperbarui'));
-      add(LoadSchedules(userId: event.schedule.userId));
+      _reloadLastView(event.schedule.userId);
     } catch (e) {
       emit(ScheduleError(message: e.toString()));
     }
@@ -186,7 +191,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     try {
       await repository.deleteSchedule(event.id);
       emit(ScheduleOperationSuccess(message: 'Jadwal berhasil dihapus'));
-      add(LoadSchedules(userId: event.userId));
+      _reloadLastView(event.userId);
     } catch (e) {
       emit(ScheduleError(message: e.toString()));
     }
@@ -196,5 +201,14 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   Future<void> close() async {
     await _connectivitySubscription?.cancel();
     return super.close();
+  }
+
+  void _reloadLastView(String userId) {
+    final date = _lastDate;
+    if (date != null) {
+      add(LoadSchedulesByDate(userId: userId, date: date));
+    } else {
+      add(LoadSchedules(userId: userId));
+    }
   }
 }

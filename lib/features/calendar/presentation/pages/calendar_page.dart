@@ -5,13 +5,12 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../home/presentation/widgets/schedule_task_add_sheet.dart';
 import '../../../schedule/domain/entities/schedule_entity.dart';
 import '../../../schedule/presentation/bloc/schedule_bloc.dart';
-import '../../../schedule/presentation/widgets/schedule_form_sheet.dart';
 import '../../../study/presentation/bloc/study_bloc.dart';
 import '../../../task/domain/entities/task_entity.dart';
 import '../../../task/presentation/bloc/task_bloc.dart';
-import '../../../task/presentation/widgets/task_form_sheet.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -42,7 +41,9 @@ class _CalendarPageState extends State<CalendarPage> {
   void _loadSelectedDate() {
     final userId = _currentUserId;
     if (userId == null) return;
-    context.read<ScheduleBloc>().add(LoadSchedulesByDate(date: _selectedDate));
+    context.read<ScheduleBloc>().add(
+      LoadSchedulesByDate(userId: userId, date: _selectedDate),
+    );
     context.read<TaskBloc>().add(
       LoadTasksByDate(date: _selectedDate, userId: userId),
     );
@@ -86,7 +87,7 @@ class _CalendarPageState extends State<CalendarPage> {
       return;
     }
 
-    await showModalBottomSheet<void>(
+    final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.transparent,
@@ -95,9 +96,12 @@ class _CalendarPageState extends State<CalendarPage> {
           BlocProvider.value(value: context.read<ScheduleBloc>()),
           BlocProvider.value(value: context.read<TaskBloc>()),
         ],
-        child: _CalendarAddSheet(userId: userId),
+        child: ScheduleTaskAddSheet(userId: userId, initialDate: _selectedDate),
       ),
     );
+    if (saved == true) {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+    }
     _loadSelectedDate();
   }
 
@@ -611,81 +615,6 @@ class _EmptyLine extends StatelessWidget {
           const SizedBox(width: 8),
           Text(label, style: AppTextStyles.caption.copyWith(fontSize: 11)),
         ],
-      ),
-    );
-  }
-}
-
-class _CalendarAddSheet extends StatelessWidget {
-  final String userId;
-
-  const _CalendarAddSheet({required this.userId});
-
-  @override
-  Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Container(
-        height: MediaQuery.of(context).size.height * 0.9,
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          children: [
-            const SizedBox(height: 10),
-            Container(
-              width: 42,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.greyHandle,
-                borderRadius: BorderRadius.circular(99),
-              ),
-            ),
-            const SizedBox(height: 14),
-            Container(
-              height: 42,
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: AppColors.primaryLighter,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: TabBar(
-                indicator: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(13),
-                ),
-                labelColor: AppColors.white,
-                unselectedLabelColor: AppColors.textSecondary,
-                labelStyle: AppTextStyles.tabActive.copyWith(
-                  color: AppColors.white,
-                ),
-                unselectedLabelStyle: AppTextStyles.tabInactive,
-                dividerColor: AppColors.transparent,
-                indicatorSize: TabBarIndicatorSize.tab,
-                tabs: const [
-                  Tab(text: 'Schedule'),
-                  Tab(text: 'Task'),
-                ],
-              ),
-            ),
-            Expanded(
-              child: TabBarView(
-                children: [
-                  BlocProvider.value(
-                    value: context.read<ScheduleBloc>(),
-                    child: ScheduleFormSheet(userId: userId),
-                  ),
-                  BlocProvider.value(
-                    value: context.read<TaskBloc>(),
-                    child: TaskFormSheet(userId: userId),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

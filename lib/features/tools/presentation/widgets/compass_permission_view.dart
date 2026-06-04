@@ -28,7 +28,7 @@ class CompassPermissionView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('😢', style: TextStyle(fontSize: 48)),
+            Icon(Icons.sensors_off_rounded, size: 48, color: Colors.grey),
             const SizedBox(height: 16),
             Text(
               'Sensor Tidak Tersedia',
@@ -69,7 +69,11 @@ class CompassPermissionView extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
-              child: const Text('🧭', style: TextStyle(fontSize: 40)),
+              child: const Icon(
+                Icons.explore_rounded,
+                size: 40,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(height: 20),
             Text(

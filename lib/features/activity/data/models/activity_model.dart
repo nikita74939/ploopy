@@ -38,9 +38,11 @@ class ActivityModel {
   });
 
   factory ActivityModel.fromJson(Map<String, dynamic> json) {
-    // activity_images is a nested list returned via Supabase join
     final rawImages = json['activity_images'] as List<dynamic>? ?? [];
     final imageUrls = rawImages.map((e) => e['image_url'] as String).toList();
+    final userJson =
+        json['users'] as Map<String, dynamic>? ??
+        json['profiles'] as Map<String, dynamic>?;
 
     return ActivityModel(
       id: json['id'] as String,
@@ -53,8 +55,8 @@ class ActivityModel {
       likeCount: (json['like_count'] as num?)?.toInt() ?? 0,
       isLikedByMe: json['is_liked_by_me'] as bool? ?? false,
       commentCount: (json['comment_count'] as num?)?.toInt() ?? 0,
-      userName: json['profiles']?['name'] as String?,
-      userPhoto: json['profiles']?['avatar_url'] as String?,
+      userName: userJson?['name'] as String?,
+      userPhoto: userJson?['avatar_url'] as String?,
     );
   }
 

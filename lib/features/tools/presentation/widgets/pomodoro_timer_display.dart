@@ -78,10 +78,7 @@ class PomodoroTimerDisplay extends StatelessWidget {
       padding: const EdgeInsets.all(8),
       child: CustomPaint(
         size: Size.infinite,
-        painter: _ProgressRingPainter(
-          progress: progress,
-          color: color,
-        ),
+        painter: _ProgressRingPainter(progress: progress, color: color),
       ),
     );
   }
@@ -123,19 +120,16 @@ class PomodoroTimerDisplay extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           _getTimeLabel(),
-          style: GoogleFonts.poppins(
-            fontSize: 11,
-            color: Colors.grey.shade500,
-          ),
+          style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500),
         ),
       ],
     );
   }
 
   String _getTimeLabel() {
-    if (remainingSeconds == 0) return 'Selesai! 🎉';
+    if (remainingSeconds == 0) return 'Selesai!';
     if (remainingSeconds == totalSeconds) return 'Siap untuk mulai';
-    return 'Tetap fokus... 💪';
+    return 'Tetap fokus...';
   }
 }
 
@@ -163,10 +157,7 @@ class _ProgressRingPainter extends CustomPainter {
     if (progress > 0) {
       final progressPaint = Paint()
         ..shader = SweepGradient(
-          colors: [
-            color.withOpacity(0.6),
-            color,
-          ],
+          colors: [color.withOpacity(0.6), color],
           startAngle: -math.pi / 2,
           endAngle: math.pi * 2,
         ).createShader(Rect.fromCircle(center: center, radius: radius))

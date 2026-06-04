@@ -152,7 +152,7 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('🔍', style: TextStyle(fontSize: 36)),
+            Icon(Icons.search_rounded, size: 36, color: Colors.grey.shade400),
             const SizedBox(height: 12),
             Text(
               'Tidak ditemukan',

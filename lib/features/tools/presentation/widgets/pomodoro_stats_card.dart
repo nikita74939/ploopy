@@ -24,20 +24,16 @@ class PomodoroStatsCard extends StatelessWidget {
         children: [
           Expanded(
             child: _buildStat(
-              emoji: '🍅',
+              icon: Icons.check_circle_rounded,
               value: completedSessions.toString(),
               label: 'Sesi selesai',
               color: const Color(0xFFFF6B6B),
             ),
           ),
-          Container(
-            width: 1,
-            height: 36,
-            color: Colors.grey.shade100,
-          ),
+          Container(width: 1, height: 36, color: Colors.grey.shade100),
           Expanded(
             child: _buildStat(
-              emoji: '⏱️',
+              icon: Icons.timer_rounded,
               value: _formatMinutes(totalFocusMinutes),
               label: 'Total fokus',
               color: const Color(0xFF4D96FF),
@@ -49,14 +45,14 @@ class PomodoroStatsCard extends StatelessWidget {
   }
 
   Widget _buildStat({
-    required String emoji,
+    required IconData icon,
     required String value,
     required String label,
     required Color color,
   }) {
     return Column(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 18)),
+        Icon(icon, size: 18, color: color),
         const SizedBox(height: 4),
         Text(
           value,
@@ -68,10 +64,7 @@ class PomodoroStatsCard extends StatelessWidget {
         ),
         Text(
           label,
-          style: GoogleFonts.poppins(
-            fontSize: 10,
-            color: Colors.grey.shade500,
-          ),
+          style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey.shade500),
         ),
       ],
     );

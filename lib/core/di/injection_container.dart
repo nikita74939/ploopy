@@ -51,11 +51,12 @@ import '../../../features/study/presentation/bloc/study_bloc.dart';
 
 // Notification
 import '../../../features/notification/data/datasources/notification_local_data_source.dart';
+import '../../../features/notification/data/datasources/notification_remote_data_source.dart';
 import '../../../features/notification/data/repositories/notification_repository_impl.dart';
 import '../../../features/notification/domain/repositories/notification_repository.dart';
 import '../../../features/notification/presentation/bloc/notification_bloc.dart';
 
-// Activity (remote-only: Supabase)
+// Activity
 import '../../../features/activity/data/datasources/activity_remote_data_source.dart';
 import '../../../features/activity/data/repositories/activity_repository_impl.dart';
 import '../../../features/activity/domain/repositories/activity_repository.dart';
@@ -223,19 +224,33 @@ class DependencyInjection {
   static NotificationLocalDataSource get notificationLocalDataSource =>
       NotificationLocalDataSourceImpl(isar: _isar!);
 
+  static NotificationRemoteDataSource get notificationRemoteDataSource =>
+      NotificationRemoteDataSourceImpl(
+        client: _httpClient,
+        baseUrl: ApiConfig.baseUrl,
+        secureStorage: _secureStorage,
+      );
+
   static NotificationRepository get notificationRepository =>
-      NotificationRepositoryImpl(localDataSource: notificationLocalDataSource);
+      NotificationRepositoryImpl(
+        localDataSource: notificationLocalDataSource,
+        remoteDataSource: notificationRemoteDataSource,
+      );
 
   static NotificationBloc get notificationBloc =>
       NotificationBloc(repository: notificationRepository);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // ACTIVITY
-  // Feed aktivitas pengguna — remote-only via Supabase
+  // Feed aktivitas pengguna — via backend API
   // ═══════════════════════════════════════════════════════════════════════════
 
   static ActivityRemoteDataSource get activityRemoteDataSource =>
-      ActivityRemoteDataSourceImpl(supabase: _supabase);
+      ActivityRemoteDataSourceImpl(
+        client: _httpClient,
+        baseUrl: ApiConfig.baseUrl,
+        secureStorage: _secureStorage,
+      );
 
   static ActivityRepository get activityRepository =>
       ActivityRepositoryImpl(remoteDataSource: activityRemoteDataSource);

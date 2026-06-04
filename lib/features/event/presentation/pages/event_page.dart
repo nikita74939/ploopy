@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/widgets/neo_container.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/date_utils.dart';
-import '../bloc/event_bloc.dart';
 import '../../data/models/event_model.dart';
+import '../bloc/event_bloc.dart';
 
 class EventPage extends StatefulWidget {
   const EventPage({super.key});
@@ -19,8 +20,7 @@ class _EventPageState extends State<EventPage>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
 
-  String? get _currentUserId =>
-      Supabase.instance.client.auth.currentUser?.id;
+  String? get _currentUserId => Supabase.instance.client.auth.currentUser?.id;
 
   @override
   void initState() {
@@ -41,20 +41,44 @@ class _EventPageState extends State<EventPage>
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.background,
-        title: const Text('Events'),
-        bottom: TabBar(
-          controller: _tabController,
-          onTap: (index) {
-            if (index == 0) {
-              context.read<EventBloc>().add(LoadEvents());
-            } else {
-              context.read<EventBloc>().add(LoadUpcomingEvents());
-            }
-          },
-          tabs: const [
-            Tab(text: 'All Events'),
-            Tab(text: 'Upcoming'),
-          ],
+        title: Text('Events', style: AppTextStyles.title),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(58),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+            child: Container(
+              height: 42,
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.primaryLighter,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: TabBar(
+                controller: _tabController,
+                onTap: (index) {
+                  context.read<EventBloc>().add(
+                    index == 0 ? LoadEvents() : LoadUpcomingEvents(),
+                  );
+                },
+                indicator: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                indicatorSize: TabBarIndicatorSize.tab,
+                dividerColor: AppColors.transparent,
+                labelColor: AppColors.white,
+                unselectedLabelColor: AppColors.textSecondary,
+                labelStyle: AppTextStyles.tabActive.copyWith(
+                  color: AppColors.white,
+                ),
+                unselectedLabelStyle: AppTextStyles.tabInactive,
+                tabs: const [
+                  Tab(text: 'All'),
+                  Tab(text: 'Upcoming'),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
       body: BlocConsumer<EventBloc, EventState>(
@@ -68,9 +92,9 @@ class _EventPageState extends State<EventPage>
             );
           }
           if (state is EventOperationSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         },
         builder: (context, state) {
@@ -79,335 +103,405 @@ class _EventPageState extends State<EventPage>
           }
 
           if (state is EventsLoaded) {
-            if (state.events.isEmpty) return _buildEmptyState();
-            return _buildEventList(state.events);
+            if (state.events.isEmpty) {
+              return const _EmptyEvents();
+            }
+            return ListView.separated(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 96),
+              itemCount: state.events.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 14),
+              itemBuilder: (context, index) => _EventCard(
+                event: state.events[index],
+                currentUserId: _currentUserId,
+              ),
+            );
           }
 
           return const SizedBox.shrink();
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Navigate to create event page
-        },
+        onPressed: () {},
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+        foregroundColor: AppColors.white,
+        shape: const CircleBorder(),
+        child: const Icon(Icons.add_rounded),
       ),
     );
   }
+}
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.event_outlined,
-            size: 80,
-            color: AppColors.textSecondary.withOpacity(0.5),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'No events yet',
-            style: TextStyle(fontSize: 18, color: AppColors.textSecondary),
-          ),
-        ],
-      ),
-    );
-  }
+class _EventCard extends StatelessWidget {
+  final EventModel event;
+  final String? currentUserId;
 
-  Widget _buildEventList(List<EventModel> events) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(AppStyle.paddingMedium),
-      itemCount: events.length,
-      itemBuilder: (context, index) => _buildEventCard(events[index]),
-    );
-  }
+  const _EventCard({required this.event, this.currentUserId});
 
-  Widget _buildEventCard(EventModel event) {
-    final accentColor = _parseColor(event.color);
-
-    return NeoCard(
-      accentColor: accentColor,
-      onTap: () {
-        // TODO: Navigate to event detail
-      },
-      child: Padding(
-        padding: const EdgeInsets.all(AppStyle.paddingMedium),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildCardHeader(event, accentColor),
-            const SizedBox(height: 12),
-            _buildCardMeta(event),
-            if (event.description != null && event.description!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                event.description!,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
-            const SizedBox(height: 12),
-            _buildCardFooter(event, accentColor),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCardHeader(EventModel event, Color accentColor) {
-    return Row(
-      children: [
-        Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: accentColor.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(_getIconFromName(event.icon), color: accentColor),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                event.name,
-                style: const TextStyle(
-                    fontSize: 17, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  const Icon(Icons.calendar_today,
-                      size: 13, color: AppColors.textSecondary),
-                  const SizedBox(width: 4),
-                  Text(
-                    DateTimeUtils.formatDateTime(event.eventDate),
-                    style: const TextStyle(
-                        fontSize: 12, color: AppColors.textSecondary),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        // Price badge
-        _buildPriceBadge(event, accentColor),
-      ],
-    );
-  }
-
-  Widget _buildPriceBadge(EventModel event, Color accentColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: event.isFree
-            ? Colors.green.withOpacity(0.15)
-            : accentColor.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: event.isFree ? Colors.green : accentColor,
-          width: 1,
-        ),
-      ),
-      child: Text(
-        event.isFree
-            ? 'FREE'
-            : NumberFormat.currency(
-                locale: 'id_ID',
-                symbol: 'Rp',
-                decimalDigits: 0,
-              ).format(event.price),
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-          color: event.isFree ? Colors.green : accentColor,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCardMeta(EventModel event) {
-    return Row(
-      children: [
-        Icon(
-          event.isOnline ? Icons.videocam : Icons.location_on,
-          size: 15,
-          color: AppColors.textSecondary,
-        ),
-        const SizedBox(width: 4),
-        Expanded(
-          child: Text(
-            event.isOnline ? 'Online' : (event.location ?? 'TBD'),
-            style: const TextStyle(
-                fontSize: 13, color: AppColors.textSecondary),
-          ),
-        ),
-        if (event.maxParticipants != null && event.maxParticipants! > 0) ...[
-          const Icon(Icons.people, size: 15, color: AppColors.textSecondary),
-          const SizedBox(width: 4),
-          Text(
-            '${event.currentParticipants}/${event.maxParticipants}',
-            style: TextStyle(
-              fontSize: 13,
-              color: event.isFull ? AppColors.error : AppColors.textSecondary,
-              fontWeight:
-                  event.isFull ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-          if (event.isFull) ...[
-            const SizedBox(width: 4),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'FULL',
-                style: TextStyle(
-                    fontSize: 10,
-                    color: AppColors.error,
-                    fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-        ],
-      ],
-    );
-  }
-
-  Widget _buildCardFooter(EventModel event, Color accentColor) {
-    final userId = _currentUserId;
+  @override
+  Widget build(BuildContext context) {
+    final accent = _parseColor(event.color);
+    final userId = currentUserId;
     final isCreator = userId == event.creatorId;
     final canJoin = !event.isJoinedByMe && !event.isFull && event.isUpcoming;
 
-    return Row(
-      children: [
-        // Creator info
-        if (event.creatorName != null) ...[
-          CircleAvatar(
-            radius: 12,
-            backgroundColor: accentColor.withOpacity(0.2),
-            child: event.creatorPhoto != null
-                ? ClipOval(
-                    child: Image.network(event.creatorPhoto!,
-                        width: 24, height: 24, fit: BoxFit.cover))
-                : Text(
-                    event.creatorName![0].toUpperCase(),
-                    style: TextStyle(fontSize: 10, color: accentColor),
-                  ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            event.creatorName!,
-            style: const TextStyle(
-                fontSize: 12, color: AppColors.textSecondary),
+    return Container(
+      padding: const EdgeInsets.all(AppStyle.paddingMedium),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.greyBorder),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadow,
+            blurRadius: 18,
+            offset: Offset(0, 8),
           ),
         ],
-        const Spacer(),
-        // Action button
-        if (isCreator)
-          _buildOutlineButton(
-            label: 'Edit',
-            color: accentColor,
-            onTap: () {
-              // TODO: Navigate to edit event
-            },
-          )
-        else if (event.isJoinedByMe)
-          _buildOutlineButton(
-            label: 'Leave',
-            color: AppColors.error,
-            onTap: () {
-              if (userId == null) return;
-              context.read<EventBloc>().add(
-                    LeaveEvent(eventId: event.id, userId: userId),
-                  );
-            },
-          )
-        else
-          ElevatedButton(
-            onPressed: canJoin
-                ? () {
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(_iconFromName(event.icon), color: accent),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      event.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.title.copyWith(fontSize: 15),
+                    ),
+                    const SizedBox(height: 5),
+                    _MetaLine(
+                      icon: Icons.calendar_today_rounded,
+                      label: DateTimeUtils.formatDateTime(event.eventDate),
+                    ),
+                  ],
+                ),
+              ),
+              _PricePill(event: event, color: accent),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _InfoPill(
+                  icon: event.isOnline
+                      ? Icons.videocam_rounded
+                      : Icons.location_on_rounded,
+                  label: event.isOnline ? 'Online' : (event.location ?? 'TBD'),
+                ),
+              ),
+              if (event.maxParticipants != null &&
+                  event.maxParticipants! > 0) ...[
+                const SizedBox(width: 8),
+                _InfoPill(
+                  icon: Icons.people_alt_rounded,
+                  label:
+                      '${event.currentParticipants}/${event.maxParticipants}',
+                  isWarning: event.isFull,
+                ),
+              ],
+            ],
+          ),
+          if (event.description?.isNotEmpty == true) ...[
+            const SizedBox(height: 12),
+            Text(
+              event.description!,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.bodySmall,
+            ),
+          ],
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              if (event.creatorName != null)
+                Expanded(
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 14,
+                        backgroundColor: accent.withValues(alpha: 0.14),
+                        backgroundImage: event.creatorPhoto != null
+                            ? NetworkImage(event.creatorPhoto!)
+                            : null,
+                        child: event.creatorPhoto == null
+                            ? Text(
+                                event.creatorName![0].toUpperCase(),
+                                style: AppTextStyles.small.copyWith(
+                                  color: accent,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              )
+                            : null,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          event.creatorName!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                const Spacer(),
+              if (isCreator)
+                _ActionButton(label: 'Edit', color: accent, onTap: () {})
+              else if (event.isJoinedByMe)
+                _ActionButton(
+                  label: 'Leave',
+                  color: AppColors.error,
+                  outlined: true,
+                  onTap: () {
                     if (userId == null) return;
                     context.read<EventBloc>().add(
-                          JoinEvent(eventId: event.id, userId: userId),
-                        );
-                  }
-                : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: accentColor,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text(
-              canJoin ? 'Join' : (!event.isUpcoming ? 'Ended' : 'Full'),
-              style: const TextStyle(color: Colors.white),
-            ),
+                      LeaveEvent(eventId: event.id, userId: userId),
+                    );
+                  },
+                )
+              else
+                _ActionButton(
+                  label: canJoin
+                      ? 'Join Now'
+                      : (!event.isUpcoming ? 'Ended' : 'Full'),
+                  color: AppColors.primary,
+                  disabled: !canJoin,
+                  onTap: () {
+                    if (userId == null || !canJoin) return;
+                    context.read<EventBloc>().add(
+                      JoinEvent(eventId: event.id, userId: userId),
+                    );
+                  },
+                ),
+            ],
           ),
-      ],
-    );
-  }
-
-  Widget _buildOutlineButton({
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return OutlinedButton(
-      onPressed: onTap,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: color,
-        side: BorderSide(color: color),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        ],
       ),
-      child: Text(label),
     );
   }
 
-  Color _parseColor(String colorStr) {
+  Color _parseColor(String value) {
     try {
-      // Support both '#RRGGBB' and '0xFFRRGGBB' formats
-      final hex = colorStr.replaceAll('#', '').replaceAll('0x', '');
+      final hex = value.replaceAll('#', '').replaceAll('0x', '');
       return Color(int.parse(hex.length == 6 ? 'FF$hex' : hex, radix: 16));
     } catch (_) {
       return AppColors.primary;
     }
   }
 
-  IconData _getIconFromName(String? iconName) {
+  IconData _iconFromName(String? iconName) {
     switch (iconName) {
       case 'conference':
-        return Icons.groups;
-      case 'workshop':
-        return Icons.build;
-      case 'seminar':
-        return Icons.school;
       case 'meetup':
-        return Icons.people;
+        return Icons.groups_rounded;
+      case 'workshop':
+        return Icons.build_rounded;
+      case 'seminar':
+        return Icons.school_rounded;
       case 'sports':
-        return Icons.sports;
+        return Icons.sports_rounded;
       case 'music':
-        return Icons.music_note;
+        return Icons.music_note_rounded;
       case 'food':
-        return Icons.restaurant;
+        return Icons.restaurant_rounded;
       default:
-        return Icons.event;
+        return Icons.event_rounded;
     }
+  }
+}
+
+class _PricePill extends StatelessWidget {
+  final EventModel event;
+  final Color color;
+
+  const _PricePill({required this.event, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final label = event.isFree
+        ? 'FREE'
+        : NumberFormat.currency(
+            locale: 'id_ID',
+            symbol: 'Rp',
+            decimalDigits: 0,
+          ).format(event.price);
+    final pillColor = event.isFree ? AppColors.success : color;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: pillColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(99),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.small.copyWith(
+          fontSize: 10,
+          color: pillColor,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+class _MetaLine extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _MetaLine({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 13, color: AppColors.textSecondary),
+        const SizedBox(width: 5),
+        Expanded(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _InfoPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isWarning;
+
+  const _InfoPill({
+    required this.icon,
+    required this.label,
+    this.isWarning = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isWarning ? AppColors.error : AppColors.textSecondary;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.primaryLighter,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.caption.copyWith(color: color),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final String label;
+  final Color color;
+  final bool outlined;
+  final bool disabled;
+  final VoidCallback onTap;
+
+  const _ActionButton({
+    required this.label,
+    required this.color,
+    required this.onTap,
+    this.outlined = false,
+    this.disabled = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveColor = disabled ? AppColors.textMuted : color;
+    return SizedBox(
+      height: 38,
+      child: outlined
+          ? OutlinedButton(
+              onPressed: disabled ? null : onTap,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: effectiveColor,
+                side: BorderSide(color: effectiveColor),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(label),
+            )
+          : ElevatedButton(
+              onPressed: disabled ? null : onTap,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: effectiveColor,
+                foregroundColor: AppColors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(label),
+            ),
+    );
+  }
+}
+
+class _EmptyEvents extends StatelessWidget {
+  const _EmptyEvents();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.event_busy_rounded,
+            size: 64,
+            color: AppColors.textMuted,
+          ),
+          const SizedBox(height: 12),
+          Text('No events yet', style: AppTextStyles.title),
+          const SizedBox(height: 4),
+          Text(
+            'Event baru akan muncul di sini.',
+            style: AppTextStyles.bodySmall,
+          ),
+        ],
+      ),
+    );
   }
 }

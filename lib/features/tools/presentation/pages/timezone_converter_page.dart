@@ -314,7 +314,7 @@ class _TimezoneConverterPageState extends State<TimezoneConverterPage> {
       child: Center(
         child: Column(
           children: [
-            const Text('🌐', style: TextStyle(fontSize: 36)),
+            Icon(Icons.public_rounded, size: 36, color: Colors.grey.shade400),
             const SizedBox(height: 12),
             Text(
               'Belum ada zona waktu tujuan',

@@ -40,7 +40,7 @@ class UnitData {
     UnitCategory(
       id: 'length',
       name: 'Panjang',
-      emoji: '📏',
+      emoji: '',
       icon: Icons.straighten_rounded,
       color: Color(0xFF4D96FF),
       units: [
@@ -59,7 +59,7 @@ class UnitData {
     UnitCategory(
       id: 'weight',
       name: 'Berat',
-      emoji: '⚖️',
+      emoji: '',
       icon: Icons.scale_rounded,
       color: Color(0xFF6BCB77),
       units: [
@@ -77,7 +77,7 @@ class UnitData {
     UnitCategory(
       id: 'temperature',
       name: 'Suhu',
-      emoji: '🌡️',
+      emoji: '',
       icon: Icons.thermostat_rounded,
       color: Color(0xFFFF6B6B),
       units: [
@@ -91,14 +91,19 @@ class UnitData {
     UnitCategory(
       id: 'volume',
       name: 'Volume',
-      emoji: '🥤',
+      emoji: '',
       icon: Icons.water_drop_rounded,
       color: Color(0xFFB79CED),
       units: [
         UnitItem(code: 'ml', name: 'Mililiter', symbol: 'ml', factor: 0.001),
         UnitItem(code: 'l', name: 'Liter', symbol: 'L', factor: 1),
         UnitItem(code: 'm3', name: 'Meter Kubik', symbol: 'm³', factor: 1000),
-        UnitItem(code: 'gal', name: 'Galon (US)', symbol: 'gal', factor: 3.78541),
+        UnitItem(
+          code: 'gal',
+          name: 'Galon (US)',
+          symbol: 'gal',
+          factor: 3.78541,
+        ),
         UnitItem(code: 'qt', name: 'Quart', symbol: 'qt', factor: 0.946353),
         UnitItem(code: 'pt', name: 'Pint', symbol: 'pt', factor: 0.473176),
         UnitItem(code: 'cup', name: 'Cangkir', symbol: 'cup', factor: 0.236588),
@@ -109,14 +114,29 @@ class UnitData {
     UnitCategory(
       id: 'area',
       name: 'Luas',
-      emoji: '📐',
+      emoji: '',
       icon: Icons.crop_square_rounded,
       color: Color(0xFFFF8C42),
       units: [
-        UnitItem(code: 'mm2', name: 'Milimeter²', symbol: 'mm²', factor: 0.000001),
-        UnitItem(code: 'cm2', name: 'Sentimeter²', symbol: 'cm²', factor: 0.0001),
+        UnitItem(
+          code: 'mm2',
+          name: 'Milimeter²',
+          symbol: 'mm²',
+          factor: 0.000001,
+        ),
+        UnitItem(
+          code: 'cm2',
+          name: 'Sentimeter²',
+          symbol: 'cm²',
+          factor: 0.0001,
+        ),
         UnitItem(code: 'm2', name: 'Meter²', symbol: 'm²', factor: 1),
-        UnitItem(code: 'km2', name: 'Kilometer²', symbol: 'km²', factor: 1000000),
+        UnitItem(
+          code: 'km2',
+          name: 'Kilometer²',
+          symbol: 'km²',
+          factor: 1000000,
+        ),
         UnitItem(code: 'ha', name: 'Hektar', symbol: 'ha', factor: 10000),
         UnitItem(code: 'ac', name: 'Acre', symbol: 'ac', factor: 4046.86),
         UnitItem(code: 'ft2', name: 'Kaki²', symbol: 'ft²', factor: 0.092903),
@@ -127,15 +147,25 @@ class UnitData {
     UnitCategory(
       id: 'speed',
       name: 'Kecepatan',
-      emoji: '🚀',
+      emoji: '',
       icon: Icons.speed_rounded,
       color: Color(0xFFFFD166),
       units: [
         UnitItem(code: 'ms', name: 'Meter/detik', symbol: 'm/s', factor: 1),
-        UnitItem(code: 'kmh', name: 'Kilometer/jam', symbol: 'km/h', factor: 0.277778),
+        UnitItem(
+          code: 'kmh',
+          name: 'Kilometer/jam',
+          symbol: 'km/h',
+          factor: 0.277778,
+        ),
         UnitItem(code: 'mph', name: 'Mil/jam', symbol: 'mph', factor: 0.44704),
         UnitItem(code: 'kn', name: 'Knot', symbol: 'kn', factor: 0.514444),
-        UnitItem(code: 'fts', name: 'Kaki/detik', symbol: 'ft/s', factor: 0.3048),
+        UnitItem(
+          code: 'fts',
+          name: 'Kaki/detik',
+          symbol: 'ft/s',
+          factor: 0.3048,
+        ),
       ],
     ),
 
@@ -143,7 +173,7 @@ class UnitData {
     UnitCategory(
       id: 'time',
       name: 'Waktu',
-      emoji: '⏰',
+      emoji: '',
       icon: Icons.access_time_rounded,
       color: Color(0xFF4D96FF),
       units: [
@@ -162,15 +192,25 @@ class UnitData {
     UnitCategory(
       id: 'data',
       name: 'Data',
-      emoji: '💾',
+      emoji: '',
       icon: Icons.storage_rounded,
       color: Color(0xFF6BCB77),
       units: [
         UnitItem(code: 'b', name: 'Byte', symbol: 'B', factor: 1),
         UnitItem(code: 'kb', name: 'Kilobyte', symbol: 'KB', factor: 1024),
         UnitItem(code: 'mb', name: 'Megabyte', symbol: 'MB', factor: 1048576),
-        UnitItem(code: 'gb', name: 'Gigabyte', symbol: 'GB', factor: 1073741824),
-        UnitItem(code: 'tb', name: 'Terabyte', symbol: 'TB', factor: 1099511627776),
+        UnitItem(
+          code: 'gb',
+          name: 'Gigabyte',
+          symbol: 'GB',
+          factor: 1073741824,
+        ),
+        UnitItem(
+          code: 'tb',
+          name: 'Terabyte',
+          symbol: 'TB',
+          factor: 1099511627776,
+        ),
       ],
     ),
   ];

@@ -12,6 +12,10 @@ abstract class ActivityRepository {
     String? achievementId,
     List<String>? imageUrls,
   });
+  Future<String> uploadImage({
+    required List<int> bytes,
+    required String contentType,
+  });
   Future<void> deleteActivity(String id);
   Future<void> toggleLike(String activityId, String userId);
   Future<List<ActivityCommentModel>> getComments(String activityId);

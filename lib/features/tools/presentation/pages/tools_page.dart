@@ -158,7 +158,11 @@ class ToolsPage extends StatelessWidget {
       SnackBar(
         content: Row(
           children: [
-            const Text('🚧', style: TextStyle(fontSize: 18)),
+            const Icon(
+              Icons.construction_rounded,
+              size: 18,
+              color: Colors.white,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(

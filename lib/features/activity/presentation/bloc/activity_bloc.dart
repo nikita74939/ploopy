@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import '../../../../core/network/auth_session_guard.dart';
 import '../../domain/repositories/activity_repository.dart';
 import '../../data/models/activity_model.dart';
 import '../../data/models/activity_comment_model.dart';
@@ -159,10 +160,8 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
     emit(ActivityLoading());
     try {
       final activities = await repository.getAllActivities();
-      print('✅ Activities loaded: ${activities.length}');
       emit(ActivitiesLoaded(activities: activities));
     } catch (e) {
-      print('❌ Error: $e');
       emit(ActivityError(message: e.toString()));
     }
   }
@@ -176,6 +175,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
       final activities = await repository.getActivitiesByUser(event.userId);
       emit(ActivitiesLoaded(activities: activities));
     } catch (e) {
+      if (_handleExpiredSession(e)) return;
       emit(ActivityError(message: e.toString()));
     }
   }
@@ -196,6 +196,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
       emit(ActivityOperationSuccess(message: 'Activity posted successfully'));
       add(LoadActivities());
     } catch (e) {
+      if (_handleExpiredSession(e)) return;
       emit(ActivityError(message: e.toString()));
     }
   }
@@ -210,6 +211,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
       emit(ActivityOperationSuccess(message: 'Activity deleted'));
       add(LoadActivities());
     } catch (e) {
+      if (_handleExpiredSession(e)) return;
       emit(ActivityError(message: e.toString()));
     }
   }
@@ -222,6 +224,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
       await repository.toggleLike(event.activityId, event.userId);
       add(LoadActivities());
     } catch (e) {
+      if (_handleExpiredSession(e)) return;
       emit(ActivityError(message: e.toString()));
     }
   }
@@ -234,6 +237,7 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
       final comments = await repository.getComments(event.activityId);
       emit(CommentsLoaded(comments: comments));
     } catch (e) {
+      if (_handleExpiredSession(e)) return;
       emit(ActivityError(message: e.toString()));
     }
   }
@@ -250,7 +254,18 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
       );
       add(LoadComments(activityId: event.activityId));
     } catch (e) {
+      if (_handleExpiredSession(e)) return;
       emit(ActivityError(message: e.toString()));
     }
+  }
+
+  bool _handleExpiredSession(Object error) {
+    final message = error.toString().toLowerCase();
+    final expired =
+        message.contains('invalid or expired token') ||
+        message.contains('missing bearer token') ||
+        message.contains('sesi habis');
+    if (expired) AuthSessionGuard.notifyExpired();
+    return expired;
   }
 }

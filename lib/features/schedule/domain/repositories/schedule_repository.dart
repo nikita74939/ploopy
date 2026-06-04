@@ -1,7 +1,7 @@
 import '../../domain/entities/schedule_entity.dart';
 
 abstract class ScheduleRepository {
-  Future<List<ScheduleEntity>> getSchedulesByDate(DateTime date);
+  Future<List<ScheduleEntity>> getSchedulesByDate(String userId, DateTime date);
   Future<List<ScheduleEntity>> getAllSchedules();
   Future<ScheduleEntity?> getScheduleById(int id);
   Future<void> addSchedule(ScheduleEntity schedule);

@@ -30,7 +30,7 @@ class ProfileStatsCard extends StatelessWidget {
         children: [
           Expanded(
             child: _StatItem(
-              icon: '👥',
+              icon: Icons.group_rounded,
               value: totalFriends.toString(),
               label: 'Teman',
             ),
@@ -38,7 +38,7 @@ class ProfileStatsCard extends StatelessWidget {
           _buildDivider(),
           Expanded(
             child: _StatItem(
-              icon: '📝',
+              icon: Icons.edit_note_rounded,
               value: totalActivities.toString(),
               label: 'Aktivitas',
             ),
@@ -46,7 +46,7 @@ class ProfileStatsCard extends StatelessWidget {
           _buildDivider(),
           Expanded(
             child: _StatItem(
-              icon: '🔥',
+              icon: Icons.local_fire_department_rounded,
               value: currentStreak.toString(),
               label: 'Streak',
             ),
@@ -56,15 +56,12 @@ class ProfileStatsCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDivider() => Container(
-        width: 1,
-        height: 36,
-        color: Colors.grey.shade100,
-      );
+  Widget _buildDivider() =>
+      Container(width: 1, height: 36, color: Colors.grey.shade100);
 }
 
 class _StatItem extends StatelessWidget {
-  final String icon;
+  final IconData icon;
   final String value;
   final String label;
 
@@ -78,7 +75,7 @@ class _StatItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(icon, style: const TextStyle(fontSize: 20)),
+        Icon(icon, size: 20, color: const Color(0xFFFF8C42)),
         const SizedBox(height: 4),
         Text(
           value,
@@ -91,10 +88,7 @@ class _StatItem extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           label,
-          style: GoogleFonts.poppins(
-            fontSize: 11,
-            color: Colors.grey.shade500,
-          ),
+          style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500),
         ),
       ],
     );

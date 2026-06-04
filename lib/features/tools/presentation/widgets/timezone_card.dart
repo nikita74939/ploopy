@@ -98,10 +98,7 @@ class TimezoneCard extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              tz?['flag'] ?? '🏳️',
-              style: const TextStyle(fontSize: 20),
-            ),
+            Icon(Icons.public_rounded, size: 20, color: Colors.grey.shade600),
             const SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,15 +182,32 @@ class TimezoneCard extends StatelessWidget {
 
   Widget _buildDateDisplay() {
     const days = [
-      'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+      'Minggu',
     ];
     const months = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
     ];
 
     final dayName = days[dateTime.weekday - 1];
-    final dateStr = '${dateTime.day} ${months[dateTime.month - 1]} ${dateTime.year}';
+    final dateStr =
+        '${dateTime.day} ${months[dateTime.month - 1]} ${dateTime.year}';
 
     return Row(
       children: [
@@ -205,10 +219,7 @@ class TimezoneCard extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           '$dayName, $dateStr',
-          style: GoogleFonts.poppins(
-            fontSize: 11,
-            color: Colors.grey.shade500,
-          ),
+          style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500),
         ),
       ],
     );

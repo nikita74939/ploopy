@@ -1,5 +1,8 @@
+import { randomUUID } from 'crypto';
+
 import { supabaseAdmin } from '../config/supabase.js';
 import { httpError } from '../utils/httpError.js';
+import { createNotification } from './notificationService.js';
 
 const activitySelect = `
   id, user_id, text, location, achievement_id, created_at,
@@ -15,7 +18,52 @@ export async function getFeed({ userId, mine = false }) {
   if (mine) query = query.eq('user_id', userId);
   const { data, error } = await query;
   if (error) throw httpError(500, error.message);
-  return data ?? [];
+  return normalizeActivities(data ?? [], userId);
+}
+
+export async function getComments({ activityId }) {
+  const { data, error } = await supabaseAdmin
+    .from('activity_comments')
+    .select('id, activity_id, user_id, content, created_at, users(id, name, avatar_url)')
+    .eq('activity_id', activityId)
+    .order('created_at', { ascending: true });
+  if (error) throw httpError(500, error.message);
+  return normalizeActivities(data ?? [], null);
+}
+
+export async function getActivitiesByUser({ userId, currentUserId }) {
+  const { data, error } = await supabaseAdmin
+    .from('activities')
+    .select(activitySelect)
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(50);
+  if (error) throw httpError(500, error.message);
+  return normalizeActivities(data ?? [], currentUserId);
+}
+
+export async function uploadActivityImage({ userId, input }) {
+  const raw = input.base64 ?? input.data;
+  if (!raw) throw httpError(400, 'Gambar wajib diisi.');
+  const contentType = input.contentType ?? input.content_type ?? 'image/jpeg';
+  const ext = contentType.includes('png') ? 'png' : contentType.includes('webp') ? 'webp' : 'jpg';
+  const buffer = Buffer.from(String(raw).replace(/^data:image\/\w+;base64,/, ''), 'base64');
+  if (buffer.length > 5 * 1024 * 1024) throw httpError(400, 'Ukuran gambar maksimal 5MB.');
+
+  const path = `${userId}/${Date.now()}-${randomUUID()}.${ext}`;
+  let { error } = await supabaseAdmin.storage
+    .from('activity-images')
+    .upload(path, buffer, { contentType, upsert: false });
+  if (error && /bucket/i.test(error.message)) {
+    await supabaseAdmin.storage.createBucket('activity-images', { public: true });
+    const retry = await supabaseAdmin.storage
+      .from('activity-images')
+      .upload(path, buffer, { contentType, upsert: false });
+    error = retry.error;
+  }
+  if (error) throw httpError(500, error.message);
+  const { data } = supabaseAdmin.storage.from('activity-images').getPublicUrl(path);
+  return data.publicUrl;
 }
 
 export async function createActivity({ userId, input }) {
@@ -27,13 +75,22 @@ export async function createActivity({ userId, input }) {
     achievement_id: input.achievementId ?? input.achievement_id ?? null,
   }).select('id, user_id, text, location, achievement_id, created_at').single();
   if (error) throw httpError(500, error.message);
-
   const images = input.images ?? [];
   if (Array.isArray(images) && images.length) {
     const rows = images.map((url, index) => ({ activity_id: data.id, image_url: url, order_index: index }));
     const img = await supabaseAdmin.from('activity_images').insert(rows);
     if (img.error) throw httpError(500, img.error.message);
   }
+  await createNotification({
+    userId,
+    input: {
+      title: 'Activity berhasil dibuat',
+      description: 'Postingan aktivitasmu sudah tampil di feed.',
+      tag: 'activity_created',
+      refId: data.id,
+      refType: 'activity',
+    },
+  });
   return data;
 }
 
@@ -55,17 +112,54 @@ export async function toggleLike({ userId, activityId }) {
   }
   const { error } = await supabaseAdmin.from('activity_likes').insert({ activity_id: activityId, user_id: userId });
   if (error) throw httpError(500, error.message);
+  const owner = await supabaseAdmin.from('activities').select('user_id').eq('id', activityId).maybeSingle();
+  if (!owner.error && owner.data?.user_id && owner.data.user_id !== userId) {
+    await createNotification({
+      userId: owner.data.user_id,
+      input: {
+        title: 'Activity kamu disukai',
+        description: 'Ada like baru di postingan aktivitasmu.',
+        tag: 'activity_like',
+        refId: activityId,
+        refType: 'activity',
+      },
+    });
+  }
   return { liked: true };
 }
 
 export async function addComment({ userId, activityId, content }) {
   if (!content || !String(content).trim()) throw httpError(400, 'Komentar wajib diisi.');
-  const { data, error } = await supabaseAdmin.from('activity_comments').insert({ activity_id: activityId, user_id: userId, content: String(content).trim() }).select('id, activity_id, user_id, content, created_at').single();
+  const { data, error } = await supabaseAdmin.from('activity_comments').insert({ activity_id: activityId, user_id: userId, content: String(content).trim() }).select('id, activity_id, user_id, content, created_at, users(id, name, avatar_url)').single();
   if (error) throw httpError(500, error.message);
+  const owner = await supabaseAdmin.from('activities').select('user_id').eq('id', activityId).maybeSingle();
+  if (!owner.error && owner.data?.user_id && owner.data.user_id !== userId) {
+    await createNotification({
+      userId: owner.data.user_id,
+      input: {
+        title: 'Komentar baru',
+        description: 'Ada komentar baru di postingan aktivitasmu.',
+        tag: 'activity_comment',
+        refId: activityId,
+        refType: 'activity',
+      },
+    });
+  }
   return data;
 }
 
 export async function deleteComment({ userId, commentId }) {
   const { error } = await supabaseAdmin.from('activity_comments').delete().eq('id', commentId).eq('user_id', userId);
   if (error) throw httpError(500, error.message);
+}
+
+function normalizeActivities(rows, currentUserId) {
+  return rows.map((row) => ({
+    ...row,
+    like_count: row.activity_likes?.length ?? 0,
+    comment_count: row.activity_comments?.length ?? 0,
+    is_liked_by_me: currentUserId
+      ? (row.activity_likes ?? []).some((like) => like.user_id === currentUserId)
+      : false,
+  }));
 }

@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../config/supabase.js';
 import { httpError } from '../utils/httpError.js';
+import { createNotification } from './notificationService.js';
 
 const select = `id, requester_id, addressee_id, status, created_at,
   requester:users!friendships_requester_id_fkey(id, name, avatar_url),
@@ -29,6 +30,16 @@ export async function sendFriendRequest({ requesterId, addresseeId }) {
 
   const { data, error } = await supabaseAdmin.from('friendships').insert({ requester_id: requesterId, addressee_id: addresseeId, status: 'pending' }).select('id, requester_id, addressee_id, status, created_at').single();
   if (error) throw httpError(500, error.message);
+  await createNotification({
+    userId: addresseeId,
+    input: {
+      title: 'Permintaan pertemanan baru',
+      description: 'Ada pengguna yang ingin berteman denganmu.',
+      tag: 'friend_request',
+      refId: data.id,
+      refType: 'friendship',
+    },
+  });
   return data;
 }
 
@@ -41,6 +52,17 @@ export async function updateFriendshipStatus({ userId, friendshipId, status }) {
 
   const { data, error } = await supabaseAdmin.from('friendships').update({ status }).eq('id', friendshipId).select('id, requester_id, addressee_id, status, created_at').single();
   if (error) throw httpError(500, error.message);
+  const recipientId = userId === data.requester_id ? data.addressee_id : data.requester_id;
+  await createNotification({
+    userId: recipientId,
+    input: {
+      title: status === 'accepted' ? 'Pertemanan disetujui' : status === 'rejected' ? 'Permintaan pertemanan ditolak' : 'Pertemanan diperbarui',
+      description: status === 'accepted' ? 'Sekarang kalian sudah berteman.' : 'Status pertemananmu baru saja diperbarui.',
+      tag: `friend_${status}`,
+      refId: data.id,
+      refType: 'friendship',
+    },
+  });
   return data;
 }
 

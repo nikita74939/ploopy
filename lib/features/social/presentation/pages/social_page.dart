@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_constants.dart' hide AppColors;
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/bottom_sheet_insets.dart';
 import '../../../../core/widgets/neo_container.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../activity/data/models/activity_model.dart';
 import '../../../activity/presentation/bloc/activity_bloc.dart';
+import '../../../activity/presentation/widgets/activity_composer_sheet.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../event/data/models/event_model.dart';
 import '../../../event/presentation/bloc/event_bloc.dart';
+import 'public_profile_page.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});
@@ -25,7 +28,10 @@ class _SocialPageState extends State<SocialPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  String? get _currentUserId => Supabase.instance.client.auth.currentUser?.id;
+  String? get _currentUserId {
+    final state = context.read<AuthBloc>().state;
+    return state is Authenticated ? state.user.userId : null;
+  }
 
   @override
   void initState() {
@@ -47,26 +53,29 @@ class _SocialPageState extends State<SocialPage>
       backgroundColor: AppColors.greyLighter,
       appBar: AppBar(
         backgroundColor: AppColors.greyLighter,
-        title: Text(
-          'Social',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-        ),
+        title: Text('Social', style: AppTextStyles.title),
         actions: [
-          IconButton(icon: const Icon(Icons.search), onPressed: () {}),
+          _SocialIconButton(icon: Icons.search_rounded, onPressed: () {}),
           IconButton(
-            icon: const Icon(Icons.notifications_outlined),
+            icon: const Icon(Icons.notifications_rounded),
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.white,
+              foregroundColor: AppColors.textMain,
+              shape: const CircleBorder(),
+              side: const BorderSide(color: AppColors.greyBorder),
+            ),
             onPressed: () =>
                 Navigator.pushNamed(context, AppRoutes.notification),
           ),
-          IconButton(icon: const Icon(Icons.tune), onPressed: () {}),
+          const SizedBox(width: 8),
         ],
         bottom: TabBar(
           controller: _tabController,
           labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.greyText,
+          unselectedLabelColor: AppColors.textSecondary,
           indicatorColor: AppColors.primary,
-          labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-          unselectedLabelStyle: GoogleFonts.poppins(),
+          labelStyle: AppTextStyles.tabActive,
+          unselectedLabelStyle: AppTextStyles.tabInactive,
           onTap: (index) {
             if (index == 0) {
               context.read<ActivityBloc>().add(LoadActivities());
@@ -89,9 +98,50 @@ class _SocialPageState extends State<SocialPage>
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'social_fab',
-        onPressed: () {},
+        onPressed: _showComposer,
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  Future<void> _showComposer() async {
+    final userId = _currentUserId;
+    if (userId == null) return;
+    final created = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => BlocProvider.value(
+        value: context.read<ActivityBloc>(),
+        child: ActivityComposerSheet(userId: userId),
+      ),
+    );
+    if (created == true && mounted) {
+      context.read<ActivityBloc>().add(LoadActivities());
+    }
+  }
+}
+
+class _SocialIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const _SocialIconButton({required this.icon, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(icon),
+      onPressed: onPressed,
+      style: IconButton.styleFrom(
+        backgroundColor: AppColors.white,
+        foregroundColor: AppColors.textMain,
+        shape: const CircleBorder(),
+        side: const BorderSide(color: AppColors.greyBorder),
       ),
     );
   }
@@ -208,7 +258,7 @@ class _ActivityCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildLeftColumn(),
+              _buildLeftColumn(context),
               const SizedBox(width: 14),
               Expanded(child: _buildRightContent(context)),
             ],
@@ -218,9 +268,17 @@ class _ActivityCard extends StatelessWidget {
     );
   }
 
-  Widget _buildLeftColumn() {
+  Widget _buildLeftColumn(BuildContext context) {
     return Column(
-      children: [_buildAvatar(), const SizedBox(height: 10), _buildDateChip()],
+      children: [
+        InkWell(
+          customBorder: const CircleBorder(),
+          onTap: () => _openPublicProfile(context),
+          child: _buildAvatar(),
+        ),
+        const SizedBox(height: 10),
+        _buildDateChip(),
+      ],
     );
   }
 
@@ -232,9 +290,9 @@ class _ActivityCard extends StatelessWidget {
       width: 50,
       height: 50,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         shape: BoxShape.circle,
-        border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
       ),
       alignment: Alignment.center,
       child: activity.userPhoto != null
@@ -314,12 +372,15 @@ class _ActivityCard extends StatelessWidget {
         Expanded(
           child: Row(
             children: [
-              Text(
-                activity.userName ?? 'Unknown',
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+              InkWell(
+                onTap: () => _openPublicProfile(context),
+                child: Text(
+                  activity.userName ?? 'Unknown',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
                 ),
               ),
               const SizedBox(width: 6),
@@ -380,10 +441,10 @@ class _ActivityCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFB347).withOpacity(0.15),
+        color: const Color(0xFFFFB347).withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFFFFB347).withOpacity(0.3),
+          color: const Color(0xFFFFB347).withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -398,7 +459,11 @@ class _ActivityCard extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: const Text('🏆', style: TextStyle(fontSize: 16)),
+            child: const Icon(
+              Icons.emoji_events_rounded,
+              size: 16,
+              color: Colors.white,
+            ),
           ),
           const SizedBox(width: 10),
           Text(
@@ -489,7 +554,11 @@ class _ActivityCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Text('📍', style: TextStyle(fontSize: 14)),
+          Icon(
+            Icons.location_on_rounded,
+            size: 14,
+            color: Colors.grey.shade500,
+          ),
           const SizedBox(width: 8),
           Text(
             activity.location!,
@@ -540,6 +609,15 @@ class _ActivityCard extends StatelessWidget {
           activityId: activity.id,
           currentUserId: currentUserId ?? '',
         ),
+      ),
+    );
+  }
+
+  void _openPublicProfile(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PublicProfilePage(userId: activity.userId),
       ),
     );
   }
@@ -605,7 +683,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
 
   void _submit() {
     final text = _controller.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty || widget.currentUserId.isEmpty) return;
     context.read<ActivityBloc>().add(
       AddComment(
         activityId: widget.activityId,
@@ -681,10 +759,14 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                 width: 36,
                                 height: 36,
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.12),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.12,
+                                  ),
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: AppColors.primary.withOpacity(0.25),
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.25,
+                                    ),
                                     width: 1.5,
                                   ),
                                 ),
@@ -938,7 +1020,7 @@ class _EventCard extends StatelessWidget {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: accent.withOpacity(0.15),
+                    color: accent.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(_icon, color: accent),
@@ -984,11 +1066,11 @@ class _EventCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: event.isFree
-                        ? Colors.green.withOpacity(0.15)
-                        : accent.withOpacity(0.15),
+                        ? AppColors.success.withValues(alpha: 0.15)
+                        : accent.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: event.isFree ? Colors.green : accent,
+                      color: event.isFree ? AppColors.success : accent,
                       width: 1,
                     ),
                   ),
@@ -1003,7 +1085,7 @@ class _EventCard extends StatelessWidget {
                     style: GoogleFonts.poppins(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
-                      color: event.isFree ? Colors.green : accent,
+                      color: event.isFree ? AppColors.success : accent,
                     ),
                   ),
                 ),
@@ -1052,7 +1134,7 @@ class _EventCard extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.error.withOpacity(0.15),
+                        color: AppColors.error.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -1087,7 +1169,7 @@ class _EventCard extends StatelessWidget {
                 if (event.creatorName != null) ...[
                   CircleAvatar(
                     radius: 12,
-                    backgroundColor: accent.withOpacity(0.2),
+                    backgroundColor: accent.withValues(alpha: 0.2),
                     child: event.creatorPhoto != null
                         ? ClipOval(
                             child: Image.network(
@@ -1192,7 +1274,7 @@ Widget _buildEmptyState({required IconData icon, required String label}) {
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, size: 80, color: AppColors.greyText.withOpacity(0.5)),
+        Icon(icon, size: 80, color: AppColors.greyText.withValues(alpha: 0.5)),
         const SizedBox(height: 16),
         Text(
           label,

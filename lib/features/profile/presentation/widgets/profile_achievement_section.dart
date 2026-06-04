@@ -40,7 +40,11 @@ class ProfileAchievementSection extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text('🏆', style: GoogleFonts.poppins(fontSize: 15)),
+            Icon(
+              Icons.emoji_events_rounded,
+              size: 15,
+              color: Colors.grey.shade700,
+            ),
             const SizedBox(width: 6),
             Text(
               'Achievement',

@@ -91,7 +91,7 @@ export async function getSchedules({ userId, date, upcoming }) {
   }
 
   if (upcoming === true) {
-    query = query.gte('start_time', new Date().toISOString());
+    query = query.gte('end_time', new Date().toISOString());
   }
 
   const { data, error } = await query;

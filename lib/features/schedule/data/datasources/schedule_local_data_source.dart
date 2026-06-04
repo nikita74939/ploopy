@@ -2,7 +2,7 @@ import 'package:isar/isar.dart';
 import '../models/schedule_model.dart';
 
 abstract class ScheduleLocalDataSource {
-  Future<List<ScheduleModel>> getSchedulesByDate(DateTime date);
+  Future<List<ScheduleModel>> getSchedulesByDate(String userId, DateTime date);
   Future<List<ScheduleModel>> getAllSchedules();
   Future<ScheduleModel?> getScheduleById(int id);
   Future<void> addSchedule(ScheduleModel schedule);
@@ -24,12 +24,16 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
   ScheduleLocalDataSourceImpl({required this.isar});
 
   @override
-  Future<List<ScheduleModel>> getSchedulesByDate(DateTime date) async {
+  Future<List<ScheduleModel>> getSchedulesByDate(
+    String userId,
+    DateTime date,
+  ) async {
     final startOfDay = DateTime(date.year, date.month, date.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
 
     final schedules = await isar.scheduleModels
         .filter()
+        .userIdEqualTo(userId)
         .startTimeGreaterThan(startOfDay)
         .startTimeLessThan(endOfDay)
         .findAll();
@@ -86,7 +90,7 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
     final schedules = await isar.scheduleModels
         .filter()
         .userIdEqualTo(userId)
-        .startTimeGreaterThan(now)
+        .endTimeGreaterThan(now)
         .findAll();
     return _visibleSorted(schedules);
   }

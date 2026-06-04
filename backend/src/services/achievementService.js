@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../config/supabase.js';
 import { httpError } from '../utils/httpError.js';
+import { createNotification } from './notificationService.js';
 
 const achievementSelect =
   'id, name, description, badge_icon, condition_type, condition_value';
@@ -35,7 +36,7 @@ export async function getUserAchievements(userId) {
 export async function unlockUserAchievement({ userId, achievementId }) {
   const { data: achievement, error: achievementError } = await supabaseAdmin
     .from('achievements')
-    .select('id')
+    .select('id, name')
     .eq('id', achievementId)
     .maybeSingle();
 
@@ -74,6 +75,17 @@ export async function unlockUserAchievement({ userId, achievementId }) {
   if (error) {
     throw httpError(500, error.message);
   }
+
+  await createNotification({
+    userId,
+    input: {
+      title: 'Achievement baru',
+      description: `Kamu mendapat achievement ${achievement.name}.`,
+      tag: 'achievement_unlocked',
+      refId: achievementId,
+      refType: 'achievement',
+    },
+  });
 
   return data;
 }

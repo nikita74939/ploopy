@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../config/supabase.js';
 import { httpError } from '../utils/httpError.js';
+import { createNotification } from './notificationService.js';
 
 const taskSelect =
   'id, user_id, name, subject, deadline, details, color, icon_name, is_pinned, is_completed, created_at';
@@ -106,6 +107,7 @@ export async function createTask({ userId, input }) {
     .single();
 
   if (error) throw httpError(500, error.message);
+  await notifyTaskDeadline(userId, data);
   return data;
 }
 
@@ -126,6 +128,7 @@ export async function updateTask({ userId, taskId, input }) {
     .single();
 
   if (error) throw httpError(500, error.message);
+  await notifyTaskDeadline(userId, data);
   return data;
 }
 
@@ -177,4 +180,28 @@ export async function setTaskPin({ userId, taskId, pinned }) {
 
   if (error) throw httpError(500, error.message);
   return data;
+}
+
+async function notifyTaskDeadline(userId, task) {
+  if (!task.deadline || task.is_completed) return;
+  const deadline = new Date(task.deadline);
+  if (Number.isNaN(deadline.getTime())) return;
+  const days = Math.ceil((deadline.getTime() - Date.now()) / 86400000);
+  if (days > 3) return;
+
+  const detail = days < 0
+    ? `Deadline "${task.name}" sudah lewat.`
+    : days === 0
+      ? `Deadline "${task.name}" hari ini.`
+      : `Deadline "${task.name}" dalam ${days} hari.`;
+  await createNotification({
+    userId,
+    input: {
+      title: 'Deadline task',
+      description: detail,
+      tag: 'task_deadline',
+      refId: task.id,
+      refType: 'task',
+    },
+  });
 }

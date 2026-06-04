@@ -75,9 +75,7 @@ class _CompassPageState extends State<CompassPage> {
       if (event.heading != null && mounted) {
         setState(() {
           // Normalize 0-360
-          _heading = event.heading! < 0
-              ? event.heading! + 360
-              : event.heading!;
+          _heading = event.heading! < 0 ? event.heading! + 360 : event.heading!;
         });
       }
     });
@@ -114,9 +112,7 @@ class _CompassPageState extends State<CompassPage> {
 
   Widget _buildBody() {
     if (_isChecking) {
-      return const Center(
-        child: CircularProgressIndicator(strokeWidth: 2),
-      );
+      return const Center(child: CircularProgressIndicator(strokeWidth: 2));
     }
 
     if (!_hasPermission || !_hasSensor) {
@@ -162,7 +158,11 @@ class _CompassPageState extends State<CompassPage> {
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
-            child: const Text('💡', style: TextStyle(fontSize: 18)),
+            child: const Icon(
+              Icons.lightbulb_rounded,
+              size: 18,
+              color: Colors.amber,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(

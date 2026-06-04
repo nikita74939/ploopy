@@ -84,7 +84,7 @@ class _PomodoroSettingsSheetState extends State<PomodoroSettingsSheet> {
             child: Column(
               children: [
                 _buildItem(
-                  emoji: '🎯',
+                  icon: Icons.track_changes_rounded,
                   label: 'Fokus',
                   value: _settings.focusMinutes,
                   minValue: 5,
@@ -96,7 +96,7 @@ class _PomodoroSettingsSheetState extends State<PomodoroSettingsSheet> {
                 ),
                 const SizedBox(height: 10),
                 _buildItem(
-                  emoji: '☕',
+                  icon: Icons.free_breakfast_rounded,
                   label: 'Istirahat',
                   value: _settings.shortBreakMinutes,
                   minValue: 1,
@@ -108,7 +108,7 @@ class _PomodoroSettingsSheetState extends State<PomodoroSettingsSheet> {
                 ),
                 const SizedBox(height: 10),
                 _buildItem(
-                  emoji: '😴',
+                  icon: Icons.nights_stay_rounded,
                   label: 'Istirahat Panjang',
                   value: _settings.longBreakMinutes,
                   minValue: 10,
@@ -120,7 +120,7 @@ class _PomodoroSettingsSheetState extends State<PomodoroSettingsSheet> {
                 ),
                 const SizedBox(height: 10),
                 _buildItem(
-                  emoji: '🔄',
+                  icon: Icons.repeat_rounded,
                   label: 'Sesi sebelum istirahat panjang',
                   value: _settings.sessionsBeforeLongBreak,
                   minValue: 2,
@@ -184,7 +184,7 @@ class _PomodoroSettingsSheetState extends State<PomodoroSettingsSheet> {
   }
 
   Widget _buildItem({
-    required String emoji,
+    required IconData icon,
     required String label,
     required int value,
     required int minValue,
@@ -200,7 +200,7 @@ class _PomodoroSettingsSheetState extends State<PomodoroSettingsSheet> {
       ),
       child: Row(
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 22)),
+          Icon(icon, size: 22, color: const Color(0xFFFF6B6B)),
           const SizedBox(width: 12),
           Expanded(
             child: Text(

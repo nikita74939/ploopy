@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../../core/network/auth_session_guard.dart';
 import '../../domain/models/study_session_model.dart';
 
 abstract class StudyRemoteDataSource {
@@ -140,6 +141,7 @@ class StudyRemoteDataSourceImpl implements StudyRemoteDataSource {
         : jsonDecode(response.body) as Map<String, dynamic>;
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
+      if (response.statusCode == 401) AuthSessionGuard.notifyExpired();
       throw Exception(
         body['message']?.toString() ?? 'Request gagal. Coba lagi.',
       );

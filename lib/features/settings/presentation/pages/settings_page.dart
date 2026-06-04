@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/neo_card.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -15,9 +15,6 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   bool _notificationsEnabled = true;
-  bool _soundEnabled = true;
-  bool _vibrationEnabled = true;
-  bool _darkMode = false;
   bool _biometricEnabled = false;
 
   @override
@@ -36,247 +33,64 @@ class _SettingsPageState extends State<SettingsPage> {
         backgroundColor: AppColors.background,
         appBar: AppBar(
           backgroundColor: AppColors.background,
-          title: const Text('Settings'),
+          title: Text('Settings', style: AppTextStyles.title),
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppStyle.paddingMedium),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
             children: [
-              _buildSectionTitle('Notifications'),
-              _buildSwitchItem(
-                icon: Icons.notifications,
-                title: 'Push Notifications',
-                value: _notificationsEnabled,
-                onChanged: (value) {
-                  setState(() {
-                    _notificationsEnabled = value;
-                  });
-                },
-              ),
-              _buildSwitchItem(
-                icon: Icons.volume_up,
-                title: 'Sound',
-                value: _soundEnabled,
-                onChanged: (value) {
-                  setState(() {
-                    _soundEnabled = value;
-                  });
-                },
-              ),
-              _buildSwitchItem(
-                icon: Icons.vibration,
-                title: 'Vibration',
-                value: _vibrationEnabled,
-                onChanged: (value) {
-                  setState(() {
-                    _vibrationEnabled = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 24),
-              _buildSectionTitle('Appearance'),
-              _buildSwitchItem(
-                icon: Icons.dark_mode,
-                title: 'Dark Mode',
-                value: _darkMode,
-                onChanged: (value) {
-                  setState(() {
-                    _darkMode = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 24),
-              _buildSectionTitle('Security'),
-              _buildSwitchItem(
-                icon: Icons.fingerprint,
-                title: 'Biometric Login',
-                value: _biometricEnabled,
-                onChanged: (value) {
-                  setState(() {
-                    _biometricEnabled = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 24),
-              _buildSectionTitle('Data'),
-              _buildMenuItem(
-                icon: Icons.cloud_upload,
-                title: 'Backup Data',
-                onTap: () {
-                  // Backup data
-                },
-              ),
-              _buildMenuItem(
-                icon: Icons.cloud_download,
-                title: 'Restore Data',
-                onTap: () {
-                  // Restore data
-                },
-              ),
-              _buildMenuItem(
-                icon: Icons.delete_forever,
-                title: 'Clear Cache',
-                onTap: () {
-                  _showClearCacheDialog();
-                },
-              ),
-              const SizedBox(height: 24),
-              _buildSectionTitle('App'),
-              _buildMenuItem(
-                icon: Icons.star,
-                title: 'Rate App',
-                onTap: () {
-                  // Open app store
-                },
-              ),
-              _buildMenuItem(
-                icon: Icons.share,
-                title: 'Share App',
-                onTap: () {
-                  // Share app
-                },
-              ),
-              _buildMenuItem(
-                icon: Icons.policy,
-                title: 'Privacy Policy',
-                onTap: () {
-                  // Open privacy policy
-                },
-              ),
-              _buildMenuItem(
-                icon: Icons.description,
-                title: 'Terms of Service',
-                onTap: () {
-                  // Open terms of service
-                },
-              ),
-              const SizedBox(height: 24),
-              _buildLogoutItem(),
-              const SizedBox(height: 16),
-              Center(
-                child: Text(
-                  'Ploopy v1.0.0',
-                  style: AppTextStyles.caption.copyWith(
-                    color: AppColors.textSecondary.withValues(alpha: 0.5),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: AppColors.primary,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSwitchItem({
-    required IconData icon,
-    required String title,
-    required bool value,
-    required Function(bool) onChanged,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: NeoCard(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Row(
-            children: [
-              Icon(icon, color: AppColors.textSecondary),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(title, style: const TextStyle(fontSize: 16)),
-              ),
-              Switch(
-                value: value,
-                onChanged: onChanged,
-                activeThumbColor: AppColors.primary,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMenuItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: NeoCard(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Icon(icon, color: AppColors.textSecondary),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(title, style: const TextStyle(fontSize: 16)),
-              ),
-              const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLogoutItem() {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        final isLoading = state is AuthLogoutLoading;
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: NeoCard(
-            onTap: isLoading ? null : _showLogoutDialog,
-            backgroundColor: AppColors.error.withValues(alpha: 0.08),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
+              _SettingsCard(
                 children: [
-                  Icon(Icons.logout_rounded, color: AppColors.error),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      isLoading ? 'Keluar...' : 'Logout',
-                      style: AppTextStyles.body.copyWith(
-                        color: AppColors.error,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                  _SwitchRow(
+                    icon: Icons.notifications_rounded,
+                    title: 'Notifikasi',
+                    subtitle: 'Pengingat dan update aplikasi',
+                    value: _notificationsEnabled,
+                    onChanged: (value) =>
+                        setState(() => _notificationsEnabled = value),
                   ),
-                  if (isLoading)
-                    const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  else
-                    const Icon(Icons.chevron_right, color: AppColors.error),
+                  const Divider(
+                    height: 1,
+                    color: AppColors.greyBorder,
+                    indent: 58,
+                  ),
+                  _SwitchRow(
+                    icon: Icons.fingerprint_rounded,
+                    title: 'Biometric Login',
+                    subtitle: 'Masuk lebih cepat dengan sidik jari',
+                    value: _biometricEnabled,
+                    onChanged: (value) =>
+                        setState(() => _biometricEnabled = value),
+                  ),
                 ],
               ),
-            ),
+              const SizedBox(height: 14),
+              _SettingsCard(
+                children: [
+                  _MenuRow(
+                    icon: Icons.info_outline_rounded,
+                    title: 'Tentang Ploopy',
+                    subtitle: 'Versi 1.0.0',
+                    onTap: () {},
+                  ),
+                  const Divider(
+                    height: 1,
+                    color: AppColors.greyBorder,
+                    indent: 58,
+                  ),
+                  _MenuRow(
+                    icon: Icons.logout_rounded,
+                    title: 'Logout',
+                    subtitle: 'Keluar dari akun saat ini',
+                    color: AppColors.error,
+                    onTap: _showLogoutDialog,
+                  ),
+                ],
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -303,7 +117,7 @@ class _SettingsPageState extends State<SettingsPage> {
               'Logout',
               style: AppTextStyles.body.copyWith(
                 color: AppColors.error,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -311,29 +125,153 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
     );
   }
+}
 
-  void _showClearCacheDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Clear Cache'),
-        content: const Text('Are you sure you want to clear cache?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Cache cleared successfully')),
-              );
-            },
-            child: const Text('Clear'),
+class _SettingsCard extends StatelessWidget {
+  final List<Widget> children;
+
+  const _SettingsCard({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.greyBorder),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadow,
+            blurRadius: 16,
+            offset: Offset(0, 8),
           ),
         ],
       ),
+      child: Column(children: children),
+    );
+  }
+}
+
+class _SwitchRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _SwitchRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
+        children: [
+          _IconBubble(icon: icon),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(subtitle, style: AppTextStyles.caption),
+              ],
+            ),
+          ),
+          Switch.adaptive(
+            value: value,
+            activeThumbColor: AppColors.primary,
+            onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MenuRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color? color;
+  final VoidCallback onTap;
+
+  const _MenuRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveColor = color ?? AppColors.textSecondary;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            _IconBubble(icon: icon, color: effectiveColor),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppTextStyles.body.copyWith(
+                      color: color ?? AppColors.textMain,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: AppTextStyles.caption),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: color ?? AppColors.textMuted,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _IconBubble extends StatelessWidget {
+  final IconData icon;
+  final Color? color;
+
+  const _IconBubble({required this.icon, this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveColor = color ?? AppColors.primary;
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        color: effectiveColor.withValues(alpha: 0.1),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, size: 18, color: effectiveColor),
     );
   }
 }

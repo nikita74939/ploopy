@@ -39,7 +39,9 @@ class _StudyPageState extends State<StudyPage> {
     if (userId == null) return;
     _loadedUserId = userId;
     context.read<StudyBloc>().add(LoadStudyData(userId: userId));
-    context.read<ScheduleBloc>().add(LoadSchedulesByDate(date: DateTime.now()));
+    context.read<ScheduleBloc>().add(
+      LoadSchedulesByDate(userId: userId, date: DateTime.now()),
+    );
     context.read<TaskBloc>().add(
       LoadTasksByDate(date: DateTime.now(), userId: userId),
     );
@@ -238,47 +240,42 @@ class _FocusModeCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
           SizedBox(
-            height: 224,
+            height: 184,
             child: Stack(
               alignment: Alignment.center,
               children: [
                 CustomPaint(
-                  size: const Size(184, 184),
+                  size: const Size(168, 168),
                   painter: _TimerRingPainter(progress: progress),
                 ),
-                Positioned(
-                  top: 64,
-                  child: Column(
-                    children: [
-                      Text(
-                        _formatTimer(remaining),
-                        style: AppTextStyles.display.copyWith(
-                          fontSize: 38,
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w800,
-                        ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _formatTimer(remaining),
+                      style: AppTextStyles.display.copyWith(
+                        fontSize: 38,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w800,
                       ),
-                      const SizedBox(height: 3),
-                      Text(
-                        isPaused ? 'Paused' : "Let's focus!",
-                        style: AppTextStyles.caption.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      isPaused ? 'Paused' : "Let's focus!",
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.textSecondary,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                const Positioned(bottom: 8, child: _DeskMascot()),
-                const Positioned(left: 4, top: 80, child: _Plant()),
-                const Positioned(right: 4, top: 82, child: _Lamp()),
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           SizedBox(
-            height: 54,
+            height: 50,
             child: ElevatedButton(
               onPressed: isRunning ? onPause : (isPaused ? onResume : onStart),
               style: ElevatedButton.styleFrom(
