@@ -1,26 +1,38 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
-import { updateBiometricEnabled } from '../services/userService.js';
+import { getPublicUsers, getUserProfile, updateBiometricEnabled, updateUserProfile } from '../services/userService.js';
 import { httpError } from '../utils/httpError.js';
 
 export const userRoutes = Router();
+userRoutes.use(requireAuth);
 
-userRoutes.patch('/:id/biometric', requireAuth, async (req, res, next) => {
+userRoutes.get('/search', async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const { enabled } = req.body;
+    const users = await getPublicUsers({ q: req.query.q, excludeUserId: req.authUser.id });
+    return res.json({ users });
+  } catch (err) { return next(err); }
+});
 
-    if (req.authUser.id !== id) {
-      throw httpError(403, 'Tidak boleh mengubah user lain.');
-    }
-
-    if (typeof enabled !== 'boolean') {
-      throw httpError(400, 'Field enabled harus boolean.');
-    }
-
-    const user = await updateBiometricEnabled({ userId: id, enabled });
+userRoutes.get('/:id', async (req, res, next) => {
+  try {
+    const user = await getUserProfile(req.params.id);
     return res.json({ user });
-  } catch (err) {
-    return next(err);
-  }
+  } catch (err) { return next(err); }
+});
+
+userRoutes.patch('/:id', async (req, res, next) => {
+  try {
+    if (req.authUser.id !== req.params.id) throw httpError(403, 'Tidak boleh mengubah user lain.');
+    const user = await updateUserProfile({ userId: req.params.id, input: req.body });
+    return res.json({ user });
+  } catch (err) { return next(err); }
+});
+
+userRoutes.patch('/:id/biometric', async (req, res, next) => {
+  try {
+    if (req.authUser.id !== req.params.id) throw httpError(403, 'Tidak boleh mengubah user lain.');
+    if (typeof req.body.enabled !== 'boolean') throw httpError(400, 'Field enabled harus boolean.');
+    const user = await updateBiometricEnabled({ userId: req.params.id, enabled: req.body.enabled });
+    return res.json({ user });
+  } catch (err) { return next(err); }
 });
