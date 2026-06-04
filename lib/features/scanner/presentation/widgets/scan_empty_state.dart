@@ -6,7 +6,10 @@ import '../../../../core/constants/app_constants.dart';
 class ScanEmptyState extends StatelessWidget {
   final VoidCallback onScan;
 
-  const ScanEmptyState({super.key, required this.onScan});
+  const ScanEmptyState({
+    super.key,
+    required this.onScan,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,18 +20,24 @@ class ScanEmptyState extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
+              width: 104,
+              height: 104,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFFFFE8D6), Color(0xFFFFD9B3)],
+                  colors: [
+                    Color(0xFFFFE8D6),
+                    Color(0xFFFFD9B3),
+                  ],
                 ),
                 shape: BoxShape.circle,
               ),
-              alignment: Alignment.center,
-              child: const Text('📄', style: TextStyle(fontSize: 48)),
+              child: Icon(
+                Icons.document_scanner_rounded,
+                size: 48,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(height: 20),
             Text(
@@ -41,7 +50,7 @@ class ScanEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Scan dokumen, catatan, atau\nmateri kuliahmu dengan mudah!',
+              'Scan dokumen, catatan, atau materi kuliahmu dengan mudah.',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 12,
@@ -52,7 +61,10 @@ class ScanEmptyState extends StatelessWidget {
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: onScan,
-              icon: const Icon(Icons.document_scanner_rounded, size: 18),
+              icon: const Icon(
+                Icons.document_scanner_rounded,
+                size: 18,
+              ),
               label: Text(
                 'Mulai Scan',
                 style: GoogleFonts.poppins(
@@ -83,31 +95,53 @@ class ScanEmptyState extends StatelessWidget {
 
   Widget _buildFeatureChips() {
     final features = [
-      {'emoji': '✂️', 'label': 'Auto-crop'},
-      {'emoji': '📐', 'label': 'Koreksi miring'},
-      {'emoji': '📑', 'label': 'Multi halaman'},
-      {'emoji': '📤', 'label': 'Export PDF'},
+      _ScanFeature(
+        icon: Icons.crop_rounded,
+        label: 'Auto-crop',
+      ),
+      _ScanFeature(
+        icon: Icons.straighten_rounded,
+        label: 'Koreksi miring',
+      ),
+      _ScanFeature(
+        icon: Icons.auto_stories_rounded,
+        label: 'Multi halaman',
+      ),
+      _ScanFeature(
+        icon: Icons.picture_as_pdf_rounded,
+        label: 'Export PDF',
+      ),
     ];
 
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       alignment: WrapAlignment.center,
-      children: features.map((f) {
+      children: features.map((feature) {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 10,
+            vertical: 6,
+          ),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.grey.shade200, width: 1),
+            border: Border.all(
+              color: Colors.grey.shade200,
+              width: 1,
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(f['emoji']!, style: const TextStyle(fontSize: 12)),
-              const SizedBox(width: 4),
+              Icon(
+                feature.icon,
+                size: 13,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 5),
               Text(
-                f['label']!,
+                feature.label,
                 style: GoogleFonts.poppins(
                   fontSize: 10,
                   fontWeight: FontWeight.w500,
@@ -120,4 +154,14 @@ class ScanEmptyState extends StatelessWidget {
       }).toList(),
     );
   }
+}
+
+class _ScanFeature {
+  final IconData icon;
+  final String label;
+
+  const _ScanFeature({
+    required this.icon,
+    required this.label,
+  });
 }

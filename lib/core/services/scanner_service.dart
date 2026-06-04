@@ -1,54 +1,55 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:cunning_document_scanner/cunning_document_scanner.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+
 import '../../features/scanner/domain/scanned_doc_model.dart';
 
 class ScannerService {
   static const String _storageKey = 'ploopy_scanned_docs';
-  static const _uuid = Uuid();
+  static const Uuid _uuid = Uuid();
 
-  /// Scan documents pakai ML Kit Document Scanner
-  /// Returns list of image paths
-  static Future<List<String>?> scanDocuments() async {
+  static Future<List<String>?> scanDocuments({int noOfPages = 10}) async {
     try {
       final images = await CunningDocumentScanner.getPictures(
-        noOfPages: 10, // max 10 pages
-        isGalleryImportAllowed: true, // allow import from gallery
+        noOfPages: noOfPages,
+        isGalleryImportAllowed: true,
       );
 
       if (images == null || images.isEmpty) return null;
 
-      // Copy images ke app storage supaya persistent
-      final savedPaths = <String>[];
       final appDir = await getApplicationDocumentsDirectory();
       final scansDir = Directory('${appDir.path}/ploopy_scans');
+
       if (!await scansDir.exists()) {
         await scansDir.create(recursive: true);
       }
 
+      final savedPaths = <String>[];
+
       for (var i = 0; i < images.length; i++) {
         final originalFile = File(images[i]);
-        if (await originalFile.exists()) {
-          final newName = '${_uuid.v4()}_$i.jpg';
-          final newPath = '${scansDir.path}/$newName';
-          await originalFile.copy(newPath);
-          savedPaths.add(newPath);
-        }
+
+        if (!await originalFile.exists()) continue;
+
+        final fileName = '${_uuid.v4()}_$i.jpg';
+        final newPath = '${scansDir.path}/$fileName';
+
+        await originalFile.copy(newPath);
+        savedPaths.add(newPath);
       }
 
       return savedPaths;
     } catch (e) {
-      print('❌ Error scanning: $e');
       return null;
     }
   }
 
-  /// Generate PDF dari list of images
   static Future<String?> generatePdf({
     required String title,
     required List<String> imagePaths,
@@ -56,8 +57,9 @@ class ScannerService {
     try {
       final pdf = pw.Document();
 
-      for (final imgPath in imagePaths) {
-        final file = File(imgPath);
+      for (final imagePath in imagePaths) {
+        final file = File(imagePath);
+
         if (!await file.exists()) continue;
 
         final imageBytes = await file.readAsBytes();
@@ -66,25 +68,29 @@ class ScannerService {
         pdf.addPage(
           pw.Page(
             pageFormat: PdfPageFormat.a4,
-            build: (context) {
+            build: (_) {
               return pw.Center(
-                child: pw.Image(image, fit: pw.BoxFit.contain),
+                child: pw.Image(
+                  image,
+                  fit: pw.BoxFit.contain,
+                ),
               );
             },
           ),
         );
       }
 
-      // Save PDF
       final appDir = await getApplicationDocumentsDirectory();
       final pdfDir = Directory('${appDir.path}/ploopy_pdfs');
+
       if (!await pdfDir.exists()) {
         await pdfDir.create(recursive: true);
       }
 
       final safeTitle = title
           .replaceAll(RegExp(r'[^\w\s-]'), '')
-          .replaceAll(' ', '_');
+          .replaceAll(RegExp(r'\s+'), '_');
+
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final pdfPath = '${pdfDir.path}/${safeTitle}_$timestamp.pdf';
 
@@ -93,36 +99,44 @@ class ScannerService {
 
       return pdfPath;
     } catch (e) {
-      print('❌ Error generating PDF: $e');
       return null;
     }
   }
 
-  // ========== Storage Operations ==========
-
   static Future<List<ScannedDoc>> getAllDocs() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonStr = prefs.getString(_storageKey);
-      if (jsonStr == null || jsonStr.isEmpty) return [];
+      final jsonString = prefs.getString(_storageKey);
 
-      final List<dynamic> list = jsonDecode(jsonStr);
-      return list
-          .map((e) => ScannedDoc.fromJson(e as Map<String, dynamic>))
+      if (jsonString == null || jsonString.isEmpty) return [];
+
+      final decoded = jsonDecode(jsonString) as List<dynamic>;
+
+      return decoded
+          .map((item) => ScannedDoc.fromJson(item as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('❌ Error loading docs: $e');
       return [];
+    }
+  }
+
+  static Future<ScannedDoc?> getDocById(String id) async {
+    final docs = await getAllDocs();
+
+    try {
+      return docs.firstWhere((doc) => doc.id == id);
+    } catch (_) {
+      return null;
     }
   }
 
   static Future<bool> _saveAll(List<ScannedDoc> docs) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonList = docs.map((d) => d.toJson()).toList();
-      return await prefs.setString(_storageKey, jsonEncode(jsonList));
+      final jsonList = docs.map((doc) => doc.toJson()).toList();
+
+      return prefs.setString(_storageKey, jsonEncode(jsonList));
     } catch (e) {
-      print('❌ Error saving docs: $e');
       return false;
     }
   }
@@ -133,68 +147,142 @@ class ScannerService {
     String? pdfPath,
   }) async {
     try {
+      final cleanedTitle = title.trim();
+
       final doc = ScannedDoc(
         id: _uuid.v4(),
-        title: title.trim().isEmpty
+        title: cleanedTitle.isEmpty
             ? 'Scan ${DateTime.now().day}/${DateTime.now().month}'
-            : title.trim(),
+            : cleanedTitle,
         imagePaths: imagePaths,
         pdfPath: pdfPath,
         scannedAt: DateTime.now(),
       );
 
       final docs = await getAllDocs();
-      docs.insert(0, doc); // newest first
+      docs.insert(0, doc);
+
       final saved = await _saveAll(docs);
       return saved ? doc : null;
-    } catch (_) {
+    } catch (e) {
       return null;
     }
   }
 
-  static Future<bool> updateTitle(String id, String newTitle) async {
+  static Future<ScannedDoc?> addPagesToDoc({
+    required String id,
+    required List<String> newImagePaths,
+  }) async {
+    if (newImagePaths.isEmpty) return null;
+
     final docs = await getAllDocs();
-    final index = docs.indexWhere((d) => d.id == id);
+    final index = docs.indexWhere((doc) => doc.id == id);
+
+    if (index == -1) return null;
+
+    final oldDoc = docs[index];
+
+    final updatedDoc = oldDoc.copyWith(
+      imagePaths: [
+        ...oldDoc.imagePaths,
+        ...newImagePaths,
+      ],
+      pdfPath: null,
+    );
+
+    docs[index] = updatedDoc;
+
+    final saved = await _saveAll(docs);
+    return saved ? updatedDoc : null;
+  }
+
+  static Future<bool> updateTitle(String id, String newTitle) async {
+    final cleanedTitle = newTitle.trim();
+
+    if (cleanedTitle.isEmpty) return false;
+
+    final docs = await getAllDocs();
+    final index = docs.indexWhere((doc) => doc.id == id);
+
     if (index == -1) return false;
 
-    docs[index] = ScannedDoc(
-      id: docs[index].id,
-      title: newTitle,
-      imagePaths: docs[index].imagePaths,
-      pdfPath: docs[index].pdfPath,
-      scannedAt: docs[index].scannedAt,
+    docs[index] = docs[index].copyWith(
+      title: cleanedTitle,
+      pdfPath: null,
     );
-    return await _saveAll(docs);
+
+    return _saveAll(docs);
+  }
+
+  static Future<ScannedDoc?> deletePage({
+    required String docId,
+    required int pageIndex,
+  }) async {
+    final docs = await getAllDocs();
+    final index = docs.indexWhere((doc) => doc.id == docId);
+
+    if (index == -1) return null;
+
+    final doc = docs[index];
+
+    if (pageIndex < 0 || pageIndex >= doc.imagePaths.length) {
+      return null;
+    }
+
+    final removedPath = doc.imagePaths[pageIndex];
+    final updatedPaths = List<String>.from(doc.imagePaths)..removeAt(pageIndex);
+
+    try {
+      final file = File(removedPath);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (_) {}
+
+    if (updatedPaths.isEmpty) {
+      await deleteDoc(docId);
+      return null;
+    }
+
+    final updatedDoc = doc.copyWith(
+      imagePaths: updatedPaths,
+      pdfPath: null,
+    );
+
+    docs[index] = updatedDoc;
+
+    final saved = await _saveAll(docs);
+    return saved ? updatedDoc : null;
   }
 
   static Future<bool> deleteDoc(String id) async {
     final docs = await getAllDocs();
-    final doc = docs.firstWhere(
-      (d) => d.id == id,
-      orElse: () => ScannedDoc(
-        id: '',
-        title: '',
-        imagePaths: [],
-        scannedAt: DateTime.now(),
-      ),
-    );
+    final index = docs.indexWhere((doc) => doc.id == id);
 
-    // Delete files
-    for (final imgPath in doc.imagePaths) {
+    if (index == -1) return false;
+
+    final doc = docs[index];
+
+    for (final imagePath in doc.imagePaths) {
       try {
-        final file = File(imgPath);
-        if (await file.exists()) await file.delete();
+        final file = File(imagePath);
+        if (await file.exists()) {
+          await file.delete();
+        }
       } catch (_) {}
     }
 
     if (doc.pdfPath != null) {
       try {
         final pdfFile = File(doc.pdfPath!);
-        if (await pdfFile.exists()) await pdfFile.delete();
+        if (await pdfFile.exists()) {
+          await pdfFile.delete();
+        }
       } catch (_) {}
     }
 
-    docs.removeWhere((d) => d.id == id);
-    return await _saveAll(docs);
+    docs.removeAt(index);
+
+    return _saveAll(docs);
   }
 }

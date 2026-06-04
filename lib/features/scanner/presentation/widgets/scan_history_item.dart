@@ -1,6 +1,9 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../../../core/constants/app_constants.dart';
 import '../../domain/scanned_doc_model.dart';
 
 class ScanHistoryItem extends StatelessWidget {
@@ -27,7 +30,10 @@ class ScanHistoryItem extends StatelessWidget {
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.grey.shade100, width: 1),
+            border: Border.all(
+              color: Colors.grey.shade100,
+              width: 1,
+            ),
           ),
           child: Row(
             children: [
@@ -43,27 +49,63 @@ class ScanHistoryItem extends StatelessWidget {
   }
 
   Widget _buildThumbnail() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        width: 60,
-        height: 80,
-        color: Colors.grey.shade100,
-        child: doc.imagePaths.isNotEmpty
-            ? Image.file(
-                File(doc.imagePaths.first),
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Center(
-                  child: Icon(
-                    Icons.broken_image_rounded,
-                    color: Colors.grey,
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            width: 60,
+            height: 80,
+            color: Colors.grey.shade100,
+            child: doc.imagePaths.isNotEmpty
+                ? Image.file(
+                    File(doc.imagePaths.first),
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) {
+                      return const Center(
+                        child: Icon(
+                          Icons.broken_image_rounded,
+                          color: Colors.grey,
+                        ),
+                      );
+                    },
+                  )
+                : const Center(
+                    child: Icon(
+                      Icons.description_rounded,
+                      color: Colors.grey,
+                    ),
                   ),
-                ),
-              )
-            : const Center(
-                child: Icon(Icons.description_rounded, color: Colors.grey),
+          ),
+        ),
+        Positioned(
+          right: -5,
+          bottom: -5,
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white,
+                width: 2,
               ),
-      ),
+            ),
+            child: Center(
+              child: Text(
+                '${doc.pageCount}',
+                style: GoogleFonts.poppins(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -85,8 +127,8 @@ class ScanHistoryItem extends StatelessWidget {
         Row(
           children: [
             Icon(
-              Icons.description_rounded,
-              size: 11,
+              Icons.auto_stories_rounded,
+              size: 12,
               color: Colors.grey.shade500,
             ),
             const SizedBox(width: 4),
@@ -100,7 +142,7 @@ class ScanHistoryItem extends StatelessWidget {
             const SizedBox(width: 10),
             Icon(
               Icons.schedule_rounded,
-              size: 11,
+              size: 12,
               color: Colors.grey.shade500,
             ),
             const SizedBox(width: 4),
@@ -114,33 +156,35 @@ class ScanHistoryItem extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 6),
-        if (doc.pdfPath != null)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.red.shade50,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.picture_as_pdf_rounded,
-                  size: 10,
-                  color: Colors.red.shade600,
-                ),
-                const SizedBox(width: 3),
-                Text(
-                  'PDF',
-                  style: GoogleFonts.poppins(
-                    fontSize: 8,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.red.shade600,
-                  ),
-                ),
-              ],
-            ),
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 7,
+            vertical: 3,
           ),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(7),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.folder_rounded,
+                size: 11,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                'Buka dokumen',
+                style: GoogleFonts.poppins(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -160,55 +204,69 @@ class ScanHistoryItem extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 42,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(4),
-              ),
+      builder: (_) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(20),
             ),
-            ListTile(
-              leading: const Icon(Icons.visibility_rounded),
-              title: Text(
-                'Lihat',
-                style: GoogleFonts.poppins(fontSize: 13),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                onTap();
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.delete_outline_rounded,
-                color: Colors.red.shade400,
-              ),
-              title: Text(
-                'Hapus',
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: Colors.red.shade400,
+          ),
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 42,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(4),
                 ),
               ),
-              onTap: () {
-                Navigator.pop(context);
-                onDelete();
-              },
-            ),
-          ],
-        ),
-      ),
+              ListTile(
+                leading: Icon(
+                  Icons.visibility_rounded,
+                  color: AppColors.primary,
+                ),
+                title: Text(
+                  'Buka dokumen',
+                  style: GoogleFonts.poppins(fontSize: 13),
+                ),
+                subtitle: Text(
+                  'Lihat semua halaman dan tambah halaman baru',
+                  style: GoogleFonts.poppins(
+                    fontSize: 10,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  onTap();
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.delete_outline_rounded,
+                  color: Colors.red.shade400,
+                ),
+                title: Text(
+                  'Hapus dokumen',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    color: Colors.red.shade400,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  onDelete();
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -222,9 +280,20 @@ class ScanHistoryItem extends StatelessWidget {
     if (diff.inDays < 7) return '${diff.inDays}h lalu';
 
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Ags',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
     ];
+
     return '${date.day} ${months[date.month - 1]}';
   }
 }

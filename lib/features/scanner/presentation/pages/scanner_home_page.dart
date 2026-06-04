@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/services/scanner_service.dart';
 import '../../domain/scanned_doc_model.dart';
-import '../pages/scanner_preview_page.dart';
 import '../widgets/scan_empty_state.dart';
 import '../widgets/scan_history_item.dart';
-import '../../../../core/services/scanner_service.dart';
+import 'scanner_preview_page.dart';
 
 class ScannerHomePage extends StatefulWidget {
   const ScannerHomePage({super.key});
@@ -28,7 +29,9 @@ class _ScannerHomePageState extends State<ScannerHomePage> {
 
   Future<void> _loadDocs() async {
     final docs = await ScannerService.getAllDocs();
+
     if (!mounted) return;
+
     setState(() {
       _docs = docs;
       _isLoading = false;
@@ -45,11 +48,9 @@ class _ScannerHomePageState extends State<ScannerHomePage> {
       final imagePaths = await ScannerService.scanDocuments();
 
       if (imagePaths == null || imagePaths.isEmpty) {
-        if (mounted) setState(() => _isScanning = false);
         return;
       }
 
-      // Ask for title
       final title = await _askForTitle();
 
       final doc = await ScannerService.saveDoc(
@@ -57,174 +58,224 @@ class _ScannerHomePageState extends State<ScannerHomePage> {
         imagePaths: imagePaths,
       );
 
-      if (doc != null) {
-        await _loadDocs();
-        _showSnackbar(
-          '${imagePaths.length} halaman berhasil di-scan! 📄',
-          Colors.green.shade600,
-        );
-
-        // Buka preview langsung
-        if (!mounted) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ScannerPreviewPage(doc: doc),
-          ),
-        ).then((_) => _loadDocs());
+      if (doc == null) {
+        _showSnackbar('Gagal menyimpan dokumen.', Colors.red.shade400);
+        return;
       }
+
+      await _loadDocs();
+
+      _showSnackbar(
+        '${imagePaths.length} halaman berhasil disimpan.',
+        Colors.green.shade600,
+      );
+
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ScannerPreviewPage(doc: doc),
+        ),
+      ).then((_) => _loadDocs());
     } catch (e) {
-      _showSnackbar('Error saat scan: $e', Colors.red.shade400);
+      _showSnackbar('Gagal memindai dokumen.', Colors.red.shade400);
     } finally {
-      if (mounted) setState(() => _isScanning = false);
+      if (mounted) {
+        setState(() => _isScanning = false);
+      }
     }
   }
 
   Future<String?> _askForTitle() async {
     final controller = TextEditingController();
-    return showDialog<String>(
+
+    final result = await showDialog<String?>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-        ),
-        title: Row(
-          children: [
-            const Text('📄', style: TextStyle(fontSize: 20)),
-            const SizedBox(width: 8),
-            Text(
-              'Beri Judul',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.drive_file_rename_outline_rounded,
+                size: 22,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Beri Judul',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Scan berhasil. Tambahkan judul agar dokumen mudah ditemukan.',
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                maxLength: 60,
+                textCapitalization: TextCapitalization.sentences,
+                style: GoogleFonts.poppins(fontSize: 13),
+                decoration: InputDecoration(
+                  hintText: 'Contoh: Catatan Kalkulus Bab 3',
+                  hintStyle: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.grey.shade400,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.description_rounded,
+                    color: Colors.grey.shade500,
+                    size: 20,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  counterText: '',
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, null),
+              child: Text(
+                'Lewati',
+                style: GoogleFonts.poppins(color: Colors.grey.shade600),
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+              icon: const Icon(Icons.check_rounded, size: 18),
+              label: Text(
+                'Simpan',
+                style: GoogleFonts.poppins(color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ),
           ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Scan berhasil! Kasih judul yuk biar gampang dicari.',
-              style: GoogleFonts.poppins(
-                fontSize: 11,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              autofocus: true,
-              maxLength: 60,
-              textCapitalization: TextCapitalization.sentences,
-              style: GoogleFonts.poppins(fontSize: 13),
-              decoration: InputDecoration(
-                hintText: 'Contoh: Catatan Kalkulus Bab 3',
-                hintStyle: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: Colors.grey.shade400,
-                ),
-                filled: true,
-                fillColor: Colors.grey.shade50,
-                counterText: '',
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, null),
-            child: Text(
-              'Skip',
-              style: GoogleFonts.poppins(color: Colors.grey.shade600),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () =>
-                Navigator.pop(ctx, controller.text.trim()),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: Text(
-              'Simpan',
-              style: GoogleFonts.poppins(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
+
+    controller.dispose();
+    return result;
   }
 
   Future<void> _deleteDoc(ScannedDoc doc) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-        ),
-        title: Text(
-          'Hapus scan?',
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
           ),
-        ),
-        content: Text(
-          '"${doc.title}" akan dihapus permanen beserta file-nya',
-          style: GoogleFonts.poppins(fontSize: 12),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(
-              'Batal',
-              style: GoogleFonts.poppins(color: Colors.grey.shade600),
-            ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.delete_outline_rounded,
+                size: 22,
+                color: Colors.red.shade400,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Hapus scan?',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade400,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+          content: Text(
+            '"${doc.title}" akan dihapus permanen beserta semua halamannya.',
+            style: GoogleFonts.poppins(fontSize: 12),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(
+                'Batal',
+                style: GoogleFonts.poppins(color: Colors.grey.shade600),
               ),
             ),
-            child: Text(
-              'Hapus',
-              style: GoogleFonts.poppins(color: Colors.white),
+            ElevatedButton.icon(
+              onPressed: () => Navigator.pop(ctx, true),
+              icon: const Icon(Icons.delete_rounded, size: 18),
+              label: Text(
+                'Hapus',
+                style: GoogleFonts.poppins(color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade400,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      },
     );
 
-    if (confirm == true) {
-      await ScannerService.deleteDoc(doc.id);
-      await _loadDocs();
-      _showSnackbar('Scan dihapus 🗑️', Colors.grey.shade800);
-    }
+    if (confirm != true) return;
+
+    await ScannerService.deleteDoc(doc.id);
+    await _loadDocs();
+
+    _showSnackbar('Dokumen dihapus.', Colors.grey.shade800);
+  }
+
+  void _openDoc(ScannedDoc doc) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ScannerPreviewPage(doc: doc),
+      ),
+    ).then((_) => _loadDocs());
   }
 
   void _showSnackbar(String message, Color color) {
     if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           message,
-          style: GoogleFonts.poppins(color: Colors.white, fontSize: 12),
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontSize: 12,
+          ),
         ),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,
@@ -252,7 +303,10 @@ class _ScannerHomePageState extends State<ScannerHomePage> {
       backgroundColor: Colors.grey.shade50,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_rounded, color: Colors.black87),
+        icon: const Icon(
+          Icons.arrow_back_rounded,
+          color: Colors.black87,
+        ),
         onPressed: () => Navigator.pop(context),
       ),
       title: Text(
@@ -269,8 +323,11 @@ class _ScannerHomePageState extends State<ScannerHomePage> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(strokeWidth: 2),
+      return Center(
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: AppColors.primary,
+        ),
       );
     }
 
@@ -291,21 +348,30 @@ class _ScannerHomePageState extends State<ScannerHomePage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 80,
-            height: 80,
+            width: 82,
+            height: 82,
             decoration: BoxDecoration(
               color: AppColors.primary.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            alignment: Alignment.center,
-            child: CircularProgressIndicator(
-              strokeWidth: 3,
-              valueColor: AlwaysStoppedAnimation(AppColors.primary),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CircularProgressIndicator(
+                  strokeWidth: 3,
+                  color: AppColors.primary,
+                ),
+                Icon(
+                  Icons.document_scanner_rounded,
+                  color: AppColors.primary,
+                  size: 28,
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 20),
           Text(
-            'Membuka Scanner...',
+            'Membuka scanner',
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -337,18 +403,12 @@ class _ScannerHomePageState extends State<ScannerHomePage> {
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
               itemCount: _docs.length,
               separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (_, i) {
-                final doc = _docs[i];
+              itemBuilder: (_, index) {
+                final doc = _docs[index];
+
                 return ScanHistoryItem(
                   doc: doc,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ScannerPreviewPage(doc: doc),
-                      ),
-                    ).then((_) => _loadDocs());
-                  },
+                  onTap: () => _openDoc(doc),
                   onDelete: () => _deleteDoc(doc),
                 );
               },
@@ -360,8 +420,10 @@ class _ScannerHomePageState extends State<ScannerHomePage> {
   }
 
   Widget _buildStatsHeader() {
-    final totalPages =
-        _docs.fold<int>(0, (sum, d) => sum + d.pageCount);
+    final totalPages = _docs.fold<int>(
+      0,
+      (sum, doc) => sum + doc.pageCount,
+    );
 
     return Container(
       margin: const EdgeInsets.all(20),
@@ -370,7 +432,10 @@ class _ScannerHomePageState extends State<ScannerHomePage> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFFFF3E9), Color(0xFFFFE8D6)],
+          colors: [
+            Color(0xFFFFF3E9),
+            Color(0xFFFFE8D6),
+          ],
         ),
         borderRadius: BorderRadius.circular(16),
       ),
@@ -380,11 +445,14 @@ class _ScannerHomePageState extends State<ScannerHomePage> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withOpacity(0.75),
               shape: BoxShape.circle,
             ),
-            alignment: Alignment.center,
-            child: const Text('📚', style: TextStyle(fontSize: 22)),
+            child: Icon(
+              Icons.folder_copy_rounded,
+              color: AppColors.primary,
+              size: 24,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -410,9 +478,9 @@ class _ScannerHomePageState extends State<ScannerHomePage> {
             ),
           ),
           Icon(
-            Icons.folder_rounded,
+            Icons.chevron_right_rounded,
             color: AppColors.primary,
-            size: 20,
+            size: 24,
           ),
         ],
       ),
@@ -425,12 +493,12 @@ class _ScannerHomePageState extends State<ScannerHomePage> {
       backgroundColor: AppColors.primary,
       elevation: 6,
       icon: const Icon(
-        Icons.document_scanner_rounded,
+        Icons.add_rounded,
         color: Colors.white,
-        size: 20,
+        size: 22,
       ),
       label: Text(
-        'Scan',
+        'Scan Baru',
         style: GoogleFonts.poppins(
           fontSize: 13,
           fontWeight: FontWeight.w600,

@@ -25,10 +25,17 @@ class ScanActionButton extends StatelessWidget {
         onTap: isLoading ? null : onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 10,
+          ),
           decoration: BoxDecoration(
             color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: color.withOpacity(0.18),
+              width: 1,
+            ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -43,11 +50,15 @@ class ScanActionButton extends StatelessWidget {
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation(color),
+                            color: color,
                           ),
                         ),
                       )
-                    : Icon(icon, color: color, size: 22),
+                    : Icon(
+                        icon,
+                        color: color,
+                        size: 22,
+                      ),
               ),
               const SizedBox(height: 4),
               Text(
