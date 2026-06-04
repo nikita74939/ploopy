@@ -18,7 +18,7 @@ class HomeRepositoryImpl implements HomeRepository {
   });
 
   @override
-  Future<List<ScheduleModel>> getTodaySchedules() async {
+  Future<List<ScheduleModel>> getTodaySchedules(String userId) async {
     final schedules = await scheduleRepository.getSchedulesByDate(
       DateTime.now(),
     );
@@ -26,22 +26,22 @@ class HomeRepositoryImpl implements HomeRepository {
   }
 
   @override
-  Future<List<TaskModel>> getTasksOrderedByDeadline() async {
-    final tasks = await taskRepository.getAllTasks('1');
+  Future<List<TaskModel>> getTasksOrderedByDeadline(String userId) async {
+    final tasks = await taskRepository.getAllTasks(userId);
     final models = tasks.map(_taskModelFromEntity).toList();
     return models..sort((a, b) => a.deadline.compareTo(b.deadline));
   }
 
   @override
-  Future<ScheduleModel?> getNextSchedule() async {
-    final schedules = await scheduleRepository.getUpcomingSchedules('1');
+  Future<ScheduleModel?> getNextSchedule(String userId) async {
+    final schedules = await scheduleRepository.getUpcomingSchedules(userId);
     if (schedules.isEmpty) return null;
     return ScheduleModel.fromEntity(schedules.first);
   }
 
   @override
-  Future<TaskModel?> getNearestTask() async {
-    final tasks = await taskRepository.getAllTasks('1');
+  Future<TaskModel?> getNearestTask(String userId) async {
+    final tasks = await taskRepository.getAllTasks(userId);
     final incompleteTasks = tasks.where((t) => !t.isCompleted).toList();
     if (incompleteTasks.isEmpty) return null;
     incompleteTasks.sort((a, b) => a.deadline.compareTo(b.deadline));
@@ -49,19 +49,22 @@ class HomeRepositoryImpl implements HomeRepository {
   }
 
   @override
-  Future<int> getTodayStudyMinutes() async {
-    return await studyRepository.getTodayStudyMinutes('1');
+  Future<int> getTodayStudyMinutes(String userId) async {
+    return await studyRepository.getTodayStudyMinutes(userId);
   }
 
   @override
-  Future<List<ScheduleModel>> getSchedulesByDate(DateTime date) async {
+  Future<List<ScheduleModel>> getSchedulesByDate(
+    String userId,
+    DateTime date,
+  ) async {
     final schedules = await scheduleRepository.getSchedulesByDate(date);
     return schedules.map((e) => ScheduleModel.fromEntity(e)).toList();
   }
 
   @override
-  Future<List<TaskModel>> getTasksByDate(DateTime date) async {
-    final tasks = await taskRepository.getTasksByDate(date, '1');
+  Future<List<TaskModel>> getTasksByDate(String userId, DateTime date) async {
+    final tasks = await taskRepository.getTasksByDate(date, userId);
     return tasks.map(_taskModelFromEntity).toList();
   }
 

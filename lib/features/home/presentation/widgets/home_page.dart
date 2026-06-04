@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../notification/presentation/pages/notification_page.dart';
@@ -22,11 +23,11 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedDay = DateTime.now().day;
+  String? _loadedUserId;
 
   @override
   void initState() {
     super.initState();
-    context.read<HomeBloc>().add(LoadHomeData());
   }
 
   // ── Helper: iconName string → IconData ──────────────────────────────────
@@ -138,6 +139,14 @@ class _HomePageState extends State<HomePage> {
         final String name;
         if (authState is Authenticated) {
           name = authState.user.name;
+          final userId = authState.user.userId;
+          if (_loadedUserId != userId) {
+            _loadedUserId = userId;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              context.read<HomeBloc>().add(LoadHomeData(userId: userId));
+            });
+          }
         } else if (authState is AuthLoading || authState is AuthInitial) {
           return Center(
             child: CircularProgressIndicator(
@@ -153,7 +162,10 @@ class _HomePageState extends State<HomePage> {
           child: RefreshIndicator(
             color: AppColors.primary,
             onRefresh: () async {
-              context.read<HomeBloc>().add(RefreshHomeData());
+              final userId = _loadedUserId;
+              if (userId != null) {
+                context.read<HomeBloc>().add(RefreshHomeData(userId: userId));
+              }
               await Future.delayed(const Duration(milliseconds: 600));
             },
             child: SingleChildScrollView(
@@ -182,6 +194,8 @@ class _HomePageState extends State<HomePage> {
                   MiniCalendar(
                     selectedDay: _selectedDay,
                     onDaySelected: (day) => setState(() => _selectedDay = day),
+                    onOpenCalendar: () =>
+                        Navigator.pushNamed(context, AppRoutes.calendar),
                   ),
                   const SizedBox(height: 20),
 
@@ -189,6 +203,20 @@ class _HomePageState extends State<HomePage> {
                   LearnNowBanner(
                     onTap: () {
                       // TODO: navigate to desk page
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  BlocBuilder<HomeBloc, HomeState>(
+                    builder: (context, homeState) {
+                      final minutes = homeState is HomeLoaded
+                          ? homeState.todayStudyMinutes
+                          : 0;
+                      return _StudyDeskCard(
+                        minutes: minutes,
+                        onTap: () =>
+                            Navigator.pushNamed(context, AppRoutes.study),
+                      );
                     },
                   ),
                   const SizedBox(height: 24),
@@ -204,8 +232,13 @@ class _HomePageState extends State<HomePage> {
                       if (homeState is HomeError) {
                         return _ErrorCard(
                           message: homeState.message,
-                          onRetry: () =>
-                              context.read<HomeBloc>().add(LoadHomeData()),
+                          onRetry: () {
+                            final userId = _loadedUserId;
+                            if (userId == null) return;
+                            context.read<HomeBloc>().add(
+                              LoadHomeData(userId: userId),
+                            );
+                          },
                         );
                       }
 
@@ -216,7 +249,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                           taskItems: _mapTasks(homeState.tasks),
                           onSeeAll: () {
-                            // TODO: navigate to full schedule
+                            Navigator.pushNamed(context, AppRoutes.calendar);
                           },
                         );
                       }
@@ -259,6 +292,132 @@ class _ScheduleSkeleton extends StatelessWidget {
         ],
       ],
     );
+  }
+}
+
+class _StudyDeskCard extends StatelessWidget {
+  final int minutes;
+  final VoidCallback onTap;
+
+  const _StudyDeskCard({required this.minutes, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    const targetMinutes = 360;
+    final progress = (minutes / targetMinutes).clamp(0.0, 1.0);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.greyBorder),
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.shadow,
+              blurRadius: 18,
+              offset: Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                color: AppColors.primaryLighter,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.primaryBorder),
+              ),
+              child: Icon(
+                Icons.auto_stories_rounded,
+                color: AppColors.primary,
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Study Desk',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textMain,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    "Today's study time",
+                    style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                  ),
+                  const SizedBox(height: 7),
+                  Row(
+                    children: [
+                      Text(
+                        _formatMinutes(minutes),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textMain,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '/ 6h',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(99),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 7,
+                      backgroundColor: AppColors.primaryLighter,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Container(
+              width: 44,
+              height: 44,
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.arrow_forward_rounded,
+                color: AppColors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatMinutes(int totalMinutes) {
+    final hours = totalMinutes ~/ 60;
+    final mins = totalMinutes % 60;
+    if (hours == 0) return '${mins}m';
+    if (mins == 0) return '${hours}h';
+    return '${hours}h ${mins}m';
   }
 }
 

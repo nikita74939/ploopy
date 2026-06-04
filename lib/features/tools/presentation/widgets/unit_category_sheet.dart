@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/unit_data.dart';
+import '../../../../core/utils/bottom_sheet_insets.dart';
 
 class UnitCategorySheet extends StatelessWidget {
   final String selectedId;
@@ -30,7 +31,12 @@ class UnitCategorySheet extends StatelessWidget {
           _buildHeader(context),
           Flexible(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                4,
+                16,
+                BottomSheetInsets.bottom(context),
+              ),
               child: GridView.builder(
                 shrinkWrap: true,
                 itemCount: UnitData.categories.length,
@@ -137,10 +143,7 @@ class UnitCategorySheet extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               alignment: Alignment.center,
-              child: Text(
-                cat.emoji,
-                style: const TextStyle(fontSize: 22),
-              ),
+              child: Text(cat.emoji, style: const TextStyle(fontSize: 22)),
             ),
             const SizedBox(height: 8),
             Text(

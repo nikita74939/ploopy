@@ -10,9 +10,23 @@ abstract class StudyEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoadStudyData extends StudyEvent {}
+class LoadStudyData extends StudyEvent {
+  final String userId;
 
-class StartStudySession extends StudyEvent {}
+  LoadStudyData({required this.userId});
+
+  @override
+  List<Object?> get props => [userId];
+}
+
+class StartStudySession extends StudyEvent {
+  final String userId;
+
+  StartStudySession({required this.userId});
+
+  @override
+  List<Object?> get props => [userId];
+}
 
 class PauseStudySession extends StudyEvent {}
 
@@ -68,7 +82,12 @@ class StudyInProgress extends StudyState {
   });
 
   @override
-  List<Object?> get props => [sessionId, elapsedSeconds, todayStudyMinutes, streak];
+  List<Object?> get props => [
+    sessionId,
+    elapsedSeconds,
+    todayStudyMinutes,
+    streak,
+  ];
 }
 
 class StudyPaused extends StudyState {
@@ -85,7 +104,12 @@ class StudyPaused extends StudyState {
   });
 
   @override
-  List<Object?> get props => [sessionId, elapsedSeconds, todayStudyMinutes, streak];
+  List<Object?> get props => [
+    sessionId,
+    elapsedSeconds,
+    todayStudyMinutes,
+    streak,
+  ];
 }
 
 class StudyError extends StudyState {
@@ -105,6 +129,7 @@ class StudyBloc extends Bloc<StudyEvent, StudyState> {
   int _elapsedSeconds = 0;
   int _todayMinutes = 0;
   int _streak = 0;
+  String? _currentUserId;
 
   StudyBloc({required this.repository}) : super(StudyInitial()) {
     on<LoadStudyData>(_onLoadStudyData);
@@ -127,14 +152,20 @@ class StudyBloc extends Bloc<StudyEvent, StudyState> {
   ) async {
     emit(StudyLoading());
     try {
-      _todayMinutes = await repository.getTodayStudyMinutes('1');
-      _streak = await repository.getStreak('1');
-      final sessions = await repository.getSessionsByDate(DateTime.now());
-      emit(StudyIdle(
-        todayStudyMinutes: _todayMinutes,
-        streak: _streak,
-        sessions: sessions,
-      ));
+      _currentUserId = event.userId;
+      _todayMinutes = await repository.getTodayStudyMinutes(event.userId);
+      _streak = await repository.getStreak(event.userId);
+      final sessions = await repository.getSessionsByDate(
+        event.userId,
+        DateTime.now(),
+      );
+      emit(
+        StudyIdle(
+          todayStudyMinutes: _todayMinutes,
+          streak: _streak,
+          sessions: sessions,
+        ),
+      );
     } catch (e) {
       emit(StudyError(message: e.toString()));
     }
@@ -145,31 +176,33 @@ class StudyBloc extends Bloc<StudyEvent, StudyState> {
     Emitter<StudyState> emit,
   ) async {
     try {
-      _currentSessionId = await repository.startSession('1');
+      _currentUserId = event.userId;
+      _currentSessionId = await repository.startSession(event.userId);
       _elapsedSeconds = 0;
       _startTimer();
-      emit(StudyInProgress(
-        sessionId: _currentSessionId,
-        elapsedSeconds: _elapsedSeconds,
-        todayStudyMinutes: _todayMinutes,
-        streak: _streak,
-      ));
+      emit(
+        StudyInProgress(
+          sessionId: _currentSessionId,
+          elapsedSeconds: _elapsedSeconds,
+          todayStudyMinutes: _todayMinutes,
+          streak: _streak,
+        ),
+      );
     } catch (e) {
       emit(StudyError(message: e.toString()));
     }
   }
 
-  void _onPauseStudySession(
-    PauseStudySession event,
-    Emitter<StudyState> emit,
-  ) {
+  void _onPauseStudySession(PauseStudySession event, Emitter<StudyState> emit) {
     _timer?.cancel();
-    emit(StudyPaused(
-      sessionId: _currentSessionId,
-      elapsedSeconds: _elapsedSeconds,
-      todayStudyMinutes: _todayMinutes,
-      streak: _streak,
-    ));
+    emit(
+      StudyPaused(
+        sessionId: _currentSessionId,
+        elapsedSeconds: _elapsedSeconds,
+        todayStudyMinutes: _todayMinutes,
+        streak: _streak,
+      ),
+    );
   }
 
   void _onResumeStudySession(
@@ -178,12 +211,14 @@ class StudyBloc extends Bloc<StudyEvent, StudyState> {
   ) {
     _elapsedSeconds = 0; // Reset for new session segment
     _startTimer();
-    emit(StudyInProgress(
-      sessionId: _currentSessionId,
-      elapsedSeconds: _elapsedSeconds,
-      todayStudyMinutes: _todayMinutes,
-      streak: _streak,
-    ));
+    emit(
+      StudyInProgress(
+        sessionId: _currentSessionId,
+        elapsedSeconds: _elapsedSeconds,
+        todayStudyMinutes: _todayMinutes,
+        streak: _streak,
+      ),
+    );
   }
 
   Future<void> _onEndStudySession(
@@ -192,33 +227,34 @@ class StudyBloc extends Bloc<StudyEvent, StudyState> {
   ) async {
     _timer?.cancel();
     try {
+      final userId = _currentUserId;
+      if (userId == null) return;
       final durationMinutes = _elapsedSeconds ~/ 60;
       await repository.endSession(_currentSessionId, durationMinutes);
-      
+
       // Update streak if studied >= 15 minutes today
       _todayMinutes += durationMinutes;
       if (_todayMinutes >= 15) {
         _streak++;
-        await repository.updateStreak('1', _streak);
+        await repository.updateStreak(userId, _streak);
       }
-      
-      add(LoadStudyData());
+
+      add(LoadStudyData(userId: userId));
     } catch (e) {
       emit(StudyError(message: e.toString()));
     }
   }
 
-  void _onTimerTick(
-    _TimerTick event,
-    Emitter<StudyState> emit,
-  ) {
+  void _onTimerTick(_TimerTick event, Emitter<StudyState> emit) {
     _elapsedSeconds = event.seconds;
-    emit(StudyInProgress(
-      sessionId: _currentSessionId,
-      elapsedSeconds: _elapsedSeconds,
-      todayStudyMinutes: _todayMinutes,
-      streak: _streak,
-    ));
+    emit(
+      StudyInProgress(
+        sessionId: _currentSessionId,
+        elapsedSeconds: _elapsedSeconds,
+        todayStudyMinutes: _todayMinutes,
+        streak: _streak,
+      ),
+    );
   }
 
   void _startTimer() {

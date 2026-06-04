@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/unit_data.dart';
+import '../../../../core/utils/bottom_sheet_insets.dart';
 
 class UnitPickerSheet extends StatelessWidget {
   final List<UnitItem> units;
@@ -48,11 +49,8 @@ class UnitPickerSheet extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               shrinkWrap: true,
               itemCount: units.length,
-              separatorBuilder: (_, __) => Divider(
-                height: 1,
-                color: Colors.grey.shade100,
-                indent: 20,
-              ),
+              separatorBuilder: (_, __) =>
+                  Divider(height: 1, color: Colors.grey.shade100, indent: 20),
               itemBuilder: (_, i) {
                 final unit = units[i];
                 final selected = unit.code == selectedCode;
@@ -131,7 +129,7 @@ class UnitPickerSheet extends StatelessWidget {
               },
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: BottomSheetInsets.bottom(context, spacing: 12)),
         ],
       ),
     );

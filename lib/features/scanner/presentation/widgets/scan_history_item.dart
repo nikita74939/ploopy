@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/bottom_sheet_insets.dart';
 import '../../domain/scanned_doc_model.dart';
 
 class ScanHistoryItem extends StatelessWidget {
@@ -30,10 +31,7 @@ class ScanHistoryItem extends StatelessWidget {
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: Colors.grey.shade100,
-              width: 1,
-            ),
+            border: Border.all(color: Colors.grey.shade100, width: 1),
           ),
           child: Row(
             children: [
@@ -72,10 +70,7 @@ class ScanHistoryItem extends StatelessWidget {
                     },
                   )
                 : const Center(
-                    child: Icon(
-                      Icons.description_rounded,
-                      color: Colors.grey,
-                    ),
+                    child: Icon(Icons.description_rounded, color: Colors.grey),
                   ),
           ),
         ),
@@ -88,10 +83,7 @@ class ScanHistoryItem extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.primary,
               shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white,
-                width: 2,
-              ),
+              border: Border.all(color: Colors.white, width: 2),
             ),
             child: Center(
               child: Text(
@@ -140,11 +132,7 @@ class ScanHistoryItem extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            Icon(
-              Icons.schedule_rounded,
-              size: 12,
-              color: Colors.grey.shade500,
-            ),
+            Icon(Icons.schedule_rounded, size: 12, color: Colors.grey.shade500),
             const SizedBox(width: 4),
             Text(
               _formatDate(doc.scannedAt),
@@ -157,10 +145,7 @@ class ScanHistoryItem extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 7,
-            vertical: 3,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
           decoration: BoxDecoration(
             color: AppColors.primary.withOpacity(0.08),
             borderRadius: BorderRadius.circular(7),
@@ -168,11 +153,7 @@ class ScanHistoryItem extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.folder_rounded,
-                size: 11,
-                color: AppColors.primary,
-              ),
+              Icon(Icons.folder_rounded, size: 11, color: AppColors.primary),
               const SizedBox(width: 4),
               Text(
                 'Buka dokumen',
@@ -208,11 +189,14 @@ class ScanHistoryItem extends StatelessWidget {
         return Container(
           decoration: const BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(20),
-            ),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+          padding: EdgeInsets.fromLTRB(
+            16,
+            10,
+            16,
+            BottomSheetInsets.bottom(context),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

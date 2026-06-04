@@ -3,7 +3,10 @@ import '../../../auth/data/models/user_model.dart';
 import '../../domain/models/study_session_model.dart';
 
 abstract class StudyLocalDataSource {
-  Future<List<StudySessionModel>> getSessionsByDate(DateTime date);
+  Future<List<StudySessionModel>> getSessionsByDate(
+    String userId,
+    DateTime date,
+  );
   Future<List<StudySessionModel>> getSessionsByUser(String userId);
   Future<void> startSession(StudySessionModel session);
   Future<void> endSession(int sessionId, int durationMinutes);
@@ -24,12 +27,16 @@ class StudyLocalDataSourceImpl implements StudyLocalDataSource {
   StudyLocalDataSourceImpl({required this.isar});
 
   @override
-  Future<List<StudySessionModel>> getSessionsByDate(DateTime date) async {
+  Future<List<StudySessionModel>> getSessionsByDate(
+    String userId,
+    DateTime date,
+  ) async {
     final startOfDay = DateTime(date.year, date.month, date.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
 
     return await isar.studySessionModels
         .filter()
+        .userIdEqualTo(userId)
         .startTimeGreaterThan(startOfDay)
         .startTimeLessThan(endOfDay)
         .findAll();
@@ -66,7 +73,7 @@ class StudyLocalDataSourceImpl implements StudyLocalDataSource {
   @override
   Future<int> getTodayStudyMinutes(String userId) async {
     final today = DateTime.now();
-    final sessions = await getSessionsByDate(today);
+    final sessions = await getSessionsByDate(userId, today);
 
     final totalMinutes = sessions.fold<int>(
       0,

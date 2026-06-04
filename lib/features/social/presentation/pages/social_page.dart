@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/constants/app_constants.dart' hide AppColors;
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/bottom_sheet_insets.dart';
 import '../../../../core/widgets/neo_container.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../activity/data/models/activity_model.dart';
@@ -54,8 +55,8 @@ class _SocialPageState extends State<SocialPage>
           IconButton(icon: const Icon(Icons.search), onPressed: () {}),
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            onPressed:
-                () => Navigator.pushNamed(context, AppRoutes.notification),
+            onPressed: () =>
+                Navigator.pushNamed(context, AppRoutes.notification),
           ),
           IconButton(icon: const Icon(Icons.tune), onPressed: () {}),
         ],
@@ -73,7 +74,10 @@ class _SocialPageState extends State<SocialPage>
               context.read<EventBloc>().add(LoadEvents());
             }
           },
-          tabs: const [Tab(text: 'Activity'), Tab(text: 'Events')],
+          tabs: const [
+            Tab(text: 'Activity'),
+            Tab(text: 'Events'),
+          ],
         ),
       ),
       body: TabBarView(
@@ -124,8 +128,8 @@ class _ActivityTab extends StatelessWidget {
                 Text(state.message, textAlign: TextAlign.center),
                 const SizedBox(height: 12),
                 ElevatedButton(
-                  onPressed:
-                      () => context.read<ActivityBloc>().add(LoadActivities()),
+                  onPressed: () =>
+                      context.read<ActivityBloc>().add(LoadActivities()),
                   child: const Text('Retry'),
                 ),
               ],
@@ -143,11 +147,10 @@ class _ActivityTab extends StatelessWidget {
           return ListView.builder(
             padding: const EdgeInsets.all(AppStyle.paddingMedium),
             itemCount: state.activities.length,
-            itemBuilder:
-                (context, index) => _ActivityCard(
-                  activity: state.activities[index],
-                  currentUserId: currentUserId,
-                ),
+            itemBuilder: (context, index) => _ActivityCard(
+              activity: state.activities[index],
+              currentUserId: currentUserId,
+            ),
           );
         }
 
@@ -234,33 +237,31 @@ class _ActivityCard extends StatelessWidget {
         border: Border.all(color: color.withOpacity(0.3), width: 1.5),
       ),
       alignment: Alignment.center,
-      child:
-          activity.userPhoto != null
-              ? ClipOval(
-                child: Image.network(
-                  activity.userPhoto!,
-                  width: 50,
-                  height: 50,
-                  fit: BoxFit.cover,
-                  errorBuilder:
-                      (_, __, ___) => Text(
-                        initial,
-                        style: GoogleFonts.poppins(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: color,
-                        ),
-                      ),
-                ),
-              )
-              : Text(
-                initial,
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: color,
+      child: activity.userPhoto != null
+          ? ClipOval(
+              child: Image.network(
+                activity.userPhoto!,
+                width: 50,
+                height: 50,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Text(
+                  initial,
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
                 ),
               ),
+            )
+          : Text(
+              initial,
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+            ),
     );
   }
 
@@ -344,34 +345,32 @@ class _ActivityCard extends StatelessWidget {
         PopupMenuButton(
           padding: EdgeInsets.zero,
           icon: Icon(Icons.more_horiz, color: Colors.grey.shade400, size: 20),
-          itemBuilder:
-              (context) => [
-                const PopupMenuItem(
-                  value: 'report',
-                  child: Row(
-                    children: [
-                      Icon(Icons.flag_outlined, size: 18),
-                      SizedBox(width: 8),
-                      Text('Report'),
-                    ],
-                  ),
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'report',
+              child: Row(
+                children: [
+                  Icon(Icons.flag_outlined, size: 18),
+                  SizedBox(width: 8),
+                  Text('Report'),
+                ],
+              ),
+            ),
+            if (currentUserId == activity.userId)
+              PopupMenuItem(
+                value: 'delete',
+                onTap: () => context.read<ActivityBloc>().add(
+                  DeleteActivity(id: activity.id),
                 ),
-                if (currentUserId == activity.userId)
-                  PopupMenuItem(
-                    value: 'delete',
-                    onTap:
-                        () => context.read<ActivityBloc>().add(
-                          DeleteActivity(id: activity.id),
-                        ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.delete_outline, color: Colors.red, size: 18),
-                        SizedBox(width: 8),
-                        Text('Delete', style: TextStyle(color: Colors.red)),
-                      ],
-                    ),
-                  ),
-              ],
+                child: const Row(
+                  children: [
+                    Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                    SizedBox(width: 8),
+                    Text('Delete', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+          ],
         ),
       ],
     );
@@ -434,21 +433,20 @@ class _ActivityCard extends StatelessWidget {
       );
     }
     return Row(
-      children:
-          urls.take(3).map((url) {
-            return Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(right: url == urls.last ? 0 : 6),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: _buildNetworkImage(url, double.infinity, null),
-                  ),
-                ),
+      children: urls.take(3).map((url) {
+        return Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(right: url == urls.last ? 0 : 6),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: _buildNetworkImage(url, double.infinity, null),
               ),
-            );
-          }).toList(),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -471,15 +469,14 @@ class _ActivityCard extends StatelessWidget {
           ),
         );
       },
-      errorBuilder:
-          (_, __, ___) => Container(
-            color: Colors.grey.shade100,
-            child: Icon(
-              Icons.broken_image_rounded,
-              color: Colors.grey.shade400,
-              size: 28,
-            ),
-          ),
+      errorBuilder: (_, __, ___) => Container(
+        color: Colors.grey.shade100,
+        child: Icon(
+          Icons.broken_image_rounded,
+          color: Colors.grey.shade400,
+          size: 28,
+        ),
+      ),
     );
   }
 
@@ -537,14 +534,13 @@ class _ActivityCard extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.white,
-      builder:
-          (ctx) => BlocProvider.value(
-            value: context.read<ActivityBloc>(),
-            child: _CommentsSheet(
-              activityId: activity.id,
-              currentUserId: currentUserId ?? '',
-            ),
-          ),
+      builder: (ctx) => BlocProvider.value(
+        value: context.read<ActivityBloc>(),
+        child: _CommentsSheet(
+          activityId: activity.id,
+          currentUserId: currentUserId ?? '',
+        ),
+      ),
     );
   }
 }
@@ -627,214 +623,205 @@ class _CommentsSheetState extends State<_CommentsSheet> {
       minChildSize: 0.4,
       maxChildSize: 0.95,
       expand: false,
-      builder:
-          (_, scrollController) => Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
+      builder: (_, scrollController) => Padding(
+        padding: EdgeInsets.only(
+          bottom: BottomSheetInsets.bottom(context, spacing: 0),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[400],
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-            child: Column(
-              children: [
-                const SizedBox(height: 8),
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[400],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Comments',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const Divider(),
-                Expanded(
-                  child: BlocBuilder<ActivityBloc, ActivityState>(
-                    builder: (context, state) {
-                      if (state is CommentsLoaded) {
-                        if (state.comments.isEmpty) {
-                          return Center(
-                            child: Text(
-                              'No comments yet',
-                              style: GoogleFonts.poppins(
-                                color: Colors.grey.shade500,
-                              ),
-                            ),
-                          );
-                        }
-                        return ListView.builder(
-                          controller: scrollController,
-                          itemCount: state.comments.length,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
+            const SizedBox(height: 16),
+            Text(
+              'Comments',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const Divider(),
+            Expanded(
+              child: BlocBuilder<ActivityBloc, ActivityState>(
+                builder: (context, state) {
+                  if (state is CommentsLoaded) {
+                    if (state.comments.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No comments yet',
+                          style: GoogleFonts.poppins(
+                            color: Colors.grey.shade500,
                           ),
-                          itemBuilder: (context, index) {
-                            final comment = state.comments[index];
-                            final initial =
-                                (comment.userName ?? '?')[0].toUpperCase();
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    width: 36,
-                                    height: 36,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary.withOpacity(
-                                        0.12,
-                                      ),
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: AppColors.primary.withOpacity(
-                                          0.25,
-                                        ),
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      initial,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColors.primary,
-                                      ),
-                                    ),
+                        ),
+                      );
+                    }
+                    return ListView.builder(
+                      controller: scrollController,
+                      itemCount: state.comments.length,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      itemBuilder: (context, index) {
+                        final comment = state.comments[index];
+                        final initial = (comment.userName ?? '?')[0]
+                            .toUpperCase();
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withOpacity(0.12),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppColors.primary.withOpacity(0.25),
+                                    width: 1.5,
                                   ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 8,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade50,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  initial,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade50,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
                                         children: [
-                                          Row(
-                                            children: [
-                                              Text(
-                                                comment.userName ?? 'Unknown',
-                                                style: GoogleFonts.poppins(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Colors.black87,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 6),
-                                              Text(
-                                                DateTimeUtils.formatRelative(
-                                                  comment.createdAt,
-                                                ),
-                                                style: GoogleFonts.poppins(
-                                                  fontSize: 10,
-                                                  color: Colors.grey.shade500,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 2),
                                           Text(
-                                            comment.content,
+                                            comment.userName ?? 'Unknown',
                                             style: GoogleFonts.poppins(
                                               fontSize: 12,
+                                              fontWeight: FontWeight.w600,
                                               color: Colors.black87,
-                                              height: 1.4,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            DateTimeUtils.formatRelative(
+                                              comment.createdAt,
+                                            ),
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 10,
+                                              color: Colors.grey.shade500,
                                             ),
                                           ),
                                         ],
                                       ),
-                                    ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        comment.content,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 12,
+                                          color: Colors.black87,
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
-                            );
-                          },
+                            ],
+                          ),
                         );
-                      }
-                      if (state is ActivityLoading) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      return const SizedBox.shrink();
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _controller,
-                          style: GoogleFonts.poppins(fontSize: 13),
-                          decoration: InputDecoration(
-                            hintText: 'Write a comment...',
-                            hintStyle: GoogleFonts.poppins(
-                              fontSize: 13,
-                              color: Colors.grey.shade400,
-                            ),
-                            filled: true,
-                            fillColor: Colors.grey.shade50,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade200,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade200,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: AppColors.primary,
-                                width: 1.5,
-                              ),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 10,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: IconButton(
-                          onPressed: _submit,
-                          icon: const Icon(
-                            Icons.send_rounded,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                      },
+                    );
+                  }
+                  if (state is ActivityLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      style: GoogleFonts.poppins(fontSize: 13),
+                      decoration: InputDecoration(
+                        hintText: 'Write a comment...',
+                        hintStyle: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: Colors.grey.shade400,
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade200),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade200),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primary,
+                            width: 1.5,
+                          ),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      onPressed: _submit,
+                      icon: const Icon(
+                        Icons.send_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -881,11 +868,10 @@ class _EventTab extends StatelessWidget {
           return ListView.builder(
             padding: const EdgeInsets.all(AppStyle.paddingMedium),
             itemCount: state.events.length,
-            itemBuilder:
-                (context, index) => _EventCard(
-                  event: state.events[index],
-                  currentUserId: currentUserId,
-                ),
+            itemBuilder: (context, index) => _EventCard(
+              event: state.events[index],
+              currentUserId: currentUserId,
+            ),
           );
         }
 
@@ -997,10 +983,9 @@ class _EventCard extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color:
-                        event.isFree
-                            ? Colors.green.withOpacity(0.15)
-                            : accent.withOpacity(0.15),
+                    color: event.isFree
+                        ? Colors.green.withOpacity(0.15)
+                        : accent.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: event.isFree ? Colors.green : accent,
@@ -1011,10 +996,10 @@ class _EventCard extends StatelessWidget {
                     event.isFree
                         ? 'FREE'
                         : NumberFormat.currency(
-                          locale: 'id_ID',
-                          symbol: 'Rp',
-                          decimalDigits: 0,
-                        ).format(event.price),
+                            locale: 'id_ID',
+                            symbol: 'Rp',
+                            decimalDigits: 0,
+                          ).format(event.price),
                     style: GoogleFonts.poppins(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -1051,10 +1036,12 @@ class _EventCard extends StatelessWidget {
                     '${event.currentParticipants}/${event.maxParticipants}',
                     style: GoogleFonts.poppins(
                       fontSize: 13,
-                      color:
-                          event.isFull ? AppColors.error : AppColors.greyText,
-                      fontWeight:
-                          event.isFull ? FontWeight.bold : FontWeight.normal,
+                      color: event.isFull
+                          ? AppColors.error
+                          : AppColors.greyText,
+                      fontWeight: event.isFull
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
                   if (event.isFull) ...[
@@ -1101,20 +1088,19 @@ class _EventCard extends StatelessWidget {
                   CircleAvatar(
                     radius: 12,
                     backgroundColor: accent.withOpacity(0.2),
-                    child:
-                        event.creatorPhoto != null
-                            ? ClipOval(
-                              child: Image.network(
-                                event.creatorPhoto!,
-                                width: 24,
-                                height: 24,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                            : Text(
-                              event.creatorName![0].toUpperCase(),
-                              style: TextStyle(fontSize: 10, color: accent),
+                    child: event.creatorPhoto != null
+                        ? ClipOval(
+                            child: Image.network(
+                              event.creatorPhoto!,
+                              width: 24,
+                              height: 24,
+                              fit: BoxFit.cover,
                             ),
+                          )
+                        : Text(
+                            event.creatorName![0].toUpperCase(),
+                            style: TextStyle(fontSize: 10, color: accent),
+                          ),
                   ),
                   const SizedBox(width: 6),
                   Text(
@@ -1165,15 +1151,14 @@ class _EventCard extends StatelessWidget {
                   )
                 else
                   ElevatedButton(
-                    onPressed:
-                        canJoin
-                            ? () {
-                              if (userId == null) return;
-                              context.read<EventBloc>().add(
-                                JoinEvent(eventId: event.id, userId: userId),
-                              );
-                            }
-                            : null,
+                    onPressed: canJoin
+                        ? () {
+                            if (userId == null) return;
+                            context.read<EventBloc>().add(
+                              JoinEvent(eventId: event.id, userId: userId),
+                            );
+                          }
+                        : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: accent,
                       padding: const EdgeInsets.symmetric(

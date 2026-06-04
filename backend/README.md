@@ -96,6 +96,15 @@ Authorization: Bearer <token_dari_login>
 - `PATCH /api/schedules/:id`
 - `DELETE /api/schedules/:id`
 
+### Study
+
+- `GET /api/study/sessions`
+- `GET /api/study/sessions?date=2026-06-04`
+- `POST /api/study/sessions`
+- `PATCH /api/study/sessions/:id/end`
+- `GET /api/study/today`
+- `GET /api/study/month?year=2026&month=6`
+
 ### Achievements
 
 - `GET /api/achievements`

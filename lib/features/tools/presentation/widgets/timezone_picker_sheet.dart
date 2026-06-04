@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/timezone_data.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/bottom_sheet_insets.dart';
 
 class TimezonePickerSheet extends StatefulWidget {
   final String selectedId;
@@ -123,11 +124,7 @@ class _TimezonePickerSheetState extends State<TimezonePickerSheet> {
         ),
         child: Row(
           children: [
-            Icon(
-              Icons.search_rounded,
-              size: 18,
-              color: Colors.grey.shade500,
-            ),
+            Icon(Icons.search_rounded, size: 18, color: Colors.grey.shade500),
             const SizedBox(width: 8),
             Expanded(
               child: TextField(
@@ -171,13 +168,15 @@ class _TimezonePickerSheetState extends State<TimezonePickerSheet> {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      itemCount: _filtered.length,
-      separatorBuilder: (_, __) => Divider(
-        height: 1,
-        color: Colors.grey.shade100,
-        indent: 56,
+      padding: EdgeInsets.fromLTRB(
+        12,
+        0,
+        12,
+        BottomSheetInsets.bottom(context, spacing: 12),
       ),
+      itemCount: _filtered.length,
+      separatorBuilder: (_, __) =>
+          Divider(height: 1, color: Colors.grey.shade100, indent: 56),
       itemBuilder: (_, i) {
         final t = _filtered[i];
         final selected = t['id'] == widget.selectedId;

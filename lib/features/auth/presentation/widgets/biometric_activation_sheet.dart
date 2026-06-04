@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/bottom_sheet_insets.dart';
 import '../bloc/auth_bloc.dart';
 
 /// Sheet untuk mengaktifkan biometrik pertama kali.
@@ -31,7 +32,12 @@ class BiometricActivationSheet extends StatelessWidget {
         }
       },
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.fromLTRB(
+          24,
+          24,
+          24,
+          BottomSheetInsets.bottom(context, spacing: 24),
+        ),
         decoration: const BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),

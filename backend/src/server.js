@@ -15,6 +15,7 @@ import { notificationRoutes } from './routes/notificationRoutes.js';
 import { scheduleRoutes } from './routes/scheduleRoutes.js';
 import { settingsRoutes } from './routes/settingsRoutes.js';
 import { streakRoutes } from './routes/streakRoutes.js';
+import { studyRoutes } from './routes/studyRoutes.js';
 import { taskRoutes } from './routes/taskRoutes.js';
 import { userRoutes } from './routes/userRoutes.js';
 
@@ -31,6 +32,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/streaks', streakRoutes);
+app.use('/api/study', studyRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/schedules', scheduleRoutes);
 app.use('/api/tasks', taskRoutes);

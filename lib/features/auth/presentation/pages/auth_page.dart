@@ -71,14 +71,9 @@ class _AuthPageState extends State<AuthPage> {
       isDismissible: onSkipped == null,
       enableDrag: onSkipped == null,
       isScrollControlled: true,
-      builder: (sheetCtx) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(sheetCtx).viewInsets.bottom,
-        ),
-        child: BlocProvider.value(
-          value: context.read<AuthBloc>(),
-          child: BiometricActivationSheet(onSkipped: onSkipped),
-        ),
+      builder: (_) => BlocProvider.value(
+        value: context.read<AuthBloc>(),
+        child: BiometricActivationSheet(onSkipped: onSkipped),
       ),
     ).whenComplete(() {
       _isBiometricActivationSheetOpen = false;

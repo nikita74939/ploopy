@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/bottom_sheet_insets.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../bloc/activity_bloc.dart';
 import '../../data/models/activity_model.dart';
@@ -45,8 +46,11 @@ class _ActivityPageState extends State<ActivityPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline,
-                      size: 48, color: AppColors.error),
+                  const Icon(
+                    Icons.error_outline,
+                    size: 48,
+                    color: AppColors.error,
+                  ),
                   const SizedBox(height: 12),
                   Text(state.message, textAlign: TextAlign.center),
                   const SizedBox(height: 12),
@@ -98,22 +102,20 @@ class _ActivityPageState extends State<ActivityPage> {
     return ListView.builder(
       padding: const EdgeInsets.all(AppStyle.paddingMedium),
       itemCount: activities.length,
-      itemBuilder: (context, index) =>
-          _ActivityCard(
-            activity: activities[index],
-            currentUserId: _currentUserId,
-            onLike: (activity) {
-              final userId = _currentUserId;
-              if (userId == null) return;
-              context.read<ActivityBloc>().add(
-                    ToggleLike(activityId: activity.id, userId: userId),
-                  );
-            },
-            onComment: (activity) => _showComments(activity.id),
-            onDelete: (activity) => context
-                .read<ActivityBloc>()
-                .add(DeleteActivity(id: activity.id)),
-          ),
+      itemBuilder: (context, index) => _ActivityCard(
+        activity: activities[index],
+        currentUserId: _currentUserId,
+        onLike: (activity) {
+          final userId = _currentUserId;
+          if (userId == null) return;
+          context.read<ActivityBloc>().add(
+            ToggleLike(activityId: activity.id, userId: userId),
+          );
+        },
+        onComment: (activity) => _showComments(activity.id),
+        onDelete: (activity) =>
+            context.read<ActivityBloc>().add(DeleteActivity(id: activity.id)),
+      ),
     );
   }
 
@@ -208,11 +210,7 @@ class _ActivityCard extends StatelessWidget {
   // ── Kiri: Avatar + chip tanggal ──
   Widget _buildLeftColumn() {
     return Column(
-      children: [
-        _buildAvatar(),
-        const SizedBox(height: 10),
-        _buildDateChip(),
-      ],
+      children: [_buildAvatar(), const SizedBox(height: 10), _buildDateChip()],
     );
   }
 
@@ -499,9 +497,7 @@ class _ActivityCard extends StatelessWidget {
     return Row(
       children: [
         _ActionButton(
-          icon: activity.isLikedByMe
-              ? Icons.favorite
-              : Icons.favorite_border,
+          icon: activity.isLikedByMe ? Icons.favorite : Icons.favorite_border,
           label: '${activity.likeCount}',
           color: activity.isLikedByMe ? AppColors.error : Colors.grey.shade500,
           onTap: () => onLike(activity),
@@ -561,10 +557,7 @@ class _CommentsSheet extends StatefulWidget {
   final String activityId;
   final String currentUserId;
 
-  const _CommentsSheet({
-    required this.activityId,
-    required this.currentUserId,
-  });
+  const _CommentsSheet({required this.activityId, required this.currentUserId});
 
   @override
   State<_CommentsSheet> createState() => _CommentsSheetState();
@@ -583,11 +576,13 @@ class _CommentsSheetState extends State<_CommentsSheet> {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
-    context.read<ActivityBloc>().add(AddComment(
-          activityId: widget.activityId,
-          userId: widget.currentUserId,
-          content: text,
-        ));
+    context.read<ActivityBloc>().add(
+      AddComment(
+        activityId: widget.activityId,
+        userId: widget.currentUserId,
+        content: text,
+      ),
+    );
     _controller.clear();
   }
 
@@ -600,7 +595,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
       expand: false,
       builder: (_, scrollController) => Padding(
         padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
+          bottom: BottomSheetInsets.bottom(context, spacing: 0),
         ),
         child: Column(
           children: [
@@ -640,11 +635,13 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                       controller: scrollController,
                       itemCount: state.comments.length,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       itemBuilder: (context, index) {
                         final comment = state.comments[index];
-                        final initial =
-                            (comment.userName ?? '?')[0].toUpperCase();
+                        final initial = (comment.userName ?? '?')[0]
+                            .toUpperCase();
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: Row(
@@ -654,12 +651,10 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                 width: 36,
                                 height: 36,
                                 decoration: BoxDecoration(
-                                  color:
-                                      AppColors.primary.withOpacity(0.12),
+                                  color: AppColors.primary.withOpacity(0.12),
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color:
-                                        AppColors.primary.withOpacity(0.25),
+                                    color: AppColors.primary.withOpacity(0.25),
                                     width: 1.5,
                                   ),
                                 ),
@@ -677,7 +672,9 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                               Expanded(
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.grey.shade50,
                                     borderRadius: BorderRadius.circular(12),
@@ -699,7 +696,8 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                           const SizedBox(width: 6),
                                           Text(
                                             DateTimeUtils.formatRelative(
-                                                comment.createdAt),
+                                              comment.createdAt,
+                                            ),
                                             style: GoogleFonts.poppins(
                                               fontSize: 10,
                                               color: Colors.grey.shade500,
@@ -751,21 +749,23 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                         fillColor: Colors.grey.shade50,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              BorderSide(color: Colors.grey.shade200),
+                          borderSide: BorderSide(color: Colors.grey.shade200),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              BorderSide(color: Colors.grey.shade200),
+                          borderSide: BorderSide(color: Colors.grey.shade200),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                              color: AppColors.primary, width: 1.5),
+                            color: AppColors.primary,
+                            width: 1.5,
+                          ),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 10),
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
                       ),
                     ),
                   ),
@@ -779,8 +779,11 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                     ),
                     child: IconButton(
                       onPressed: _submit,
-                      icon: const Icon(Icons.send_rounded,
-                          color: Colors.white, size: 18),
+                      icon: const Icon(
+                        Icons.send_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
                     ),
                   ),
                 ],

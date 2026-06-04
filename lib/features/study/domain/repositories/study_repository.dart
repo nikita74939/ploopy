@@ -1,7 +1,10 @@
 import '../models/study_session_model.dart';
 
 abstract class StudyRepository {
-  Future<List<StudySessionModel>> getSessionsByDate(DateTime date);
+  Future<List<StudySessionModel>> getSessionsByDate(
+    String userId,
+    DateTime date,
+  );
   Future<List<StudySessionModel>> getSessionsByUser(String userId);
   Future<int> startSession(String userId);
   Future<void> endSession(int sessionId, int durationMinutes);

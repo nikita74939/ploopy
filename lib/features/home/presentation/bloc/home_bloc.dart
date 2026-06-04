@@ -3,15 +3,30 @@ import 'package:equatable/equatable.dart';
 import '../../../task/data/models/task_model.dart';
 import '../../domain/repositories/home_repository.dart';
 import '../../../schedule/data/models/schedule_model.dart';
+
 // Events
 abstract class HomeEvent extends Equatable {
   @override
   List<Object?> get props => [];
 }
 
-class LoadHomeData extends HomeEvent {}
+class LoadHomeData extends HomeEvent {
+  final String userId;
 
-class RefreshHomeData extends HomeEvent {}
+  LoadHomeData({required this.userId});
+
+  @override
+  List<Object?> get props => [userId];
+}
+
+class RefreshHomeData extends HomeEvent {
+  final String userId;
+
+  RefreshHomeData({required this.userId});
+
+  @override
+  List<Object?> get props => [userId];
+}
 
 // States
 abstract class HomeState extends Equatable {
@@ -40,12 +55,12 @@ class HomeLoaded extends HomeState {
 
   @override
   List<Object?> get props => [
-        todaySchedules,
-        tasks,
-        nextSchedule,
-        nearestTask,
-        todayStudyMinutes,
-      ];
+    todaySchedules,
+    tasks,
+    nextSchedule,
+    nearestTask,
+    todayStudyMinutes,
+  ];
 }
 
 class HomeError extends HomeState {
@@ -72,19 +87,21 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   ) async {
     emit(HomeLoading());
     try {
-      final schedules = await repository.getTodaySchedules();
-      final tasks = await repository.getTasksOrderedByDeadline();
-      final nextSchedule = await repository.getNextSchedule();
-      final nearestTask = await repository.getNearestTask();
-      final studyMinutes = await repository.getTodayStudyMinutes();
+      final schedules = await repository.getTodaySchedules(event.userId);
+      final tasks = await repository.getTasksOrderedByDeadline(event.userId);
+      final nextSchedule = await repository.getNextSchedule(event.userId);
+      final nearestTask = await repository.getNearestTask(event.userId);
+      final studyMinutes = await repository.getTodayStudyMinutes(event.userId);
 
-      emit(HomeLoaded(
-        todaySchedules: schedules,
-        tasks: tasks,
-        nextSchedule: nextSchedule,
-        nearestTask: nearestTask,
-        todayStudyMinutes: studyMinutes,
-      ));
+      emit(
+        HomeLoaded(
+          todaySchedules: schedules,
+          tasks: tasks,
+          nextSchedule: nextSchedule,
+          nearestTask: nearestTask,
+          todayStudyMinutes: studyMinutes,
+        ),
+      );
     } catch (e) {
       emit(HomeError(message: e.toString()));
     }
@@ -95,19 +112,21 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     Emitter<HomeState> emit,
   ) async {
     try {
-      final schedules = await repository.getTodaySchedules();
-      final tasks = await repository.getTasksOrderedByDeadline();
-      final nextSchedule = await repository.getNextSchedule();
-      final nearestTask = await repository.getNearestTask();
-      final studyMinutes = await repository.getTodayStudyMinutes();
+      final schedules = await repository.getTodaySchedules(event.userId);
+      final tasks = await repository.getTasksOrderedByDeadline(event.userId);
+      final nextSchedule = await repository.getNextSchedule(event.userId);
+      final nearestTask = await repository.getNearestTask(event.userId);
+      final studyMinutes = await repository.getTodayStudyMinutes(event.userId);
 
-      emit(HomeLoaded(
-        todaySchedules: schedules,
-        tasks: tasks,
-        nextSchedule: nextSchedule,
-        nearestTask: nearestTask,
-        todayStudyMinutes: studyMinutes,
-      ));
+      emit(
+        HomeLoaded(
+          todaySchedules: schedules,
+          tasks: tasks,
+          nextSchedule: nextSchedule,
+          nearestTask: nearestTask,
+          todayStudyMinutes: studyMinutes,
+        ),
+      );
     } catch (e) {
       emit(HomeError(message: e.toString()));
     }

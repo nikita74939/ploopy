@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/bottom_sheet_insets.dart';
 import '../../domain/entities/schedule_entity.dart';
 import '../bloc/schedule_bloc.dart';
 import 'color_picker_widget.dart';
@@ -145,12 +146,14 @@ class _ScheduleFormSheetState extends State<ScheduleFormSheet> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
+      top: false,
+      bottom: false,
       child: Padding(
         padding: EdgeInsets.only(
           left: 20,
           right: 20,
           top: 10,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          bottom: BottomSheetInsets.bottom(context),
         ),
         child: Form(
           key: _formKey,

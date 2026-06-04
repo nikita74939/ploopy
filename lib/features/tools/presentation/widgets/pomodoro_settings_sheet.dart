@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/bottom_sheet_insets.dart';
 
 class PomodoroSettings {
   final int focusMinutes;
@@ -74,7 +75,12 @@ class _PomodoroSettingsSheetState extends State<PomodoroSettingsSheet> {
           _buildHandle(),
           _buildHeader(),
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+            padding: EdgeInsets.fromLTRB(
+              20,
+              8,
+              20,
+              BottomSheetInsets.bottom(context),
+            ),
             child: Column(
               children: [
                 _buildItem(

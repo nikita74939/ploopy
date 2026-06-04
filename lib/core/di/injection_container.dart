@@ -44,6 +44,7 @@ import '../../../features/task/presentation/bloc/task_bloc.dart';
 
 // Study
 import '../../../features/study/data/datasources/study_local_data_source.dart';
+import '../../../features/study/data/datasources/study_remote_data_source.dart';
 import '../../../features/study/data/repositories/study_repository_impl.dart';
 import '../../../features/study/domain/repositories/study_repository.dart';
 import '../../../features/study/presentation/bloc/study_bloc.dart';
@@ -200,8 +201,17 @@ class DependencyInjection {
   static StudyLocalDataSource get studyLocalDataSource =>
       StudyLocalDataSourceImpl(isar: _isar!);
 
-  static StudyRepository get studyRepository =>
-      StudyRepositoryImpl(localDataSource: studyLocalDataSource);
+  static StudyRemoteDataSource get studyRemoteDataSource =>
+      StudyRemoteDataSourceImpl(
+        client: _httpClient,
+        baseUrl: ApiConfig.baseUrl,
+        secureStorage: _secureStorage,
+      );
+
+  static StudyRepository get studyRepository => StudyRepositoryImpl(
+    localDataSource: studyLocalDataSource,
+    remoteDataSource: studyRemoteDataSource,
+  );
 
   static StudyBloc get studyBloc => StudyBloc(repository: studyRepository);
 

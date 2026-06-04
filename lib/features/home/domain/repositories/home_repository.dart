@@ -1,11 +1,12 @@
 import '../../../schedule/data/models/schedule_model.dart';
 import '../../../task/data/models/task_model.dart';
+
 abstract class HomeRepository {
-  Future<List<ScheduleModel>> getTodaySchedules();
-  Future<List<TaskModel>> getTasksOrderedByDeadline();
-  Future<ScheduleModel?> getNextSchedule();
-  Future<TaskModel?> getNearestTask();
-  Future<int> getTodayStudyMinutes();
-  Future<List<ScheduleModel>> getSchedulesByDate(DateTime date);
-  Future<List<TaskModel>> getTasksByDate(DateTime date);
+  Future<List<ScheduleModel>> getTodaySchedules(String userId);
+  Future<List<TaskModel>> getTasksOrderedByDeadline(String userId);
+  Future<ScheduleModel?> getNextSchedule(String userId);
+  Future<TaskModel?> getNearestTask(String userId);
+  Future<int> getTodayStudyMinutes(String userId);
+  Future<List<ScheduleModel>> getSchedulesByDate(String userId, DateTime date);
+  Future<List<TaskModel>> getTasksByDate(String userId, DateTime date);
 }

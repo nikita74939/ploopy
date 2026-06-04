@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/bottom_sheet_insets.dart';
 
 enum OcrSource { camera, gallery }
 
@@ -12,7 +13,12 @@ class OcrSourcePicker {
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
-          margin: const EdgeInsets.all(16),
+          margin: EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            BottomSheetInsets.bottom(context, spacing: 16),
+          ),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -135,10 +141,7 @@ class _SourceTile extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right_rounded,
-              color: Colors.grey.shade500,
-            ),
+            Icon(Icons.chevron_right_rounded, color: Colors.grey.shade500),
           ],
         ),
       ),
