@@ -43,6 +43,15 @@ class BiometricAuthRequested extends AuthEvent {}
 /// Aktivasi biometrik pertama kali setelah login dengan email+password
 class EnableBiometricRequested extends AuthEvent {}
 
+class SetBiometricEnabledRequested extends AuthEvent {
+  final bool enabled;
+
+  SetBiometricEnabledRequested({required this.enabled});
+
+  @override
+  List<Object?> get props => [enabled];
+}
+
 class LogoutRequested extends AuthEvent {}
 
 // ─── States ───────────────────────────────────────────────────────────────────
@@ -89,6 +98,15 @@ class BiometricEnabled extends AuthState {
   List<Object?> get props => [user];
 }
 
+class BiometricPreferenceUpdated extends AuthState {
+  final UserEntity user;
+
+  BiometricPreferenceUpdated({required this.user});
+
+  @override
+  List<Object?> get props => [user];
+}
+
 // ─── BLoC ─────────────────────────────────────────────────────────────────────
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
@@ -100,6 +118,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<RegisterRequested>(_onRegisterRequested);
     on<BiometricAuthRequested>(_onBiometricAuthRequested);
     on<EnableBiometricRequested>(_onEnableBiometricRequested);
+    on<SetBiometricEnabledRequested>(_onSetBiometricEnabledRequested);
     on<LogoutRequested>(_onLogoutRequested);
   }
 
@@ -211,6 +230,30 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
+  Future<void> _onSetBiometricEnabledRequested(
+    SetBiometricEnabledRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    try {
+      final user = await repository.setBiometricEnabled(event.enabled);
+      if (user == null) {
+        emit(
+          AuthError(
+            message: event.enabled
+                ? 'Gagal mengaktifkan biometrik.'
+                : 'Gagal menonaktifkan biometrik.',
+          ),
+        );
+        return;
+      }
+      emit(BiometricPreferenceUpdated(user: user));
+      emit(Authenticated(user: user));
+    } catch (e) {
+      emit(AuthError(message: _cleanError(e)));
+    }
+  }
+
   Future<void> _onLogoutRequested(
     LogoutRequested event,
     Emitter<AuthState> emit,
@@ -228,6 +271,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   String _cleanError(Object e) {
     final msg = e.toString();
     // Buang prefix "Exception: " yang ditambahkan Dart
-    return msg.startsWith('Exception: ') ? msg.substring(11) : msg;
+    final cleaned = msg.startsWith('Exception: ') ? msg.substring(11) : msg;
+    if (cleaned.trim().isEmpty) return 'Terjadi kesalahan. Coba lagi.';
+    return cleaned;
   }
 }

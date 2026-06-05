@@ -15,9 +15,7 @@ class BiometricLoginSheet extends StatelessWidget {
         if (state is Authenticated) {
           Navigator.pop(context, true);
         } else if (state is AuthError) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
+          Navigator.pop(context, false);
         }
       },
       child: Container(
@@ -63,7 +61,7 @@ class BiometricLoginSheet extends StatelessWidget {
             const SizedBox(height: 8),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Batal', style: AppTextStyles.bodySmall),
+              child: Text('Gunakan Password', style: AppTextStyles.bodySmall),
             ),
           ],
         ),

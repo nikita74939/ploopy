@@ -11,11 +11,11 @@ import '../../../../core/config/api_config.dart';
 import '../../../../core/network/auth_session_guard.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../auth/data/models/user_model.dart';
+import '../../../auth/domain/entities/user_entity.dart';
 import '../bloc/profile_bloc.dart';
 
 class EditProfilePage extends StatefulWidget {
-  final UserModel user;
+  final UserEntity user;
 
   const EditProfilePage({super.key, required this.user});
 
@@ -78,19 +78,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
         avatarUrl = await _uploadAvatar(pickedBytes);
       }
 
-      final updated = UserModel()
-        ..userId = widget.user.userId
-        ..email = widget.user.email
-        ..name = _nameController.text.trim()
-        ..bio = _nullableText(_bioController.text)
-        ..avatarUrl = avatarUrl
-        ..joinedAt = widget.user.joinedAt
-        ..biometricEnabled = widget.user.biometricEnabled
-        ..streak = widget.user.streak
-        ..longestStreak = widget.user.longestStreak
-        ..totalStudyMinutes = widget.user.totalStudyMinutes
-        ..totalTasksCompleted = widget.user.totalTasksCompleted
-        ..appLockEnabled = widget.user.appLockEnabled;
+      final updated = UserEntity(
+        id: widget.user.id,
+        userId: widget.user.userId,
+        email: widget.user.email,
+        name: _nameController.text.trim(),
+        bio: _nullableText(_bioController.text),
+        avatarUrl: avatarUrl,
+        joinedAt: widget.user.joinedAt,
+        biometricEnabled: widget.user.biometricEnabled,
+        streak: widget.user.streak,
+        longestStreak: widget.user.longestStreak,
+        totalStudyMinutes: widget.user.totalStudyMinutes,
+        totalTasksCompleted: widget.user.totalTasksCompleted,
+        appLockEnabled: widget.user.appLockEnabled,
+      );
 
       if (!mounted) return;
       context.read<ProfileBloc>().add(UpdateProfile(user: updated));

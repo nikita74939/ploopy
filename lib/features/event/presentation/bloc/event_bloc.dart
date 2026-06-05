@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import '../../domain/entities/event_entity.dart';
 import '../../domain/repositories/event_repository.dart';
-import '../../data/models/event_model.dart';
 
 // ─────────────────────────────────────────
 // Events
@@ -17,7 +17,7 @@ class LoadEvents extends EventEvent {}
 class LoadUpcomingEvents extends EventEvent {}
 
 class CreateEvent extends EventEvent {
-  final EventModel event;
+  final EventEntity event;
 
   CreateEvent({required this.event});
 
@@ -26,7 +26,7 @@ class CreateEvent extends EventEvent {
 }
 
 class UpdateEvent extends EventEvent {
-  final EventModel event;
+  final EventEntity event;
 
   UpdateEvent({required this.event});
 
@@ -77,7 +77,7 @@ class EventInitial extends EventState {}
 class EventLoading extends EventState {}
 
 class EventsLoaded extends EventState {
-  final List<EventModel> events;
+  final List<EventEntity> events;
 
   EventsLoaded({required this.events});
 
@@ -120,10 +120,7 @@ class EventBloc extends Bloc<EventEvent, EventState> {
     on<LeaveEvent>(_onLeaveEvent);
   }
 
-  Future<void> _onLoadEvents(
-    LoadEvents event,
-    Emitter<EventState> emit,
-  ) async {
+  Future<void> _onLoadEvents(LoadEvents event, Emitter<EventState> emit) async {
     emit(EventLoading());
     try {
       final events = await repository.getAllEvents();
@@ -188,10 +185,7 @@ class EventBloc extends Bloc<EventEvent, EventState> {
     }
   }
 
-  Future<void> _onJoinEvent(
-    JoinEvent event,
-    Emitter<EventState> emit,
-  ) async {
+  Future<void> _onJoinEvent(JoinEvent event, Emitter<EventState> emit) async {
     try {
       await repository.joinEvent(event.eventId, event.userId);
       add(LoadEvents());
@@ -200,10 +194,7 @@ class EventBloc extends Bloc<EventEvent, EventState> {
     }
   }
 
-  Future<void> _onLeaveEvent(
-    LeaveEvent event,
-    Emitter<EventState> emit,
-  ) async {
+  Future<void> _onLeaveEvent(LeaveEvent event, Emitter<EventState> emit) async {
     try {
       await repository.leaveEvent(event.eventId, event.userId);
       add(LoadEvents());

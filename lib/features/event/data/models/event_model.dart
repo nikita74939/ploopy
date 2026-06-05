@@ -66,6 +66,27 @@ class EventModel {
     );
   }
 
+  factory EventModel.fromEntity(EventEntity entity) {
+    return EventModel(
+      id: entity.id,
+      creatorId: entity.creatorId,
+      name: entity.name,
+      icon: entity.icon,
+      color: entity.color,
+      eventDate: entity.eventDate,
+      location: entity.location,
+      isOnline: entity.isOnline,
+      maxParticipants: entity.maxParticipants,
+      currentParticipants: entity.currentParticipants,
+      description: entity.description,
+      price: entity.price,
+      isJoinedByMe: entity.isJoinedByMe,
+      createdAt: entity.createdAt,
+      creatorName: entity.creatorName,
+      creatorPhoto: entity.creatorPhoto,
+    );
+  }
+
   Map<String, dynamic> toApiJson() => {
     'name': name,
     if (icon != null) 'icon': icon,

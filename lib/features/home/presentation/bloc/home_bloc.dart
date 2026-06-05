@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import '../../../task/data/models/task_model.dart';
+import '../../../schedule/domain/entities/schedule_entity.dart';
+import '../../../task/domain/entities/task_entity.dart';
 import '../../domain/repositories/home_repository.dart';
-import '../../../schedule/data/models/schedule_model.dart';
 
 // Events
 abstract class HomeEvent extends Equatable {
@@ -39,10 +39,10 @@ class HomeInitial extends HomeState {}
 class HomeLoading extends HomeState {}
 
 class HomeLoaded extends HomeState {
-  final List<ScheduleModel> todaySchedules;
-  final List<TaskModel> tasks;
-  final ScheduleModel? nextSchedule;
-  final TaskModel? nearestTask;
+  final List<ScheduleEntity> todaySchedules;
+  final List<TaskEntity> tasks;
+  final ScheduleEntity? nextSchedule;
+  final TaskEntity? nearestTask;
   final int todayStudyMinutes;
 
   HomeLoaded({

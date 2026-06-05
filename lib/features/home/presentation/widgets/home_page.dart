@@ -7,9 +7,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../notification/presentation/bloc/notification_bloc.dart';
 import '../../../notification/presentation/pages/notification_page.dart';
-import '../../../schedule/data/models/schedule_model.dart';
+import '../../../schedule/domain/entities/schedule_entity.dart';
 import '../../../schedule/presentation/bloc/schedule_bloc.dart';
-import '../../../task/data/models/task_model.dart';
+import '../../../task/domain/entities/task_entity.dart';
 import '../../../task/presentation/bloc/task_bloc.dart';
 import '../bloc/home_bloc.dart';
 import 'home_greeting_header.dart';
@@ -84,25 +84,25 @@ class _HomePageState extends State<HomePage> {
     return '$h:$m';
   }
 
-  // ── Mapping ScheduleModel → Map<String, dynamic> ────────────────────────
+  // ── Mapping ScheduleEntity → Map<String, dynamic> ───────────────────────
   // Field: name, startTime, endTime, color (int), iconName
-  List<Map<String, dynamic>> _mapSchedules(List<ScheduleModel> schedules) {
+  List<Map<String, dynamic>> _mapSchedules(List<ScheduleEntity> schedules) {
     return schedules.map((s) {
       return {
         'time': _formatTime(s.startTime),
         'title': s.name,
         'streak': '',
         'duration': _formatDuration(s.startTime, s.endTime),
-        'icon': _resolveIcon(s.iconName, Icons.event_rounded),
+        'icon': _resolveIcon(s.icon, Icons.event_rounded),
         'color': Color(s.color),
         'done': false,
       };
     }).toList();
   }
 
-  // ── Mapping TaskModel → Map<String, dynamic> ────────────────────────────
+  // ── Mapping TaskEntity → Map<String, dynamic> ───────────────────────────
   // Field: name, subject, deadline, color (int), iconName, isCompleted
-  List<Map<String, dynamic>> _mapTasks(List<TaskModel> tasks) {
+  List<Map<String, dynamic>> _mapTasks(List<TaskEntity> tasks) {
     return tasks.map((t) {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);

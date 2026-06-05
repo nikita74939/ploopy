@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../domain/repositories/notification_repository.dart';
-import '../../data/models/notification_model.dart';
+import '../../domain/entities/notification_entity.dart';
 
 // Events
 abstract class NotificationEvent extends Equatable {
@@ -42,8 +42,8 @@ class NotificationInitial extends NotificationState {}
 class NotificationLoading extends NotificationState {}
 
 class NotificationLoaded extends NotificationState {
-  final List<NotificationModel> allNotifications;
-  final List<NotificationModel> unreadNotifications;
+  final List<NotificationEntity> allNotifications;
+  final List<NotificationEntity> unreadNotifications;
   final int unreadCount;
 
   NotificationLoaded({

@@ -1,9 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import '../../../auth/data/models/user_model.dart';
-import '../../data/models/achievement_supabase_model.dart';
-import '../../data/models/app_settings_model.dart';
-import '../../data/models/friendship_model.dart';
+import '../../../auth/domain/entities/user_entity.dart';
+import '../../domain/entities/achievement_entity.dart';
+import '../../domain/entities/app_settings_entity.dart';
+import '../../domain/entities/friendship_entity.dart';
+import '../../domain/entities/streak_entity.dart';
 import '../../domain/repositories/profile_repository.dart';
 
 // ─── EVENTS ──────────────────────────────────────────────────────────────────
@@ -21,7 +22,7 @@ class LoadProfile extends ProfileEvent {
 }
 
 class UpdateProfile extends ProfileEvent {
-  final UserModel user;
+  final UserEntity user;
   UpdateProfile({required this.user});
   @override
   List<Object?> get props => [user];
@@ -81,7 +82,7 @@ class LoadAppSettings extends ProfileEvent {
 }
 
 class UpdateAppSettings extends ProfileEvent {
-  final AppSettingsModel settings;
+  final ProfileAppSettingsEntity settings;
   UpdateAppSettings({required this.settings});
   @override
   List<Object?> get props => [settings];
@@ -99,12 +100,12 @@ class ProfileInitial extends ProfileState {}
 class ProfileLoading extends ProfileState {}
 
 class ProfileLoaded extends ProfileState {
-  final UserModel user;
-  final List<AchievementSupabaseModel> achievements;
-  final List<UserAchievementSupabaseModel> userAchievements;
-  final List<FriendshipModel> friends;
-  final StreakModel streak;
-  final AppSettingsModel settings;
+  final UserEntity user;
+  final List<AchievementEntity> achievements;
+  final List<UserAchievementEntity> userAchievements;
+  final List<ProfileFriendshipEntity> friends;
+  final ProfileStreakEntity streak;
+  final ProfileAppSettingsEntity settings;
 
   ProfileLoaded({
     required this.user,
@@ -116,16 +117,22 @@ class ProfileLoaded extends ProfileState {
   });
 
   @override
-  List<Object?> get props =>
-      [user, achievements, userAchievements, friends, streak, settings];
+  List<Object?> get props => [
+    user,
+    achievements,
+    userAchievements,
+    friends,
+    streak,
+    settings,
+  ];
 
   ProfileLoaded copyWith({
-    UserModel? user,
-    List<AchievementSupabaseModel>? achievements,
-    List<UserAchievementSupabaseModel>? userAchievements,
-    List<FriendshipModel>? friends,
-    StreakModel? streak,
-    AppSettingsModel? settings,
+    UserEntity? user,
+    List<AchievementEntity>? achievements,
+    List<UserAchievementEntity>? userAchievements,
+    List<ProfileFriendshipEntity>? friends,
+    ProfileStreakEntity? streak,
+    ProfileAppSettingsEntity? settings,
   }) {
     return ProfileLoaded(
       user: user ?? this.user,
@@ -141,7 +148,7 @@ class ProfileLoaded extends ProfileState {
 class ProfileUpdateSuccess extends ProfileState {}
 
 class SettingsLoaded extends ProfileState {
-  final AppSettingsModel settings;
+  final ProfileAppSettingsEntity settings;
   SettingsLoaded({required this.settings});
   @override
   List<Object?> get props => [settings];
@@ -187,20 +194,22 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         repository.getAppSettings(event.userId),
       ]);
 
-      final user = results[0] as UserModel?;
+      final user = results[0] as UserEntity?;
       if (user == null) {
         emit(ProfileError(message: 'User tidak ditemukan'));
         return;
       }
 
-      emit(ProfileLoaded(
-        user: user,
-        achievements: results[1] as List<AchievementSupabaseModel>,
-        userAchievements: results[2] as List<UserAchievementSupabaseModel>,
-        friends: results[3] as List<FriendshipModel>,
-        streak: results[4] as StreakModel,
-        settings: results[5] as AppSettingsModel,
-      ));
+      emit(
+        ProfileLoaded(
+          user: user,
+          achievements: results[1] as List<AchievementEntity>,
+          userAchievements: results[2] as List<UserAchievementEntity>,
+          friends: results[3] as List<ProfileFriendshipEntity>,
+          streak: results[4] as ProfileStreakEntity,
+          settings: results[5] as ProfileAppSettingsEntity,
+        ),
+      );
     } catch (e) {
       emit(ProfileError(message: e.toString()));
     }
@@ -228,13 +237,16 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ) async {
     try {
       final achievements = await repository.getAllAchievements();
-      final userAchievements =
-          await repository.getUserAchievements(event.userId);
+      final userAchievements = await repository.getUserAchievements(
+        event.userId,
+      );
       if (state is ProfileLoaded) {
-        emit((state as ProfileLoaded).copyWith(
-          achievements: achievements,
-          userAchievements: userAchievements,
-        ));
+        emit(
+          (state as ProfileLoaded).copyWith(
+            achievements: achievements,
+            userAchievements: userAchievements,
+          ),
+        );
       }
     } catch (e) {
       emit(ProfileError(message: e.toString()));

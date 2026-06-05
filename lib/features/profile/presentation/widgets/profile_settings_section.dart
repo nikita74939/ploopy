@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../data/models/app_settings_model.dart';
+import '../../domain/entities/app_settings_entity.dart';
 import 'profile_menu_item.dart';
 
-/// Settings section yang terhubung ke [AppSettingsModel].
+/// Settings section yang terhubung ke [ProfileAppSettingsEntity].
 ///
 /// Toggle dark mode dan notifikasi langsung memanggil [onSettingsChanged]
 /// sehingga ProfileBloc bisa dispatch [UpdateAppSettings].
 class ProfileSettingsSection extends StatelessWidget {
-  final AppSettingsModel settings;
+  final ProfileAppSettingsEntity settings;
   final VoidCallback onEditProfile;
   final VoidCallback onSecurity;
   final VoidCallback onNotification;
   final VoidCallback onHelpCenter;
   final VoidCallback onTpmFeedback;
   final VoidCallback onLogout;
-  final ValueChanged<AppSettingsModel>? onSettingsChanged;
+  final ValueChanged<ProfileAppSettingsEntity>? onSettingsChanged;
 
   const ProfileSettingsSection({
     super.key,

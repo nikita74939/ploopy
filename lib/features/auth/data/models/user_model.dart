@@ -49,6 +49,22 @@ class UserModel {
       ..appLockEnabled = false;
   }
 
+  factory UserModel.fromEntity(UserEntity entity) {
+    return UserModel()
+      ..userId = entity.userId
+      ..email = entity.email
+      ..name = entity.name
+      ..bio = entity.bio
+      ..avatarUrl = entity.avatarUrl
+      ..joinedAt = entity.joinedAt
+      ..biometricEnabled = entity.biometricEnabled
+      ..streak = entity.streak
+      ..longestStreak = entity.longestStreak
+      ..totalStudyMinutes = entity.totalStudyMinutes
+      ..totalTasksCompleted = entity.totalTasksCompleted
+      ..appLockEnabled = entity.appLockEnabled;
+  }
+
   /// Konversi ke Map untuk update ke Supabase
   Map<String, dynamic> toSupabase() {
     return {

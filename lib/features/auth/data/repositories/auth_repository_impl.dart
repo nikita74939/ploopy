@@ -42,6 +42,7 @@ class AuthRepositoryImpl implements AuthRepository {
       await _local.saveToken(token);
       if (user.biometricEnabled) {
         await _local.saveBiometricToken(token);
+        await _local.saveBiometricFlag(user.userId, true);
       }
       return user.toEntity();
     } catch (e) {
@@ -75,9 +76,6 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<UserEntity?> getCurrentUser() async {
-    final localUser = await _local.getCurrentUser();
-    if (localUser != null) return localUser.toEntity();
-
     final token = await _local.getToken();
     if (token == null || token.isEmpty) return null;
 
@@ -87,15 +85,22 @@ class AuthRepositoryImpl implements AuthRepository {
       final user = UserModel.fromSupabase(data);
       await _local.saveUser(user);
       return user.toEntity();
-    } catch (_) {
+    } catch (e) {
+      await _local.clearUser();
       return null;
     }
   }
 
   @override
+  Future<UserEntity?> getCachedUser() async {
+    final user = await _local.getCurrentUser();
+    return user?.toEntity();
+  }
+
+  @override
   Future<void> logout() async {
-    final currentUser = await _local.getCurrentUser();
     final token = await _local.getToken();
+    final preserveBiometric = await _local.isBiometricEnabled();
     try {
       if (token != null && token.isNotEmpty) {
         await remoteDataSource.logout(token);
@@ -103,11 +108,14 @@ class AuthRepositoryImpl implements AuthRepository {
     } catch (_) {
       // Local logout still succeeds when backend is unavailable.
     }
-    if (currentUser?.biometricEnabled == true) {
-      await _local.deleteSessionToken();
-    } else {
-      await _local.clearUser();
-    }
+    await _local.clearSession(preserveBiometric: preserveBiometric);
+  }
+
+  @override
+  Future<bool> hasBiometricLogin() async {
+    final user = await _local.getCurrentUser();
+    final enabled = await _local.isBiometricEnabled();
+    return enabled && user?.biometricEnabled == true;
   }
 
   @override
@@ -139,6 +147,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final token = await _local.getToken();
       if (token != null && token.isNotEmpty) {
         await _local.saveBiometricToken(token);
+        await _local.saveBiometricFlag(user.userId, true);
         final data = await remoteDataSource.updateBiometricEnabled(
           token,
           user.userId,
@@ -150,6 +159,38 @@ class AuthRepositoryImpl implements AuthRepository {
       }
     } catch (_) {
       // Backend sync can be retried later; local biometric remains enabled.
+    }
+
+    return user.toEntity();
+  }
+
+  @override
+  Future<UserEntity?> setBiometricEnabled(bool enabled) async {
+    if (enabled) return enableBiometric();
+
+    final user = await _local.getCurrentUser();
+    if (user == null) return null;
+
+    user.biometricEnabled = false;
+    await isar.writeTxn(() async {
+      await isar.userModels.putByUserId(user);
+    });
+    await _local.deleteBiometricToken();
+
+    try {
+      final token = await _local.getToken();
+      if (token != null && token.isNotEmpty) {
+        final data = await remoteDataSource.updateBiometricEnabled(
+          token,
+          user.userId,
+          false,
+        );
+        final syncedUser = UserModel.fromSupabase(data);
+        await _local.saveUser(syncedUser);
+        return syncedUser.toEntity();
+      }
+    } catch (_) {
+      // Local disable still succeeds when backend is unavailable.
     }
 
     return user.toEntity();
@@ -168,17 +209,36 @@ class AuthRepositoryImpl implements AuthRepository {
 
   String _mapAuthError(String raw) {
     final msg = raw.toLowerCase();
+    if (msg.contains('socketexception') ||
+        msg.contains('connection refused') ||
+        msg.contains('failed host lookup') ||
+        msg.contains('clientexception')) {
+      return 'Tidak bisa terhubung ke server. Periksa koneksi kamu.';
+    }
+    if (msg.contains('internal server error') ||
+        msg.contains('server sedang bermasalah') ||
+        msg.contains('500')) {
+      return 'Server sedang bermasalah. Coba lagi nanti.';
+    }
+    if (msg.contains('invalid or expired token') ||
+        msg.contains('missing bearer token') ||
+        msg.contains('sesi habis')) {
+      return 'Sesi habis. Silakan login lagi.';
+    }
     if (msg.contains('invalid login credentials') ||
-        msg.contains('invalid credentials')) {
+        msg.contains('invalid credentials') ||
+        msg.contains('email atau password salah')) {
       return 'Email atau password salah.';
     }
     if (msg.contains('user already registered') ||
-        msg.contains('already registered')) {
+        msg.contains('already registered') ||
+        msg.contains('email sudah terdaftar')) {
       return 'Email sudah terdaftar. Silakan login.';
     }
-    if (msg.contains('password should be at least')) {
+    if (msg.contains('password should be at least') ||
+        msg.contains('password minimal')) {
       return 'Password minimal 6 karakter.';
     }
-    return raw;
+    return raw.trim().isEmpty ? 'Terjadi kesalahan. Coba lagi.' : raw;
   }
 }

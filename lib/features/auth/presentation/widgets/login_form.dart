@@ -8,12 +8,14 @@ class LoginForm extends StatefulWidget {
   final VoidCallback onNavigate;
   final VoidCallback onBiometricPressed;
   final VoidCallback onSwitchToRegister;
+  final bool showBiometricLogin;
 
   const LoginForm({
     super.key,
     required this.onNavigate,
     required this.onBiometricPressed,
     required this.onSwitchToRegister,
+    required this.showBiometricLogin,
   });
 
   @override
@@ -78,10 +80,12 @@ class _LoginFormState extends State<LoginForm> {
               );
             },
           ),
-          const SizedBox(height: 22),
-          _buildDivider(),
-          const SizedBox(height: 12),
-          _buildBiometricButton(),
+          if (widget.showBiometricLogin) ...[
+            const SizedBox(height: 22),
+            _buildDivider(),
+            const SizedBox(height: 12),
+            _buildBiometricButton(),
+          ],
           const SizedBox(height: 16),
           _buildRegisterRedirect(),
           const SizedBox(height: 8),

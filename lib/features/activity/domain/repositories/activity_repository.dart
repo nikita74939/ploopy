@@ -1,11 +1,11 @@
-import '../../data/models/activity_model.dart';
-import '../../data/models/activity_comment_model.dart';
+import '../entities/activity_comment_entity.dart';
+import '../entities/activity_entity.dart';
 
 abstract class ActivityRepository {
-  Future<List<ActivityModel>> getAllActivities();
-  Future<List<ActivityModel>> getActivitiesByUser(String userId);
-  Future<ActivityModel?> getActivityById(String id);
-  Future<ActivityModel> createActivity({
+  Future<List<ActivityEntity>> getAllActivities();
+  Future<List<ActivityEntity>> getActivitiesByUser(String userId);
+  Future<ActivityEntity?> getActivityById(String id);
+  Future<ActivityEntity> createActivity({
     required String userId,
     required String text,
     String? location,
@@ -18,8 +18,8 @@ abstract class ActivityRepository {
   });
   Future<void> deleteActivity(String id);
   Future<void> toggleLike(String activityId, String userId);
-  Future<List<ActivityCommentModel>> getComments(String activityId);
-  Future<ActivityCommentModel> addComment({
+  Future<List<ActivityCommentEntity>> getComments(String activityId);
+  Future<ActivityCommentEntity> addComment({
     required String activityId,
     required String userId,
     required String content,

@@ -18,8 +18,17 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _biometricEnabled = false;
 
   @override
+  void initState() {
+    super.initState();
+    final state = context.read<AuthBloc>().state;
+    if (state is Authenticated) {
+      _biometricEnabled = state.user.biometricEnabled;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
+    return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is Unauthenticated) {
           Navigator.pushNamedAndRemoveUntil(
@@ -27,9 +36,29 @@ class _SettingsPageState extends State<SettingsPage> {
             AppRoutes.auth,
             (route) => false,
           );
+        } else if (state is Authenticated) {
+          setState(() => _biometricEnabled = state.user.biometricEnabled);
+        } else if (state is BiometricPreferenceUpdated) {
+          setState(() => _biometricEnabled = state.user.biometricEnabled);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                state.user.biometricEnabled
+                    ? 'Login biometrik aktif.'
+                    : 'Login biometrik dinonaktifkan.',
+              ),
+            ),
+          );
+        } else if (state is AuthError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColors.error,
+            ),
+          );
         }
       },
-      child: Scaffold(
+      builder: (context, state) => Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
           backgroundColor: AppColors.background,
@@ -56,11 +85,17 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   _SwitchRow(
                     icon: Icons.fingerprint_rounded,
-                    title: 'Biometric Login',
-                    subtitle: 'Masuk lebih cepat dengan sidik jari',
+                    title: 'Aktifkan Login Biometrik',
+                    subtitle: _biometricEnabled
+                        ? 'Aktif untuk fingerprint atau face unlock'
+                        : 'Login biasa dulu, lalu aktifkan dari sini',
                     value: _biometricEnabled,
-                    onChanged: (value) =>
-                        setState(() => _biometricEnabled = value),
+                    enabled: state is! AuthLoading,
+                    onChanged: (value) {
+                      context.read<AuthBloc>().add(
+                        SetBiometricEnabledRequested(enabled: value),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -157,6 +192,7 @@ class _SwitchRow extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool value;
+  final bool enabled;
   final ValueChanged<bool> onChanged;
 
   const _SwitchRow({
@@ -164,6 +200,7 @@ class _SwitchRow extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.value,
+    this.enabled = true,
     required this.onChanged,
   });
 
@@ -193,7 +230,7 @@ class _SwitchRow extends StatelessWidget {
           Switch.adaptive(
             value: value,
             activeThumbColor: AppColors.primary,
-            onChanged: onChanged,
+            onChanged: enabled ? onChanged : null,
           ),
         ],
       ),

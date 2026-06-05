@@ -11,9 +11,13 @@ abstract class AuthLocalDataSource {
   Future<String?> getToken();
   Future<void> saveBiometricToken(String token);
   Future<String?> getBiometricToken();
+  Future<void> saveBiometricFlag(String userId, bool enabled);
+  Future<bool> isBiometricEnabled();
+  Future<void> deleteBiometricToken();
   Future<void> restoreBiometricToken();
   Future<void> deleteSessionToken();
   Future<void> deleteToken();
+  Future<void> clearSession({required bool preserveBiometric});
   Future<void> clearUser();
   Future<bool> authenticateWithBiometrics();
 }
@@ -88,6 +92,33 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   }
 
   @override
+  Future<void> saveBiometricFlag(String userId, bool enabled) async {
+    await secureStorage.write(
+      key: 'biometric_enabled',
+      value: enabled ? 'true' : 'false',
+    );
+    if (enabled) {
+      await secureStorage.write(key: 'biometric_user_id', value: userId);
+    } else {
+      await secureStorage.delete(key: 'biometric_user_id');
+    }
+  }
+
+  @override
+  Future<bool> isBiometricEnabled() async {
+    final enabled = await secureStorage.read(key: 'biometric_enabled');
+    final token = await getBiometricToken();
+    return enabled == 'true' && token != null && token.isNotEmpty;
+  }
+
+  @override
+  Future<void> deleteBiometricToken() async {
+    await secureStorage.delete(key: 'biometric_auth_token');
+    await secureStorage.delete(key: 'biometric_enabled');
+    await secureStorage.delete(key: 'biometric_user_id');
+  }
+
+  @override
   Future<void> restoreBiometricToken() async {
     final token = await getBiometricToken();
     if (token != null && token.isNotEmpty) {
@@ -104,7 +135,16 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   Future<void> deleteToken() async {
     await secureStorage.delete(key: 'auth_token');
     await secureStorage.delete(key: 'current_user_id');
-    await secureStorage.delete(key: 'biometric_auth_token');
+    await deleteBiometricToken();
+  }
+
+  @override
+  Future<void> clearSession({required bool preserveBiometric}) async {
+    await secureStorage.delete(key: 'auth_token');
+    if (!preserveBiometric) {
+      await secureStorage.delete(key: 'current_user_id');
+      await deleteBiometricToken();
+    }
   }
 
   @override

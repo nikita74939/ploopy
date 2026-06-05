@@ -22,11 +22,13 @@ class _AuthPageState extends State<AuthPage> {
   bool _isLoginSelected = true;
   bool _isBiometricActivationSheetOpen = false;
   bool _isBiometricLoginSheetOpen = false;
+  bool _hasBiometricLogin = false;
 
   @override
   void initState() {
     super.initState();
     context.read<AuthBloc>().add(CheckAuthStatus());
+    _refreshBiometricAvailability();
   }
 
   void _setTab(bool isLogin) {
@@ -38,6 +40,15 @@ class _AuthPageState extends State<AuthPage> {
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, AppRoutes.home);
     });
+  }
+
+  Future<void> _refreshBiometricAvailability() async {
+    final available = await context
+        .read<AuthBloc>()
+        .repository
+        .hasBiometricLogin();
+    if (!mounted) return;
+    setState(() => _hasBiometricLogin = available);
   }
 
   Future<void> _showBiometricLoginSheet() async {
@@ -81,27 +92,17 @@ class _AuthPageState extends State<AuthPage> {
   }
 
   void _handleBiometricPressed() {
-    final bloc = context.read<AuthBloc>();
-    bloc.repository.getCurrentUser().then((user) {
-      if (!mounted) return;
-
-      if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Login dengan email & password terlebih dahulu untuk mengaktifkan sidik jari.',
-            ),
+    if (!_hasBiometricLogin) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Login dengan email & password terlebih dahulu untuk mengaktifkan biometrik.',
           ),
-        );
-        return;
-      }
-
-      if (user.biometricEnabled) {
-        _showBiometricLoginSheet();
-      } else {
-        _showBiometricActivationSheet();
-      }
-    });
+        ),
+      );
+      return;
+    }
+    _showBiometricLoginSheet();
   }
 
   @override
@@ -109,6 +110,7 @@ class _AuthPageState extends State<AuthPage> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is Authenticated) {
+          _refreshBiometricAvailability();
           if (_isBiometricLoginSheetOpen) return;
           if (state.user.biometricEnabled) {
             _navigateToHome();
@@ -119,6 +121,7 @@ class _AuthPageState extends State<AuthPage> {
             });
           }
         } else if (state is BiometricEnabled) {
+          _refreshBiometricAvailability();
           _navigateToHome();
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -188,6 +191,7 @@ class _AuthPageState extends State<AuthPage> {
                                 onNavigate: _navigateToHome,
                                 onBiometricPressed: _handleBiometricPressed,
                                 onSwitchToRegister: () => _setTab(false),
+                                showBiometricLogin: _hasBiometricLogin,
                               )
                             : RegisterForm(
                                 onSuccess: () {

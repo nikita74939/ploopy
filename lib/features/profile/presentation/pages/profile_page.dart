@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../auth/data/models/user_model.dart';
-import '../../../activity/data/models/activity_model.dart';
+import '../../../activity/domain/entities/activity_entity.dart';
 import '../../../activity/presentation/bloc/activity_bloc.dart';
 import '../../../activity/presentation/widgets/activity_composer_sheet.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
@@ -102,7 +102,7 @@ class _ProfilePageState extends State<ProfilePage> {
           (a) => {
             'id': a.id,
             'title': a.name,
-            'desc': a.description ?? '',
+            'desc': a.description,
             'badgeAsset': _resolveBadgeAsset(a.badgeIcon),
             'color': _resolveColor(a.conditionType),
             'unlocked': unlockedIds.contains(a.id),
@@ -156,7 +156,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       builder: (context, activityState) {
                         final activities = activityState is ActivitiesLoaded
                             ? activityState.activities
-                            : <ActivityModel>[];
+                            : <ActivityEntity>[];
                         return ProfileActivitySection(
                           activities: activities.map(_activityToPost).toList(),
                           onCreatePost: _showActivityComposer,
@@ -190,7 +190,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Future<void> _openEditProfile(UserModel user) async {
+  Future<void> _openEditProfile(UserEntity user) async {
     final saved = await Navigator.push<bool>(
       context,
       MaterialPageRoute(builder: (_) => EditProfilePage(user: user)),
@@ -312,7 +312,7 @@ class _ProfilePageState extends State<ProfilePage> {
     context.read<ActivityBloc>().add(LoadActivitiesByUser(userId: userId));
   }
 
-  Map<String, dynamic> _activityToPost(ActivityModel activity) {
+  Map<String, dynamic> _activityToPost(ActivityEntity activity) {
     return {
       'authorName': activity.userName ?? 'Kamu',
       'authorAvatar': activity.userName ?? 'K',

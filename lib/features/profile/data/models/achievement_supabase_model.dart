@@ -38,22 +38,22 @@ class AchievementSupabaseModel {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        if (description != null) 'description': description,
-        if (badgeIcon != null) 'badge_icon': badgeIcon,
-        if (conditionType != null) 'condition_type': conditionType,
-        if (conditionValue != null) 'condition_value': conditionValue,
-      };
+    'id': id,
+    'name': name,
+    if (description != null) 'description': description,
+    if (badgeIcon != null) 'badge_icon': badgeIcon,
+    if (conditionType != null) 'condition_type': conditionType,
+    if (conditionValue != null) 'condition_value': conditionValue,
+  };
 
   AchievementEntity toEntity() => AchievementEntity(
-        id: id,
-        name: name,
-        description: description ?? '',
-        badgeIcon: badgeIcon ?? 'emoji_events',
-        conditionType: conditionType ?? '',
-        conditionValue: conditionValue ?? 0,
-      );
+    id: id,
+    name: name,
+    description: description ?? '',
+    badgeIcon: badgeIcon ?? 'emoji_events',
+    conditionType: conditionType ?? '',
+    conditionValue: conditionValue ?? 0,
+  );
 }
 
 /// Merepresentasikan baris dari tabel `user_achievements` di Supabase.
@@ -98,7 +98,15 @@ class UserAchievementSupabaseModel {
   }
 
   Map<String, dynamic> toInsertJson() => {
-        'user_id': userId,
-        'achievement_id': achievementId,
-      };
+    'user_id': userId,
+    'achievement_id': achievementId,
+  };
+
+  UserAchievementEntity toEntity() => UserAchievementEntity(
+    id: id,
+    userId: userId,
+    achievementId: achievementId,
+    unlockedAt: unlockedAt,
+    achievement: achievement?.toEntity(),
+  );
 }

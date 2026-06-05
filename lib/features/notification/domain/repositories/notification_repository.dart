@@ -1,9 +1,9 @@
-import '../../data/models/notification_model.dart';
+import '../entities/notification_entity.dart';
 
 abstract class NotificationRepository {
-  Future<List<NotificationModel>> getAllNotifications();
-  Future<List<NotificationModel>> getUnreadNotifications();
-  Future<void> addNotification(NotificationModel notification);
+  Future<List<NotificationEntity>> getAllNotifications();
+  Future<List<NotificationEntity>> getUnreadNotifications();
+  Future<void> addNotification(NotificationEntity notification);
   Future<void> markAsRead(int id);
   Future<void> markAllAsRead();
   Future<int> getUnreadCount();

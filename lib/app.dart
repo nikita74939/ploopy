@@ -107,6 +107,9 @@ class _SessionExpiredListenerState extends State<_SessionExpiredListener> {
         AppRoutes.auth,
         (route) => false,
       );
+      Future<void>.delayed(const Duration(milliseconds: 300), () {
+        _handlingExpiredSession = false;
+      });
     });
   }
 

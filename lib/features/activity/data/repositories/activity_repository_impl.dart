@@ -1,7 +1,7 @@
 import '../../domain/repositories/activity_repository.dart';
+import '../../domain/entities/activity_comment_entity.dart';
+import '../../domain/entities/activity_entity.dart';
 import '../datasources/activity_remote_data_source.dart';
-import '../models/activity_model.dart';
-import '../models/activity_comment_model.dart';
 
 class ActivityRepositoryImpl implements ActivityRepository {
   final ActivityRemoteDataSource remoteDataSource;
@@ -9,31 +9,40 @@ class ActivityRepositoryImpl implements ActivityRepository {
   ActivityRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<List<ActivityModel>> getAllActivities() =>
-      remoteDataSource.getAllActivities();
+  Future<List<ActivityEntity>> getAllActivities() async {
+    final activities = await remoteDataSource.getAllActivities();
+    return activities.map((activity) => activity.toEntity()).toList();
+  }
 
   @override
-  Future<List<ActivityModel>> getActivitiesByUser(String userId) =>
-      remoteDataSource.getActivitiesByUser(userId);
+  Future<List<ActivityEntity>> getActivitiesByUser(String userId) async {
+    final activities = await remoteDataSource.getActivitiesByUser(userId);
+    return activities.map((activity) => activity.toEntity()).toList();
+  }
 
   @override
-  Future<ActivityModel?> getActivityById(String id) =>
-      remoteDataSource.getActivityById(id);
+  Future<ActivityEntity?> getActivityById(String id) async {
+    final activity = await remoteDataSource.getActivityById(id);
+    return activity?.toEntity();
+  }
 
   @override
-  Future<ActivityModel> createActivity({
+  Future<ActivityEntity> createActivity({
     required String userId,
     required String text,
     String? location,
     String? achievementId,
     List<String>? imageUrls,
-  }) => remoteDataSource.createActivity(
-    userId: userId,
-    text: text,
-    location: location,
-    achievementId: achievementId,
-    imageUrls: imageUrls,
-  );
+  }) async {
+    final activity = await remoteDataSource.createActivity(
+      userId: userId,
+      text: text,
+      location: location,
+      achievementId: achievementId,
+      imageUrls: imageUrls,
+    );
+    return activity.toEntity();
+  }
 
   @override
   Future<String> uploadImage({
@@ -49,17 +58,22 @@ class ActivityRepositoryImpl implements ActivityRepository {
       remoteDataSource.toggleLike(activityId, userId);
 
   @override
-  Future<List<ActivityCommentModel>> getComments(String activityId) =>
-      remoteDataSource.getComments(activityId);
+  Future<List<ActivityCommentEntity>> getComments(String activityId) async {
+    final comments = await remoteDataSource.getComments(activityId);
+    return comments.map((comment) => comment.toEntity()).toList();
+  }
 
   @override
-  Future<ActivityCommentModel> addComment({
+  Future<ActivityCommentEntity> addComment({
     required String activityId,
     required String userId,
     required String content,
-  }) => remoteDataSource.addComment(
-    activityId: activityId,
-    userId: userId,
-    content: content,
-  );
+  }) async {
+    final comment = await remoteDataSource.addComment(
+      activityId: activityId,
+      userId: userId,
+      content: content,
+    );
+    return comment.toEntity();
+  }
 }

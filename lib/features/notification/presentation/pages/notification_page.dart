@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/date_utils.dart';
-import '../../data/models/notification_model.dart';
+import '../../domain/entities/notification_entity.dart';
 import '../bloc/notification_bloc.dart';
 
 class NotificationPage extends StatefulWidget {
@@ -126,7 +126,7 @@ class _NotificationPageState extends State<NotificationPage>
 }
 
 class _NotificationList extends StatelessWidget {
-  final List<NotificationModel> notifications;
+  final List<NotificationEntity> notifications;
 
   const _NotificationList({required this.notifications});
 
@@ -153,7 +153,7 @@ class _NotificationList extends StatelessWidget {
 }
 
 class _NotificationCard extends StatelessWidget {
-  final NotificationModel notification;
+  final NotificationEntity notification;
 
   const _NotificationCard({required this.notification});
 

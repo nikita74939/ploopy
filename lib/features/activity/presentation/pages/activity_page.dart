@@ -5,8 +5,8 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/bottom_sheet_insets.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../domain/entities/activity_entity.dart';
 import '../bloc/activity_bloc.dart';
-import '../../data/models/activity_model.dart';
 
 class ActivityPage extends StatefulWidget {
   const ActivityPage({super.key});
@@ -101,7 +101,7 @@ class _ActivityPageState extends State<ActivityPage> {
     );
   }
 
-  Widget _buildActivityList(List<ActivityModel> activities) {
+  Widget _buildActivityList(List<ActivityEntity> activities) {
     return ListView.builder(
       padding: const EdgeInsets.all(AppStyle.paddingMedium),
       itemCount: activities.length,
@@ -145,11 +145,11 @@ class _ActivityPageState extends State<ActivityPage> {
 // ─────────────────────────────────────────
 
 class _ActivityCard extends StatelessWidget {
-  final ActivityModel activity;
+  final ActivityEntity activity;
   final String? currentUserId;
-  final void Function(ActivityModel) onLike;
-  final void Function(ActivityModel) onComment;
-  final void Function(ActivityModel) onDelete;
+  final void Function(ActivityEntity) onLike;
+  final void Function(ActivityEntity) onComment;
+  final void Function(ActivityEntity) onDelete;
 
   const _ActivityCard({
     required this.activity,

@@ -1,9 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../../../core/network/auth_session_guard.dart';
+import '../../domain/entities/activity_comment_entity.dart';
+import '../../domain/entities/activity_entity.dart';
 import '../../domain/repositories/activity_repository.dart';
-import '../../data/models/activity_model.dart';
-import '../../data/models/activity_comment_model.dart';
 
 // ─────────────────────────────────────────
 // Events
@@ -101,7 +101,7 @@ class ActivityInitial extends ActivityState {}
 class ActivityLoading extends ActivityState {}
 
 class ActivitiesLoaded extends ActivityState {
-  final List<ActivityModel> activities;
+  final List<ActivityEntity> activities;
 
   ActivitiesLoaded({required this.activities});
 
@@ -110,7 +110,7 @@ class ActivitiesLoaded extends ActivityState {
 }
 
 class CommentsLoaded extends ActivityState {
-  final List<ActivityCommentModel> comments;
+  final List<ActivityCommentEntity> comments;
 
   CommentsLoaded({required this.comments});
 

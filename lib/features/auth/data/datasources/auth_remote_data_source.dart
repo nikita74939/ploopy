@@ -113,17 +113,39 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   Map<String, dynamic> _decode(http.Response response) {
-    final body = response.body.isEmpty
-        ? <String, dynamic>{}
-        : jsonDecode(response.body) as Map<String, dynamic>;
+    final body = _decodeBody(response.body);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       if (response.statusCode == 401) AuthSessionGuard.notifyExpired();
       throw Exception(
-        body['message']?.toString() ?? 'Request gagal. Coba lagi.',
+        _messageForStatus(response.statusCode, body['message']?.toString()),
       );
     }
 
     return body;
+  }
+
+  Map<String, dynamic> _decodeBody(String responseBody) {
+    if (responseBody.isEmpty) return <String, dynamic>{};
+    try {
+      final decoded = jsonDecode(responseBody);
+      return decoded is Map<String, dynamic> ? decoded : <String, dynamic>{};
+    } catch (_) {
+      return <String, dynamic>{};
+    }
+  }
+
+  String _messageForStatus(int statusCode, String? backendMessage) {
+    if (backendMessage != null && backendMessage.trim().isNotEmpty) {
+      return backendMessage.trim();
+    }
+    if (statusCode == 400) return 'Data yang dikirim belum valid.';
+    if (statusCode == 401) return 'Sesi habis. Silakan login lagi.';
+    if (statusCode == 403) return 'Kamu tidak punya akses ke fitur ini.';
+    if (statusCode == 404) return 'Data tidak ditemukan.';
+    if (statusCode >= 500) {
+      return 'Server sedang bermasalah. Coba lagi nanti.';
+    }
+    return 'Request gagal. Coba lagi.';
   }
 }

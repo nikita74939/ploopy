@@ -6,7 +6,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../data/models/event_model.dart';
+import '../../domain/entities/event_entity.dart';
 import '../bloc/event_bloc.dart';
 
 class EventPage extends StatefulWidget {
@@ -135,7 +135,7 @@ class _EventPageState extends State<EventPage>
 }
 
 class _EventCard extends StatelessWidget {
-  final EventModel event;
+  final EventEntity event;
   final String? currentUserId;
 
   const _EventCard({required this.event, this.currentUserId});
@@ -335,7 +335,7 @@ class _EventCard extends StatelessWidget {
 }
 
 class _PricePill extends StatelessWidget {
-  final EventModel event;
+  final EventEntity event;
   final Color color;
 
   const _PricePill({required this.event, required this.color});

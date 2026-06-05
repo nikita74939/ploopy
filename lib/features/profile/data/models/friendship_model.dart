@@ -1,4 +1,5 @@
 import '../../../auth/data/models/user_model.dart';
+import '../../domain/entities/friendship_entity.dart';
 
 /// Status pertemanan yang valid di Supabase
 enum FriendshipStatus { pending, accepted, blocked }
@@ -75,7 +76,9 @@ class FriendshipModel {
       id: json['id'] as String,
       requesterId: json['requester_id'] as String,
       addresseeId: json['addressee_id'] as String,
-      status: FriendshipStatusExt.fromString(json['status'] as String? ?? 'pending'),
+      status: FriendshipStatusExt.fromString(
+        json['status'] as String? ?? 'pending',
+      ),
       createdAt: DateTime.parse(json['created_at'] as String),
       friendUser: friendUser,
     );
@@ -83,17 +86,35 @@ class FriendshipModel {
 
   /// Untuk insert pertemanan baru (status default = pending)
   Map<String, dynamic> toInsertJson() => {
-        'requester_id': requesterId,
-        'addressee_id': addresseeId,
-        'status': 'pending',
-      };
+    'requester_id': requesterId,
+    'addressee_id': addresseeId,
+    'status': 'pending',
+  };
 
   /// Untuk update status pertemanan
-  Map<String, dynamic> toUpdateJson() => {
-        'status': status.value,
-      };
+  Map<String, dynamic> toUpdateJson() => {'status': status.value};
 
   bool get isPending => status == FriendshipStatus.pending;
   bool get isAccepted => status == FriendshipStatus.accepted;
   bool get isBlocked => status == FriendshipStatus.blocked;
+
+  ProfileFriendshipEntity toEntity() => ProfileFriendshipEntity(
+    id: id,
+    requesterId: requesterId,
+    addresseeId: addresseeId,
+    status: _statusToEntity(status),
+    createdAt: createdAt,
+    friendUser: friendUser?.toEntity(),
+  );
+}
+
+ProfileFriendshipStatus _statusToEntity(FriendshipStatus status) {
+  switch (status) {
+    case FriendshipStatus.accepted:
+      return ProfileFriendshipStatus.accepted;
+    case FriendshipStatus.blocked:
+      return ProfileFriendshipStatus.blocked;
+    case FriendshipStatus.pending:
+      return ProfileFriendshipStatus.pending;
+  }
 }

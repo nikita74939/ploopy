@@ -3,6 +3,7 @@ import '../../domain/repositories/notification_repository.dart';
 import '../datasources/notification_local_data_source.dart';
 import '../datasources/notification_remote_data_source.dart';
 import '../models/notification_model.dart';
+import '../../domain/entities/notification_entity.dart';
 
 class NotificationRepositoryImpl implements NotificationRepository {
   final NotificationLocalDataSource localDataSource;
@@ -14,19 +15,27 @@ class NotificationRepositoryImpl implements NotificationRepository {
   });
 
   @override
-  Future<List<NotificationModel>> getAllNotifications() async {
+  Future<List<NotificationEntity>> getAllNotifications() async {
     await _refreshRemote();
-    return await localDataSource.getAllNotifications();
+    final notifications = await localDataSource.getAllNotifications();
+    return notifications
+        .map((notification) => notification.toEntity())
+        .toList();
   }
 
   @override
-  Future<List<NotificationModel>> getUnreadNotifications() async {
-    return await localDataSource.getUnreadNotifications();
+  Future<List<NotificationEntity>> getUnreadNotifications() async {
+    final notifications = await localDataSource.getUnreadNotifications();
+    return notifications
+        .map((notification) => notification.toEntity())
+        .toList();
   }
 
   @override
-  Future<void> addNotification(NotificationModel notification) async {
-    await localDataSource.addNotification(notification);
+  Future<void> addNotification(NotificationEntity notification) async {
+    await localDataSource.addNotification(
+      NotificationModel.fromEntity(notification),
+    );
   }
 
   @override

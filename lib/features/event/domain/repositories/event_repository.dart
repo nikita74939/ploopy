@@ -1,11 +1,11 @@
-import '../../data/models/event_model.dart';
+import '../entities/event_entity.dart';
 
 abstract class EventRepository {
-  Future<List<EventModel>> getAllEvents();
-  Future<List<EventModel>> getUpcomingEvents();
-  Future<EventModel?> getEventById(String id);
-  Future<EventModel> createEvent(EventModel event);
-  Future<EventModel> updateEvent(EventModel event);
+  Future<List<EventEntity>> getAllEvents();
+  Future<List<EventEntity>> getUpcomingEvents();
+  Future<EventEntity?> getEventById(String id);
+  Future<EventEntity> createEvent(EventEntity event);
+  Future<EventEntity> updateEvent(EventEntity event);
   Future<void> deleteEvent(String id);
   Future<void> joinEvent(String eventId, String userId);
   Future<void> leaveEvent(String eventId, String userId);

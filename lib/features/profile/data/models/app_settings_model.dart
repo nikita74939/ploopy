@@ -1,3 +1,6 @@
+import '../../domain/entities/app_settings_entity.dart';
+import '../../domain/entities/streak_entity.dart';
+
 /// Merepresentasikan baris dari tabel `app_settings` di Supabase.
 ///
 /// Schema Supabase:
@@ -46,13 +49,24 @@ class AppSettingsModel {
     );
   }
 
+  factory AppSettingsModel.fromEntity(ProfileAppSettingsEntity entity) {
+    return AppSettingsModel(
+      id: entity.id,
+      userId: entity.userId,
+      darkMode: entity.darkMode,
+      language: entity.language,
+      notifEnabled: entity.notifEnabled,
+      appLockEnabled: entity.appLockEnabled,
+    );
+  }
+
   Map<String, dynamic> toUpsertJson() => {
-        'user_id': userId,
-        'dark_mode': darkMode,
-        'language': language,
-        'notif_enabled': notifEnabled,
-        'app_lock_enabled': appLockEnabled,
-      };
+    'user_id': userId,
+    'dark_mode': darkMode,
+    'language': language,
+    'notif_enabled': notifEnabled,
+    'app_lock_enabled': appLockEnabled,
+  };
 
   AppSettingsModel copyWith({
     bool? darkMode,
@@ -69,6 +83,15 @@ class AppSettingsModel {
       appLockEnabled: appLockEnabled ?? this.appLockEnabled,
     );
   }
+
+  ProfileAppSettingsEntity toEntity() => ProfileAppSettingsEntity(
+    id: id,
+    userId: userId,
+    darkMode: darkMode,
+    language: language,
+    notifEnabled: notifEnabled,
+    appLockEnabled: appLockEnabled,
+  );
 }
 
 /// Merepresentasikan baris dari tabel `streaks` di Supabase.
@@ -106,8 +129,7 @@ class StreakModel {
       lastActiveDate: json['last_active_date'] != null
           ? DateTime.parse(json['last_active_date'] as String)
           : null,
-      freezeUsedThisWeek:
-          (json['freeze_used_this_week'] as num?)?.toInt() ?? 0,
+      freezeUsedThisWeek: (json['freeze_used_this_week'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -120,12 +142,32 @@ class StreakModel {
     );
   }
 
+  factory StreakModel.fromEntity(ProfileStreakEntity entity) {
+    return StreakModel(
+      id: entity.id,
+      userId: entity.userId,
+      currentStreak: entity.currentStreak,
+      longestStreak: entity.longestStreak,
+      lastActiveDate: entity.lastActiveDate,
+      freezeUsedThisWeek: entity.freezeUsedThisWeek,
+    );
+  }
+
   Map<String, dynamic> toUpsertJson() => {
-        'user_id': userId,
-        'current_streak': currentStreak,
-        'longest_streak': longestStreak,
-        if (lastActiveDate != null)
-          'last_active_date': lastActiveDate!.toIso8601String().split('T')[0],
-        'freeze_used_this_week': freezeUsedThisWeek,
-      };
+    'user_id': userId,
+    'current_streak': currentStreak,
+    'longest_streak': longestStreak,
+    if (lastActiveDate != null)
+      'last_active_date': lastActiveDate!.toIso8601String().split('T')[0],
+    'freeze_used_this_week': freezeUsedThisWeek,
+  };
+
+  ProfileStreakEntity toEntity() => ProfileStreakEntity(
+    id: id,
+    userId: userId,
+    currentStreak: currentStreak,
+    longestStreak: longestStreak,
+    lastActiveDate: lastActiveDate,
+    freezeUsedThisWeek: freezeUsedThisWeek,
+  );
 }
