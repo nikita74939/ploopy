@@ -9,8 +9,8 @@ import 'package:http/http.dart' as http;
 import '../../../../core/config/api_config.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../activity/data/models/activity_model.dart';
-import '../../../auth/data/models/user_model.dart';
+import '../../../activity/domain/entities/activity_entity.dart';
+import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 
 class PublicProfilePage extends StatefulWidget {
@@ -249,7 +249,7 @@ class _PublicProfilePageState extends State<PublicProfilePage> {
 }
 
 class _ProfileHeader extends StatelessWidget {
-  final UserModel user;
+  final UserEntity user;
   final bool isOwnProfile;
   final _FriendshipInfo? friendship;
   final bool isLoading;
@@ -412,7 +412,7 @@ class _FriendButton extends StatelessWidget {
 }
 
 class _SimpleActivityCard extends StatelessWidget {
-  final ActivityModel activity;
+  final ActivityEntity activity;
 
   const _SimpleActivityCard(this.activity);
 
@@ -474,8 +474,8 @@ class _SimpleActivityCard extends StatelessWidget {
 }
 
 class _PublicProfileData {
-  final UserModel user;
-  final List<ActivityModel> activities;
+  final UserEntity user;
+  final List<ActivityEntity> activities;
 
   const _PublicProfileData({required this.user, required this.activities});
 }

@@ -48,7 +48,14 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, authState) {
-        if (authState is Unauthenticated) {
+        if (authState is Authenticated) {
+          if (_currentUserId == authState.user.userId) return;
+          _currentUserId = authState.user.userId;
+          context.read<ProfileBloc>().add(LoadProfile(userId: _currentUserId!));
+          context.read<ActivityBloc>().add(
+            LoadActivitiesByUser(userId: _currentUserId!),
+          );
+        } else if (authState is Unauthenticated) {
           if (ModalRoute.of(context)?.isCurrent != true) return;
           Navigator.pushNamedAndRemoveUntil(
             context,
@@ -264,9 +271,12 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   String _resolveBadgeAsset(String? badgeIcon) {
-    final fileName = (badgeIcon == null || badgeIcon.trim().isEmpty)
+    final rawName = (badgeIcon == null || badgeIcon.trim().isEmpty)
         ? 'well_organized.png'
         : badgeIcon.trim();
+    final fileName = rawName.toLowerCase().endsWith('.png')
+        ? rawName
+        : 'well_organized.png';
 
     // Data backup.sql memakai first_focus.png, asset project saat ini bernama
     // firts_focus.png.

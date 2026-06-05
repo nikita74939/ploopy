@@ -84,15 +84,10 @@ class ProfileHeader extends StatelessWidget {
                 width: 90,
                 height: 90,
                 fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _AvatarInitial(name: name),
               ),
             )
-          : Text(
-              name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?',
-              style: AppTextStyles.display.copyWith(
-                fontSize: 36,
-                color: AppColors.primary,
-              ),
-            ),
+          : _AvatarInitial(name: name),
     );
   }
 
@@ -137,6 +132,25 @@ class ProfileHeader extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AvatarInitial extends StatelessWidget {
+  final String name;
+
+  const _AvatarInitial({required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?',
+        style: AppTextStyles.display.copyWith(
+          fontSize: 36,
+          color: AppColors.primary,
+        ),
       ),
     );
   }

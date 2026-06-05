@@ -185,33 +185,40 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ) async {
     emit(ProfileLoading());
     try {
-      final results = await Future.wait([
-        repository.getUserById(event.userId),
-        repository.getAllAchievements(),
-        repository.getUserAchievements(event.userId),
-        repository.getFriends(event.userId),
-        repository.getStreak(event.userId),
-        repository.getAppSettings(event.userId),
-      ]);
-
-      final user = results[0] as UserEntity?;
+      final user = await repository.getUserById(event.userId);
       if (user == null) {
         emit(ProfileError(message: 'User tidak ditemukan'));
         return;
       }
 
+      final achievements = await repository.getAllAchievements().catchError(
+        (_) => <AchievementEntity>[],
+      );
+      final userAchievements = await repository
+          .getUserAchievements(event.userId)
+          .catchError((_) => <UserAchievementEntity>[]);
+      final friends = await repository
+          .getFriends(event.userId)
+          .catchError((_) => <ProfileFriendshipEntity>[]);
+      final streak = await repository
+          .getStreak(event.userId)
+          .catchError((_) => ProfileStreakEntity.defaultFor(event.userId));
+      final settings = await repository
+          .getAppSettings(event.userId)
+          .catchError((_) => ProfileAppSettingsEntity.defaultFor(event.userId));
+
       emit(
         ProfileLoaded(
           user: user,
-          achievements: results[1] as List<AchievementEntity>,
-          userAchievements: results[2] as List<UserAchievementEntity>,
-          friends: results[3] as List<ProfileFriendshipEntity>,
-          streak: results[4] as ProfileStreakEntity,
-          settings: results[5] as ProfileAppSettingsEntity,
+          achievements: achievements,
+          userAchievements: userAchievements,
+          friends: friends,
+          streak: streak,
+          settings: settings,
         ),
       );
     } catch (e) {
-      emit(ProfileError(message: e.toString()));
+      emit(ProfileError(message: _cleanError(e)));
     }
   }
 
@@ -227,7 +234,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     } catch (e) {
       // Kembalikan state sebelumnya jika ada error
       if (currentState is ProfileLoaded) emit(currentState);
-      emit(ProfileError(message: e.toString()));
+      emit(ProfileError(message: _cleanError(e)));
     }
   }
 
@@ -249,7 +256,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         );
       }
     } catch (e) {
-      emit(ProfileError(message: e.toString()));
+      emit(ProfileError(message: _cleanError(e)));
     }
   }
 
@@ -261,7 +268,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       await repository.unlockAchievement(event.userId, event.achievementId);
       add(LoadAchievements(userId: event.userId));
     } catch (e) {
-      emit(ProfileError(message: e.toString()));
+      emit(ProfileError(message: _cleanError(e)));
     }
   }
 
@@ -275,7 +282,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         emit((state as ProfileLoaded).copyWith(friends: friends));
       }
     } catch (e) {
-      emit(ProfileError(message: e.toString()));
+      emit(ProfileError(message: _cleanError(e)));
     }
   }
 
@@ -287,7 +294,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       await repository.sendFriendRequest(event.requesterId, event.addresseeId);
       add(LoadFriends(userId: event.requesterId));
     } catch (e) {
-      emit(ProfileError(message: e.toString()));
+      emit(ProfileError(message: _cleanError(e)));
     }
   }
 
@@ -299,7 +306,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       await repository.acceptFriendRequest(event.friendshipId);
       add(LoadFriends(userId: event.userId));
     } catch (e) {
-      emit(ProfileError(message: e.toString()));
+      emit(ProfileError(message: _cleanError(e)));
     }
   }
 
@@ -311,7 +318,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       await repository.removeFriend(event.friendshipId);
       add(LoadFriends(userId: event.userId));
     } catch (e) {
-      emit(ProfileError(message: e.toString()));
+      emit(ProfileError(message: _cleanError(e)));
     }
   }
 
@@ -328,7 +335,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         emit(SettingsLoaded(settings: settings));
       }
     } catch (e) {
-      emit(ProfileError(message: e.toString()));
+      emit(ProfileError(message: _cleanError(e)));
     }
   }
 
@@ -347,7 +354,23 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     } catch (e) {
       // Rollback ke state sebelumnya jika gagal
       if (previousState is ProfileLoaded) emit(previousState);
-      emit(ProfileError(message: e.toString()));
+      emit(ProfileError(message: _cleanError(e)));
     }
+  }
+
+  String _cleanError(Object e) {
+    final message = e.toString();
+    final cleaned = message.startsWith('Exception: ')
+        ? message.substring(11)
+        : message;
+    if (cleaned.toLowerCase().contains('internal server error') ||
+        cleaned.contains('500')) {
+      return 'Server sedang bermasalah. Coba lagi nanti.';
+    }
+    if (cleaned.toLowerCase().contains('invalid or expired token') ||
+        cleaned.toLowerCase().contains('missing bearer token')) {
+      return 'Sesi habis. Silakan login lagi.';
+    }
+    return cleaned.trim().isEmpty ? 'Gagal memuat profil.' : cleaned;
   }
 }

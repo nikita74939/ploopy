@@ -9,11 +9,11 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/bottom_sheet_insets.dart';
 import '../../../../core/widgets/neo_container.dart';
 import '../../../../core/utils/date_utils.dart';
-import '../../../activity/data/models/activity_model.dart';
+import '../../../activity/domain/entities/activity_entity.dart';
 import '../../../activity/presentation/bloc/activity_bloc.dart';
 import '../../../activity/presentation/widgets/activity_composer_sheet.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../event/data/models/event_model.dart';
+import '../../../event/domain/entities/event_entity.dart';
 import '../../../event/presentation/bloc/event_bloc.dart';
 import 'public_profile_page.dart';
 
@@ -215,7 +215,7 @@ class _ActivityTab extends StatelessWidget {
 // ─────────────────────────────────────────
 
 class _ActivityCard extends StatelessWidget {
-  final ActivityModel activity;
+  final ActivityEntity activity;
   final String? currentUserId;
 
   const _ActivityCard({required this.activity, this.currentUserId});
@@ -964,7 +964,7 @@ class _EventTab extends StatelessWidget {
 }
 
 class _EventCard extends StatelessWidget {
-  final EventModel event;
+  final EventEntity event;
   final String? currentUserId;
 
   const _EventCard({required this.event, this.currentUserId});

@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'app.dart';
 import 'core/di/injection_container.dart';
@@ -15,6 +16,9 @@ void main() async {
 
   // Muat variabel environment dari file .env (API_BASE_URL, dll.).
   await dotenv.load(fileName: '.env');
+
+  // Inisialisasi data locale untuk DateFormat('...', 'id_ID').
+  await initializeDateFormatting('id_ID');
 
   // Kunci orientasi hanya portrait agar layout konsisten di semua perangkat.
   await SystemChrome.setPreferredOrientations([
