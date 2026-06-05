@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import '../constants/app_constants.dart';
+
+import '../constants/app_constants.dart' show AppStyle;
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 
 class NeoContainer extends StatelessWidget {
   final Widget child;
@@ -31,15 +34,11 @@ class NeoContainer extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor ?? AppColors.surface,
         borderRadius: BorderRadius.circular(AppStyle.borderRadius),
-        border: Border.all(color: AppColors.border, width: AppStyle.borderWidth),
-        boxShadow: isOutterShadow
-            ? [
-                const BoxShadow(
-                  color: AppColors.border,
-                  offset: AppStyle.shadowOffset,
-                ),
-              ]
-            : null,
+        border: Border.all(
+          color: AppColors.greyBorder,
+          width: AppStyle.borderWidth,
+        ),
+        boxShadow: isOutterShadow ? _CoreSurfaceShadow.soft : null,
       ),
       child: child,
     );
@@ -76,29 +75,20 @@ class NeoButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: backgroundColor ?? AppColors.primary,
           borderRadius: BorderRadius.circular(AppStyle.borderRadius),
-          border: Border.all(color: AppColors.border, width: AppStyle.borderWidth),
-          boxShadow: isOutterShadow
-              ? [
-                  const BoxShadow(
-                    color: AppColors.border,
-                    offset: AppStyle.shadowOffset,
-                  ),
-                ]
-              : null,
+          boxShadow: isOutterShadow ? _CoreSurfaceShadow.soft : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (icon != null) ...[
-              Icon(icon, color: textColor ?? Colors.white),
+              Icon(icon, color: textColor ?? AppColors.white, size: 20),
               const SizedBox(width: AppStyle.paddingSmall),
             ],
             Text(
               text,
-              style: TextStyle(
-                color: textColor ?? Colors.white,
-                fontWeight: FontWeight.bold,
+              style: AppTextStyles.buttonPrimary.copyWith(
+                color: textColor ?? AppColors.white,
               ),
             ),
           ],
@@ -136,10 +126,11 @@ class NeoCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: backgroundColor ?? AppColors.surface,
           borderRadius: BorderRadius.circular(AppStyle.borderRadius),
-          border: Border.all(color: AppColors.border, width: AppStyle.borderWidth),
-          boxShadow: const [
-            BoxShadow(color: AppColors.border, offset: AppStyle.shadowOffset),
-          ],
+          border: Border.all(
+            color: AppColors.greyBorder,
+            width: AppStyle.borderWidth,
+          ),
+          boxShadow: _CoreSurfaceShadow.soft,
         ),
         child: Stack(
           children: [
@@ -151,17 +142,26 @@ class NeoCard extends StatelessWidget {
                 child: Container(
                   width: 8,
                   decoration: BoxDecoration(
-                    color: accentColor,
+                    color: accentColor ?? AppColors.primary,
                     borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(AppStyle.borderRadius - AppStyle.borderWidth),
-                      bottomLeft: Radius.circular(AppStyle.borderRadius - AppStyle.borderWidth),
+                      topLeft: Radius.circular(
+                        AppStyle.borderRadius - AppStyle.borderWidth,
+                      ),
+                      bottomLeft: Radius.circular(
+                        AppStyle.borderRadius - AppStyle.borderWidth,
+                      ),
                     ),
                   ),
                 ),
               ),
             Padding(
               padding: EdgeInsets.only(
-                left: accentColor != null ? AppStyle.paddingMedium + 8 : AppStyle.paddingMedium,
+                left: accentColor != null
+                    ? AppStyle.paddingMedium + 8
+                    : AppStyle.paddingMedium,
+                right: AppStyle.paddingMedium,
+                top: AppStyle.paddingMedium,
+                bottom: AppStyle.paddingMedium,
               ),
               child: child,
             ),
@@ -170,4 +170,14 @@ class NeoCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _CoreSurfaceShadow {
+  static const soft = [
+    BoxShadow(
+      color: AppColors.shadow,
+      blurRadius: 18,
+      offset: AppStyle.shadowOffset,
+    ),
+  ];
 }

@@ -1,25 +1,29 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
+
 class NeoButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
   final Color? backgroundColor;
-  final Color textColor;
+  final Color? textColor;
   final double borderRadius;
   final double height;
   final double? width;
   final bool isLoading;
   final IconData? icon;
 
-  const NeoButton(String s, {
+  const NeoButton(
+    String s, {
     super.key,
     required this.text,
     required this.onPressed,
     this.backgroundColor,
-    this.textColor = Colors.white,
-    this.borderRadius = 16.0,
-    this.height = 55.0,
-    this.width = double.infinity, // Default memenuhi lebar layar
+    this.textColor,
+    this.borderRadius = 18.0,
+    this.height = 50.0,
+    this.width = double.infinity,
     this.isLoading = false,
     this.icon,
   });
@@ -32,13 +36,15 @@ class NeoButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? Theme.of(context).primaryColor,
-          foregroundColor: textColor,
+          backgroundColor: backgroundColor ?? AppColors.primary,
+          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.45),
+          foregroundColor: textColor ?? AppColors.white,
           elevation: 0, // Flat design agar serasi dengan NeoCard
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          textStyle: AppTextStyles.buttonPrimary,
         ),
         child: isLoading
             ? SizedBox(
@@ -46,23 +52,20 @@ class NeoButton extends StatelessWidget {
                 width: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: textColor,
+                  color: textColor ?? AppColors.white,
                 ),
               )
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (icon != null) ...[
-                    Icon(icon, size: 20, color: textColor),
+                    Icon(icon, size: 20, color: textColor ?? AppColors.white),
                     const SizedBox(width: 8),
                   ],
                   Text(
                     text,
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
+                    style: AppTextStyles.buttonPrimary.copyWith(
+                      color: textColor ?? AppColors.white,
                     ),
                   ),
                 ],

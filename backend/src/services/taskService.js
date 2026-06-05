@@ -1,6 +1,8 @@
 import { supabaseAdmin } from '../config/supabase.js';
 import { httpError } from '../utils/httpError.js';
+import { createActivity } from './activityService.js';
 import { createNotification } from './notificationService.js';
+import { checkInStreak } from './streakService.js';
 
 const taskSelect =
   'id, user_id, name, subject, deadline, details, color, icon_name, is_pinned, is_completed, created_at';
@@ -113,7 +115,7 @@ export async function createTask({ userId, input }) {
 
 export async function updateTask({ userId, taskId, input }) {
   assertTaskInput(input, { partial: true });
-  await getTaskById({ userId, taskId });
+  const previousTask = await getTaskById({ userId, taskId });
 
   const payload = toTaskPayload(input, userId, { partial: true });
   delete payload.user_id;
@@ -128,6 +130,7 @@ export async function updateTask({ userId, taskId, input }) {
     .single();
 
   if (error) throw httpError(500, error.message);
+  await recordTaskCompletionIfNeeded(userId, previousTask, data);
   await notifyTaskDeadline(userId, data);
   return data;
 }
@@ -149,7 +152,7 @@ export async function setTaskCompletion({ userId, taskId, completed }) {
     throw httpError(400, 'Field completed harus boolean.');
   }
 
-  await getTaskById({ userId, taskId });
+  const previousTask = await getTaskById({ userId, taskId });
 
   const { data, error } = await supabaseAdmin
     .from('tasks')
@@ -160,6 +163,7 @@ export async function setTaskCompletion({ userId, taskId, completed }) {
     .single();
 
   if (error) throw httpError(500, error.message);
+  await recordTaskCompletionIfNeeded(userId, previousTask, data);
   return data;
 }
 
@@ -204,4 +208,18 @@ async function notifyTaskDeadline(userId, task) {
       refType: 'task',
     },
   });
+}
+
+async function recordTaskCompletionIfNeeded(userId, previousTask, task) {
+  if (!task.is_completed || previousTask.is_completed) return;
+
+  await Promise.all([
+    checkInStreak(userId),
+    createActivity({
+      userId,
+      input: {
+        text: `Menyelesaikan tugas "${task.name}".`,
+      },
+    }),
+  ]);
 }

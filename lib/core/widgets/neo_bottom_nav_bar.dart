@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import '../constants/app_constants.dart';
+
+import '../constants/app_constants.dart' show AppStyle;
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 
 class NeoBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -17,8 +20,18 @@ class NeoBottomNavBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         border: const Border(
-          top: BorderSide(color: AppColors.border, width: AppStyle.borderWidth),
+          top: BorderSide(
+            color: AppColors.greyBorder,
+            width: AppStyle.borderWidth,
+          ),
         ),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadow,
+            blurRadius: 18,
+            offset: Offset(0, -6),
+          ),
+        ],
       ),
       child: BottomNavigationBar(
         currentIndex: currentIndex,
@@ -27,6 +40,11 @@ class NeoBottomNavBar extends StatelessWidget {
         backgroundColor: AppColors.surface,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textSecondary,
+        selectedLabelStyle: AppTextStyles.small.copyWith(
+          color: AppColors.primary,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: AppTextStyles.small,
         elevation: 0,
         items: const [
           BottomNavigationBarItem(

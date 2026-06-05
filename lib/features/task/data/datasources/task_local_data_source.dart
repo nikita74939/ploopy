@@ -31,7 +31,7 @@ class TaskLocalDataSourceImpl implements TaskLocalDataSource {
     final tasks = await isar.taskModels
         .filter()
         .userIdEqualTo(userId)
-        .deadlineGreaterThan(startOfDay)
+        .deadlineGreaterThan(startOfDay, include: true)
         .deadlineLessThan(endOfDay)
         .findAll();
     return _visibleSorted(tasks);

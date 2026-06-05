@@ -81,12 +81,56 @@ class TaskRepositoryImpl implements TaskRepository {
 
   @override
   Future<void> toggleTaskCompletion(int id, String userId) async {
+    final task = await localDataSource.getTaskById(id, userId);
+    if (task == null) return;
+
+    final completed = !task.isCompleted;
+    final remoteId = task.remoteId ?? task.id;
+    if (task.syncState != 'pendingCreate') {
+      try {
+        final synced = await remoteDataSource.setTaskCompletion(
+          remoteId,
+          completed,
+          userId,
+        );
+        if (task.id != synced.id) {
+          await localDataSource.deleteLocalTask(task.id);
+        }
+        await localDataSource.putTask(synced);
+        return;
+      } catch (_) {
+        // Offline: mark locally and let the normal sync path retry later.
+      }
+    }
+
     await localDataSource.toggleTaskCompletion(id, userId);
     await _syncPending(userId);
   }
 
   @override
   Future<void> toggleTaskPin(int id, String userId) async {
+    final task = await localDataSource.getTaskById(id, userId);
+    if (task == null) return;
+
+    final pinned = !task.isPinned;
+    final remoteId = task.remoteId ?? task.id;
+    if (task.syncState != 'pendingCreate') {
+      try {
+        final synced = await remoteDataSource.setTaskPin(
+          remoteId,
+          pinned,
+          userId,
+        );
+        if (task.id != synced.id) {
+          await localDataSource.deleteLocalTask(task.id);
+        }
+        await localDataSource.putTask(synced);
+        return;
+      } catch (_) {
+        // Offline: mark locally and let the normal sync path retry later.
+      }
+    }
+
     await localDataSource.toggleTaskPin(id, userId);
     await _syncPending(userId);
   }

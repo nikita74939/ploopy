@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import '../constants/app_constants.dart';
+
+import '../constants/app_constants.dart' show AppStyle;
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController? controller;
@@ -33,13 +36,21 @@ class CustomTextField extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppStyle.borderRadius),
-        border: Border.all(color: AppColors.border, width: AppStyle.borderWidth),
+        border: Border.all(
+          color: AppColors.greyBorder,
+          width: AppStyle.borderWidth,
+        ),
         boxShadow: const [
-          BoxShadow(color: AppColors.border, offset: AppStyle.shadowOffset),
+          BoxShadow(
+            color: AppColors.shadow,
+            offset: AppStyle.shadowOffset,
+            blurRadius: 18,
+          ),
         ],
       ),
       child: TextFormField(
         controller: controller,
+        style: AppTextStyles.body,
         obscureText: obscureText,
         keyboardType: keyboardType,
         validator: validator,
@@ -48,10 +59,17 @@ class CustomTextField extends StatelessWidget {
         enabled: enabled,
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(color: AppColors.textSecondary),
-          prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
+          hintStyle: AppTextStyles.hint,
+          prefixIcon: prefixIcon != null
+              ? Icon(prefixIcon, color: AppColors.textSecondary)
+              : null,
           suffixIcon: suffixIcon,
           border: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          focusedErrorBorder: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: AppStyle.paddingMedium,
             vertical: AppStyle.paddingMedium,

@@ -8,6 +8,7 @@ import '../../../../core/utils/date_utils.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/schedule_entity.dart';
 import '../bloc/schedule_bloc.dart';
+import '../widgets/schedule_calendar_strip.dart';
 import '../widgets/schedule_form_sheet.dart';
 import 'detail_schedule_page.dart';
 
@@ -20,6 +21,7 @@ class SchedulePage extends StatefulWidget {
 
 class _SchedulePageState extends State<SchedulePage> {
   String? _currentUserId;
+  DateTime _selectedDate = DateTime.now();
 
   @override
   void initState() {
@@ -31,7 +33,9 @@ class _SchedulePageState extends State<SchedulePage> {
     final authState = context.read<AuthBloc>().state;
     if (authState is Authenticated) {
       _currentUserId = authState.user.userId;
-      context.read<ScheduleBloc>().add(LoadSchedules(userId: _currentUserId!));
+      context.read<ScheduleBloc>().add(
+        LoadSchedulesByDate(userId: _currentUserId!, date: _selectedDate),
+      );
     }
   }
 
@@ -48,8 +52,23 @@ class _SchedulePageState extends State<SchedulePage> {
       ),
       builder: (_) => BlocProvider.value(
         value: context.read<ScheduleBloc>(),
-        child: ScheduleFormSheet(userId: userId, schedule: schedule),
+        child: ScheduleFormSheet(
+          userId: userId,
+          schedule: schedule,
+          initialDate: schedule == null ? _selectedDate : null,
+        ),
       ),
+    );
+  }
+
+  void _selectDate(DateTime date) {
+    final userId = _currentUserId;
+    if (userId == null) return;
+    setState(() {
+      _selectedDate = DateTime(date.year, date.month, date.day);
+    });
+    context.read<ScheduleBloc>().add(
+      LoadSchedulesByDate(userId: userId, date: _selectedDate),
     );
   }
 
@@ -81,8 +100,7 @@ class _SchedulePageState extends State<SchedulePage> {
           }
 
           if (state is ScheduleLoaded) {
-            if (state.schedules.isEmpty) return _buildEmptyState();
-            return _buildScheduleList(state.schedules);
+            return _buildScheduleContent(state.schedules);
           }
 
           if (state is ScheduleError) {
@@ -103,11 +121,38 @@ class _SchedulePageState extends State<SchedulePage> {
     );
   }
 
+  Widget _buildScheduleContent(List<ScheduleEntity> schedules) {
+    final scheduleDates = schedules
+        .map(
+          (schedule) => DateTime(
+            schedule.startTime.year,
+            schedule.startTime.month,
+            schedule.startTime.day,
+          ),
+        )
+        .toSet();
+
+    return Column(
+      children: [
+        ScheduleCalendarStrip(
+          selectedDate: _selectedDate,
+          scheduleDates: scheduleDates,
+          onDateSelected: _selectDate,
+        ),
+        Expanded(
+          child: schedules.isEmpty
+              ? _buildEmptyState()
+              : _buildScheduleList(schedules),
+        ),
+      ],
+    );
+  }
+
   Widget _buildEmptyState() {
     return _buildMessageState(
       icon: Icons.event_busy_rounded,
       title: 'Belum ada jadwal',
-      subtitle: 'Tekan tombol tambah untuk membuat jadwal pertamamu.',
+      subtitle: 'Tekan tombol tambah untuk membuat jadwal di tanggal ini.',
     );
   }
 

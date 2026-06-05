@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_colors.dart';
+
 class NeoCard extends StatelessWidget {
   final Widget child;
   final VoidCallback? onTap;
@@ -14,8 +16,8 @@ class NeoCard extends StatelessWidget {
     this.onTap,
     this.padding,
     this.backgroundColor,
-    this.borderRadius = 20.0, // Memberikan kesan rounded yang modern
-    this.elevation = 0, // Default flat agar terlihat clean
+    this.borderRadius = 18.0,
+    this.elevation = 1,
   });
 
   @override
@@ -23,23 +25,16 @@ class NeoCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: elevation > 0
-            ? [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : null,
+        border: Border.all(color: AppColors.greyBorder),
+        boxShadow: elevation > 0 ? _softShadow : null,
       ),
       child: Material(
-        color: backgroundColor ?? Theme.of(context).cardColor,
+        color: backgroundColor ?? AppColors.surface,
         borderRadius: BorderRadius.circular(borderRadius),
-        clipBehavior: Clip.antiAlias, // Memastikan efek tap tetap di dalam radius
+        clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
-          splashColor: Theme.of(context).primaryColor.withOpacity(0.1),
+          splashColor: AppColors.primary.withValues(alpha: 0.08),
           highlightColor: Colors.transparent,
           child: Padding(
             padding: padding ?? const EdgeInsets.all(16.0),
@@ -49,4 +44,8 @@ class NeoCard extends StatelessWidget {
       ),
     );
   }
+
+  static const List<BoxShadow> _softShadow = [
+    BoxShadow(color: AppColors.shadow, blurRadius: 18, offset: Offset(0, 8)),
+  ];
 }

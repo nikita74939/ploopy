@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../constants/app_constants.dart';
+
+import '../constants/app_constants.dart' show AppStyle;
+import '../theme/app_colors.dart';
 
 class DoodleContainer extends StatelessWidget {
   final Widget child;
@@ -31,18 +33,17 @@ class DoodleContainer extends StatelessWidget {
         padding: padding,
         margin: margin,
         decoration: BoxDecoration(
-          color: color ?? AppColors.background,
+          color: color ?? AppColors.surface,
           borderRadius: BorderRadius.circular(AppStyle.borderRadius),
           border: Border.all(
-            color: AppColors.border,
+            color: AppColors.greyBorder,
             width: AppStyle.borderWidth,
           ),
-          // Shadow tegas tanpa blur untuk efek neobrutalism/doodle
           boxShadow: const [
             BoxShadow(
-              color: AppColors.border,
+              color: AppColors.shadow,
               offset: AppStyle.shadowOffset,
-              blurRadius: 0, 
+              blurRadius: 18,
             ),
           ],
         ),

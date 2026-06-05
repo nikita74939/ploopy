@@ -34,7 +34,7 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
     final schedules = await isar.scheduleModels
         .filter()
         .userIdEqualTo(userId)
-        .startTimeGreaterThan(startOfDay)
+        .startTimeGreaterThan(startOfDay, include: true)
         .startTimeLessThan(endOfDay)
         .findAll();
     return _visibleSorted(schedules);
@@ -90,7 +90,7 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
     final schedules = await isar.scheduleModels
         .filter()
         .userIdEqualTo(userId)
-        .endTimeGreaterThan(now)
+        .endTimeGreaterThan(now, include: true)
         .findAll();
     return _visibleSorted(schedules);
   }

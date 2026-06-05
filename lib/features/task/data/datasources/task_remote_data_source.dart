@@ -15,8 +15,8 @@ abstract class TaskRemoteDataSource {
   Future<TaskModel> updateTask(TaskModel task);
   Future<void> deleteTask(int id, String userId);
   Future<List<TaskModel>> getPinnedTasks(String userId);
-  Future<void> toggleTaskCompletion(int id, String userId);
-  Future<void> toggleTaskPin(int id, String userId);
+  Future<TaskModel> setTaskCompletion(int id, bool completed, String userId);
+  Future<TaskModel> setTaskPin(int id, bool pinned, String userId);
 }
 
 class TaskRemoteDataSourceImpl implements TaskRemoteDataSource {
@@ -111,33 +111,35 @@ class TaskRemoteDataSourceImpl implements TaskRemoteDataSource {
   }
 
   @override
-  Future<void> toggleTaskCompletion(int id, String userId) async {
-    final current = await getTaskById(id, userId);
-    if (current == null) return;
-
+  Future<TaskModel> setTaskCompletion(
+    int id,
+    bool completed,
+    String userId,
+  ) async {
     final response = await client
         .patch(
           _uri('/api/tasks/$id/completion'),
           headers: await _jsonHeaders(),
-          body: jsonEncode({'completed': !current.isCompleted}),
+          body: jsonEncode({'completed': completed}),
         )
         .timeout(const Duration(seconds: 5));
-    _decode(response);
+    return TaskModel.fromJson(
+      _decode(response)['task'] as Map<String, dynamic>,
+    );
   }
 
   @override
-  Future<void> toggleTaskPin(int id, String userId) async {
-    final current = await getTaskById(id, userId);
-    if (current == null) return;
-
+  Future<TaskModel> setTaskPin(int id, bool pinned, String userId) async {
     final response = await client
         .patch(
           _uri('/api/tasks/$id/pin'),
           headers: await _jsonHeaders(),
-          body: jsonEncode({'pinned': !current.isPinned}),
+          body: jsonEncode({'pinned': pinned}),
         )
         .timeout(const Duration(seconds: 5));
-    _decode(response);
+    return TaskModel.fromJson(
+      _decode(response)['task'] as Map<String, dynamic>,
+    );
   }
 
   List<TaskModel> _taskList(List? rows) {
