@@ -30,8 +30,8 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   @override
-  Future<List<ScheduleEntity>> getAllSchedules() async {
-    final models = await _getFreshOrCachedSchedules();
+  Future<List<ScheduleEntity>> getAllSchedules(String userId) async {
+    final models = await _getFreshOrCachedSchedules(userId);
     return models.map((m) => m.toEntity()).toList();
   }
 
@@ -88,26 +88,16 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     return models.map((m) => m.toEntity()).toList();
   }
 
-  Future<List<ScheduleModel>> _getFreshOrCachedSchedules() async {
-    final cached = await localDataSource.getAllSchedules();
-    final userId = cached.isNotEmpty ? cached.first.userId : null;
-    if (userId != null) await _syncPending(userId);
+  Future<List<ScheduleModel>> _getFreshOrCachedSchedules(String userId) async {
+    await _syncPending(userId);
 
     try {
       final remoteSchedules = await remoteDataSource.getAllSchedules();
-      final effectiveUserId =
-          userId ??
-          (remoteSchedules.isNotEmpty ? remoteSchedules.first.userId : null);
-      if (effectiveUserId != null) {
-        await localDataSource.cacheRemoteSchedules(
-          effectiveUserId,
-          remoteSchedules,
-        );
-      }
+      await localDataSource.cacheRemoteSchedules(userId, remoteSchedules);
     } catch (_) {
       // Offline or backend unavailable.
     }
-    final models = await localDataSource.getAllSchedules();
+    final models = await localDataSource.getAllSchedules(userId);
     await _syncScheduleNotifications(models);
     return models;
   }

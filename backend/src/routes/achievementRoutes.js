@@ -3,7 +3,9 @@ import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import {
   getAllAchievements,
+  getAchievementStatus,
   getUserAchievements,
+  trackAchievementEvent,
   unlockUserAchievement,
 } from '../services/achievementService.js';
 import { httpError } from '../utils/httpError.js';
@@ -14,6 +16,28 @@ achievementRoutes.get('/', requireAuth, async (req, res, next) => {
   try {
     const achievements = await getAllAchievements();
     return res.json({ achievements });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+achievementRoutes.get('/status', requireAuth, async (req, res, next) => {
+  try {
+    const achievements = await getAchievementStatus(req.authUser.id);
+    return res.json({ achievements });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+achievementRoutes.post('/track', requireAuth, async (req, res, next) => {
+  try {
+    const result = await trackAchievementEvent({
+      userId: req.authUser.id,
+      eventType: req.body.eventType ?? req.body.event_type,
+      amount: req.body.amount,
+    });
+    return res.status(201).json(result);
   } catch (err) {
     return next(err);
   }

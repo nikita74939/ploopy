@@ -15,17 +15,17 @@ class NotificationRepositoryImpl implements NotificationRepository {
   });
 
   @override
-  Future<List<NotificationEntity>> getAllNotifications() async {
-    await _refreshRemote();
-    final notifications = await localDataSource.getAllNotifications();
+  Future<List<NotificationEntity>> getAllNotifications(String userId) async {
+    await _refreshRemote(userId);
+    final notifications = await localDataSource.getAllNotifications(userId);
     return notifications
         .map((notification) => notification.toEntity())
         .toList();
   }
 
   @override
-  Future<List<NotificationEntity>> getUnreadNotifications() async {
-    final notifications = await localDataSource.getUnreadNotifications();
+  Future<List<NotificationEntity>> getUnreadNotifications(String userId) async {
+    final notifications = await localDataSource.getUnreadNotifications(userId);
     return notifications
         .map((notification) => notification.toEntity())
         .toList();
@@ -49,14 +49,14 @@ class NotificationRepositoryImpl implements NotificationRepository {
   }
 
   @override
-  Future<void> markAllAsRead() async {
+  Future<void> markAllAsRead(String userId) async {
     await remoteDataSource?.markAllAsRead();
-    await localDataSource.markAllAsRead();
+    await localDataSource.markAllAsRead(userId);
   }
 
   @override
-  Future<int> getUnreadCount() async {
-    return await localDataSource.getUnreadCount();
+  Future<int> getUnreadCount(String userId) async {
+    return await localDataSource.getUnreadCount(userId);
   }
 
   @override
@@ -69,10 +69,18 @@ class NotificationRepositoryImpl implements NotificationRepository {
     await localDataSource.deleteNotification(id);
   }
 
-  Future<void> _refreshRemote() async {
+  @override
+  Future<void> clearUserNotifications(String userId) {
+    return localDataSource.clearUserNotifications(userId);
+  }
+
+  Future<void> _refreshRemote(String userId) async {
     final remote = remoteDataSource;
     if (remote == null) return;
     final notifications = await remote.getNotifications();
-    await localDataSource.replaceNotifications(notifications);
+    final scopedNotifications = notifications
+        .where((notification) => notification.userId == userId)
+        .toList();
+    await localDataSource.replaceNotifications(userId, scopedNotifications);
   }
 }

@@ -1,5 +1,7 @@
 import { supabaseAdmin } from '../config/supabase.js';
 import { httpError } from '../utils/httpError.js';
+import { evaluateUserAchievements } from './achievementService.js';
+import { createNotification } from './notificationService.js';
 
 const scheduleSelect =
   'id, user_id, name, start_time, end_time, description, link, color, icon_name, repeat_type, repeat_until, created_at';
@@ -121,6 +123,17 @@ export async function createSchedule({ userId, input }) {
     .single();
 
   if (error) throw httpError(500, error.message);
+  await evaluateUserAchievements({ userId, triggerType: 'schedule_created' });
+  await createNotification({
+    userId,
+    input: {
+      title: 'Jadwal dibuat',
+      description: `"${data.name}" berhasil ditambahkan ke jadwalmu.`,
+      tag: 'schedule_created',
+      refId: data.id,
+      refType: 'schedule',
+    },
+  });
   return data;
 }
 
@@ -141,6 +154,16 @@ export async function updateSchedule({ userId, scheduleId, input }) {
     .single();
 
   if (error) throw httpError(500, error.message);
+  await createNotification({
+    userId,
+    input: {
+      title: 'Jadwal diperbarui',
+      description: `"${data.name}" berhasil diperbarui.`,
+      tag: 'schedule_updated',
+      refId: data.id,
+      refType: 'schedule',
+    },
+  });
   return data;
 }
 

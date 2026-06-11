@@ -13,7 +13,9 @@ import '../widgets/schedule_form_sheet.dart';
 import 'detail_schedule_page.dart';
 
 class SchedulePage extends StatefulWidget {
-  const SchedulePage({super.key});
+  final bool showAll;
+
+  const SchedulePage({super.key, this.showAll = false});
 
   @override
   State<SchedulePage> createState() => _SchedulePageState();
@@ -22,10 +24,12 @@ class SchedulePage extends StatefulWidget {
 class _SchedulePageState extends State<SchedulePage> {
   String? _currentUserId;
   DateTime _selectedDate = DateTime.now();
+  late bool _showAllSchedules;
 
   @override
   void initState() {
     super.initState();
+    _showAllSchedules = widget.showAll;
     _loadForCurrentUser();
   }
 
@@ -33,9 +37,15 @@ class _SchedulePageState extends State<SchedulePage> {
     final authState = context.read<AuthBloc>().state;
     if (authState is Authenticated) {
       _currentUserId = authState.user.userId;
-      context.read<ScheduleBloc>().add(
-        LoadSchedulesByDate(userId: _currentUserId!, date: _selectedDate),
-      );
+      if (_showAllSchedules) {
+        context.read<ScheduleBloc>().add(
+          LoadSchedules(userId: _currentUserId!),
+        );
+      } else {
+        context.read<ScheduleBloc>().add(
+          LoadSchedulesByDate(userId: _currentUserId!, date: _selectedDate),
+        );
+      }
     }
   }
 
@@ -66,6 +76,7 @@ class _SchedulePageState extends State<SchedulePage> {
     if (userId == null) return;
     setState(() {
       _selectedDate = DateTime(date.year, date.month, date.day);
+      _showAllSchedules = false;
     });
     context.read<ScheduleBloc>().add(
       LoadSchedulesByDate(userId: userId, date: _selectedDate),
@@ -77,8 +88,18 @@ class _SchedulePageState extends State<SchedulePage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Schedule'),
+        title: Text(_showAllSchedules ? 'Semua Jadwal' : 'Schedule'),
         actions: [
+          if (!_showAllSchedules)
+            TextButton(
+              onPressed: () {
+                final userId = _currentUserId;
+                if (userId == null) return;
+                setState(() => _showAllSchedules = true);
+                context.read<ScheduleBloc>().add(LoadSchedules(userId: userId));
+              },
+              child: Text('Semua', style: AppTextStyles.link),
+            ),
           IconButton(
             icon: const Icon(Icons.calendar_month_rounded),
             tooltip: 'Kalender',

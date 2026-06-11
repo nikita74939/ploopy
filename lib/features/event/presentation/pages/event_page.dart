@@ -21,6 +21,8 @@ class EventPage extends StatefulWidget {
 class _EventPageState extends State<EventPage>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  late final TextEditingController _searchController;
+  String _searchQuery = '';
 
   String? get _currentUserId {
     final state = context.read<AuthBloc>().state;
@@ -31,12 +33,17 @@ class _EventPageState extends State<EventPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _searchController = TextEditingController()
+      ..addListener(() {
+        setState(() => _searchQuery = _searchController.text);
+      });
     context.read<EventBloc>().add(LoadEvents());
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -49,41 +56,89 @@ class _EventPageState extends State<EventPage>
         elevation: 0,
         title: Text('Events', style: AppTextStyles.heading),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
+          preferredSize: const Size.fromHeight(116),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-            child: Container(
-              height: 44,
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.greyBorder),
-              ),
-              child: TabBar(
-                controller: _tabController,
-                onTap: (index) {
-                  context.read<EventBloc>().add(
-                    index == 0 ? LoadEvents() : LoadUpcomingEvents(),
-                  );
-                },
-                indicator: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(9),
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 44,
+                  child: TextField(
+                    controller: _searchController,
+                    style: AppTextStyles.body,
+                    decoration: InputDecoration(
+                      hintText: 'Cari event...',
+                      hintStyle: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                      prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                      suffixIcon: _searchQuery.trim().isEmpty
+                          ? null
+                          : IconButton(
+                              icon: const Icon(Icons.close_rounded, size: 20),
+                              onPressed: _searchController.clear,
+                            ),
+                      filled: true,
+                      fillColor: AppColors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.greyBorder,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.greyBorder,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.primaryBorder,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-                indicatorSize: TabBarIndicatorSize.tab,
-                dividerColor: AppColors.transparent,
-                labelColor: AppColors.white,
-                unselectedLabelColor: AppColors.textSecondary,
-                labelStyle: AppTextStyles.tabActive.copyWith(
-                  color: AppColors.white,
+                const SizedBox(height: 10),
+                Container(
+                  height: 44,
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.greyBorder),
+                  ),
+                  child: TabBar(
+                    controller: _tabController,
+                    onTap: (index) {
+                      context.read<EventBloc>().add(
+                        index == 0 ? LoadEvents() : LoadUpcomingEvents(),
+                      );
+                    },
+                    indicator: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    dividerColor: AppColors.transparent,
+                    labelColor: AppColors.white,
+                    unselectedLabelColor: AppColors.textSecondary,
+                    labelStyle: AppTextStyles.tabActive.copyWith(
+                      color: AppColors.white,
+                    ),
+                    unselectedLabelStyle: AppTextStyles.tabInactive,
+                    tabs: const [
+                      Tab(text: 'All'),
+                      Tab(text: 'Upcoming'),
+                    ],
+                  ),
                 ),
-                unselectedLabelStyle: AppTextStyles.tabInactive,
-                tabs: const [
-                  Tab(text: 'All'),
-                  Tab(text: 'Upcoming'),
-                ],
-              ),
+              ],
             ),
           ),
         ),
@@ -119,8 +174,11 @@ class _EventPageState extends State<EventPage>
           }
 
           if (state is EventsLoaded) {
-            if (state.events.isEmpty) {
-              return const _EmptyEvents();
+            final events = _filterEvents(state.events);
+            if (events.isEmpty) {
+              return _EmptyEvents(
+                isSearchResult: _searchQuery.trim().isNotEmpty,
+              );
             }
             return RefreshIndicator(
               color: AppColors.primary,
@@ -133,7 +191,7 @@ class _EventPageState extends State<EventPage>
                 await Future<void>.delayed(const Duration(milliseconds: 450));
               },
               child: _EventList(
-                events: state.events,
+                events: events,
                 currentUserId: _currentUserId,
               ),
             );
@@ -164,6 +222,21 @@ class _EventPageState extends State<EventPage>
       context,
       MaterialPageRoute(builder: (_) => EventFormPage(currentUserId: userId)),
     );
+  }
+
+  List<EventEntity> _filterEvents(List<EventEntity> events) {
+    final keyword = _searchQuery.trim().toLowerCase();
+    if (keyword.isEmpty) return events;
+    return events.where((event) {
+      final haystack = [
+        event.name,
+        event.description,
+        event.location,
+        event.address,
+        event.creatorName,
+      ].whereType<String>().join(' ').toLowerCase();
+      return haystack.contains(keyword);
+    }).toList(growable: false);
   }
 }
 
@@ -933,7 +1006,9 @@ class _EventError extends StatelessWidget {
 }
 
 class _EmptyEvents extends StatelessWidget {
-  const _EmptyEvents();
+  final bool isSearchResult;
+
+  const _EmptyEvents({this.isSearchResult = false});
 
   @override
   Widget build(BuildContext context) {
@@ -947,10 +1022,15 @@ class _EmptyEvents extends StatelessWidget {
             color: AppColors.textMuted,
           ),
           const SizedBox(height: 12),
-          Text('No events yet', style: AppTextStyles.title),
+          Text(
+            isSearchResult ? 'Event tidak ditemukan' : 'No events yet',
+            style: AppTextStyles.title,
+          ),
           const SizedBox(height: 4),
           Text(
-            'Event baru akan muncul di sini.',
+            isSearchResult
+                ? 'Coba gunakan kata kunci lain.'
+                : 'Event baru akan muncul di sini.',
             style: AppTextStyles.bodySmall,
           ),
         ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/currency_data.dart';
+import '../../../../core/services/achievement_tracking_service.dart';
 import '../../../../core/services/currency_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../widgets/currency_input_card.dart';
@@ -26,6 +27,7 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
   bool _loading = true;
   String? _error;
   String? _lastUpdate;
+  bool _trackedConversion = false;
 
   @override
   void initState() {
@@ -74,6 +76,10 @@ class _CurrencyConverterPageState extends State<CurrencyConverterPage> {
     final result = amount * rate;
 
     _toCtrl.text = _formatNumber(result);
+    if (!_trackedConversion && amount > 0 && result > 0) {
+      _trackedConversion = true;
+      AchievementTrackingService.track('currency_converter_used');
+    }
   }
 
   String _formatNumber(double value) {

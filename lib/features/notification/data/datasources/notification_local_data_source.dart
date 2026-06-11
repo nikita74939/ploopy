@@ -2,15 +2,19 @@ import 'package:isar/isar.dart';
 import '../models/notification_model.dart';
 
 abstract class NotificationLocalDataSource {
-  Future<List<NotificationModel>> getAllNotifications();
-  Future<List<NotificationModel>> getUnreadNotifications();
+  Future<List<NotificationModel>> getAllNotifications(String userId);
+  Future<List<NotificationModel>> getUnreadNotifications(String userId);
   Future<void> addNotification(NotificationModel notification);
-  Future<void> replaceNotifications(List<NotificationModel> notifications);
+  Future<void> replaceNotifications(
+    String userId,
+    List<NotificationModel> notifications,
+  );
   Future<NotificationModel?> getNotificationById(int id);
   Future<void> markAsRead(int id);
-  Future<void> markAllAsRead();
-  Future<int> getUnreadCount();
+  Future<void> markAllAsRead(String userId);
+  Future<int> getUnreadCount(String userId);
   Future<void> deleteNotification(int id);
+  Future<void> clearUserNotifications(String userId);
 }
 
 class NotificationLocalDataSourceImpl implements NotificationLocalDataSource {
@@ -19,18 +23,20 @@ class NotificationLocalDataSourceImpl implements NotificationLocalDataSource {
   NotificationLocalDataSourceImpl({required this.isar});
 
   @override
-  Future<List<NotificationModel>> getAllNotifications() async {
+  Future<List<NotificationModel>> getAllNotifications(String userId) async {
     return await isar.notificationModels
         .filter()
+        .userIdEqualTo(userId)
         .createdAtLessThan(DateTime.now(), include: true)
         .sortByCreatedAtDesc()
         .findAll();
   }
 
   @override
-  Future<List<NotificationModel>> getUnreadNotifications() async {
+  Future<List<NotificationModel>> getUnreadNotifications(String userId) async {
     return await isar.notificationModels
         .filter()
+        .userIdEqualTo(userId)
         .createdAtLessThan(DateTime.now(), include: true)
         .isReadEqualTo(false)
         .sortByCreatedAtDesc()
@@ -46,14 +52,22 @@ class NotificationLocalDataSourceImpl implements NotificationLocalDataSource {
 
   @override
   Future<void> replaceNotifications(
+    String userId,
     List<NotificationModel> notifications,
   ) async {
     await isar.writeTxn(() async {
       final localOnly = await isar.notificationModels.where().findAll();
       final localNotifications = localOnly
-          .where((notification) => notification.senderId == null)
+          .where(
+            (notification) =>
+                notification.userId == userId && notification.senderId == null,
+          )
           .toList();
-      await isar.notificationModels.clear();
+      final currentUserNotifications = localOnly
+          .where((notification) => notification.userId == userId)
+          .map((notification) => notification.id)
+          .toList();
+      await isar.notificationModels.deleteAll(currentUserNotifications);
       await isar.notificationModels.putAll([
         ...notifications,
         ...localNotifications,
@@ -78,10 +92,11 @@ class NotificationLocalDataSourceImpl implements NotificationLocalDataSource {
   }
 
   @override
-  Future<void> markAllAsRead() async {
+  Future<void> markAllAsRead(String userId) async {
     await isar.writeTxn(() async {
       final notifications = await isar.notificationModels
           .filter()
+          .userIdEqualTo(userId)
           .isReadEqualTo(false)
           .findAll();
       for (final notification in notifications) {
@@ -92,9 +107,10 @@ class NotificationLocalDataSourceImpl implements NotificationLocalDataSource {
   }
 
   @override
-  Future<int> getUnreadCount() async {
+  Future<int> getUnreadCount(String userId) async {
     return await isar.notificationModels
         .filter()
+        .userIdEqualTo(userId)
         .createdAtLessThan(DateTime.now(), include: true)
         .isReadEqualTo(false)
         .count();
@@ -104,6 +120,18 @@ class NotificationLocalDataSourceImpl implements NotificationLocalDataSource {
   Future<void> deleteNotification(int id) async {
     await isar.writeTxn(() async {
       await isar.notificationModels.delete(id);
+    });
+  }
+
+  @override
+  Future<void> clearUserNotifications(String userId) async {
+    await isar.writeTxn(() async {
+      final ids = await isar.notificationModels
+          .filter()
+          .userIdEqualTo(userId)
+          .idProperty()
+          .findAll();
+      await isar.notificationModels.deleteAll(ids);
     });
   }
 }

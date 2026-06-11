@@ -10,4 +10,5 @@ abstract class HomeRepository {
   Future<Map<int, int>> getCurrentWeekStudyMinutes(String userId);
   Future<List<ScheduleEntity>> getSchedulesByDate(String userId, DateTime date);
   Future<List<TaskEntity>> getTasksByDate(String userId, DateTime date);
+  Future<void> toggleTaskCompletion(int taskId, String userId);
 }

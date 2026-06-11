@@ -7,8 +7,10 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../home/presentation/bloc/home_bloc.dart';
 import '../../../schedule/domain/entities/schedule_entity.dart';
 import '../../../schedule/presentation/bloc/schedule_bloc.dart';
+import '../../../profile/presentation/bloc/profile_bloc.dart';
 import '../../../task/domain/entities/task_entity.dart';
 import '../../../task/presentation/bloc/task_bloc.dart';
 import '../bloc/study_bloc.dart';
@@ -22,6 +24,7 @@ class StudyPage extends StatefulWidget {
 
 class _StudyPageState extends State<StudyPage> {
   String? _loadedUserId;
+  bool _refreshProfileAfterStudy = false;
 
   String? get _currentUserId {
     final state = context.read<AuthBloc>().state;
@@ -52,61 +55,73 @@ class _StudyPageState extends State<StudyPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: BlocBuilder<StudyBloc, StudyState>(
-          builder: (context, studyState) {
-            return BlocBuilder<ScheduleBloc, ScheduleState>(
-              builder: (context, scheduleState) {
-                final schedules = scheduleState is ScheduleLoaded
-                    ? scheduleState.schedules
-                    : <ScheduleEntity>[];
-
-                return BlocBuilder<TaskBloc, TaskState>(
-                  builder: (context, taskState) {
-                    final tasks = taskState is TaskLoaded
-                        ? taskState.tasks
-                        : <TaskEntity>[];
-
-                    return RefreshIndicator(
-                      color: AppColors.primary,
-                      onRefresh: () async => _loadData(),
-                      child: SingleChildScrollView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(16, 6, 16, 28),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _buildTopBar(),
-                            const SizedBox(height: 12),
-                            _FocusModeCard(
-                              state: studyState,
-                              onStart: _startFocus,
-                              onPause: () => context.read<StudyBloc>().add(
-                                PauseStudySession(),
-                              ),
-                              onResume: () => context.read<StudyBloc>().add(
-                                ResumeStudySession(),
-                              ),
-                              onStop: () => context.read<StudyBloc>().add(
-                                EndStudySession(),
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-                            _buildModeRow(studyState),
-                            const SizedBox(height: 14),
-                            _ProgressCard(state: studyState, tasks: tasks),
-                            const SizedBox(height: 14),
-                            _ScheduleSection(schedules: schedules),
-                            const SizedBox(height: 14),
-                            _UrgentTaskSection(tasks: tasks),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
+        child: BlocListener<StudyBloc, StudyState>(
+          listener: (context, studyState) {
+            if (!_refreshProfileAfterStudy || studyState is! StudyIdle) return;
+            final userId = _loadedUserId ?? _currentUserId;
+            if (userId == null) return;
+            _refreshProfileAfterStudy = false;
+            context.read<ProfileBloc>().add(
+              LoadProfile(userId: userId, forceRefresh: true),
             );
           },
+          child: BlocBuilder<StudyBloc, StudyState>(
+            builder: (context, studyState) {
+              return BlocBuilder<ScheduleBloc, ScheduleState>(
+                builder: (context, scheduleState) {
+                  final schedules = scheduleState is ScheduleLoaded
+                      ? scheduleState.schedules
+                      : <ScheduleEntity>[];
+
+                  return BlocBuilder<TaskBloc, TaskState>(
+                    builder: (context, taskState) {
+                      final tasks = taskState is TaskLoaded
+                          ? taskState.tasks
+                          : <TaskEntity>[];
+
+                      return RefreshIndicator(
+                        color: AppColors.primary,
+                        onRefresh: () async => _loadData(),
+                        child: SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(16, 6, 16, 28),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildTopBar(),
+                              const SizedBox(height: 12),
+                              _FocusModeCard(
+                                state: studyState,
+                                onStart: _startFocus,
+                                onPause: () => context.read<StudyBloc>().add(
+                                  PauseStudySession(),
+                                ),
+                                onResume: () => context.read<StudyBloc>().add(
+                                  ResumeStudySession(),
+                                ),
+                                onStop: _endFocus,
+                              ),
+                              const SizedBox(height: 14),
+                              _buildModeRow(studyState),
+                              const SizedBox(height: 14),
+                              _ProgressCard(state: studyState, tasks: tasks),
+                              const SizedBox(height: 14),
+                              _ScheduleSection(schedules: schedules),
+                              const SizedBox(height: 14),
+                              _UrgentTaskSection(
+                                tasks: tasks,
+                                onToggleCompleted: _toggleTaskCompleted,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -138,6 +153,8 @@ class _StudyPageState extends State<StudyPage> {
   }
 
   Widget _buildModeRow(StudyState state) {
+    final isTimerActive = state is StudyInProgress || state is StudyPaused;
+
     return Row(
       children: [
         Expanded(
@@ -145,7 +162,12 @@ class _StudyPageState extends State<StudyPage> {
             icon: Icons.av_timer_rounded,
             title: 'Short Break',
             subtitle: '5 min',
-            onTap: () {},
+            onTap: isTimerActive
+                ? () => context.read<StudyBloc>().add(
+                    SwitchStudyTimerMode(StudyTimerMode.shortBreak),
+                  )
+                : null,
+            enabled: isTimerActive,
           ),
         ),
         const SizedBox(width: 10),
@@ -154,7 +176,12 @@ class _StudyPageState extends State<StudyPage> {
             icon: Icons.timer_rounded,
             title: 'Long Break',
             subtitle: '15 min',
-            onTap: () {},
+            onTap: isTimerActive
+                ? () => context.read<StudyBloc>().add(
+                    SwitchStudyTimerMode(StudyTimerMode.longBreak),
+                  )
+                : null,
+            enabled: isTimerActive,
           ),
         ),
         const SizedBox(width: 10),
@@ -162,15 +189,10 @@ class _StudyPageState extends State<StudyPage> {
           child: _ModeTile(
             icon: Icons.stop_circle_outlined,
             title: 'Stop Focus',
-            subtitle: state is StudyInProgress || state is StudyPaused
-                ? 'End now'
-                : 'Ready',
-            onTap: () {
-              if (state is StudyInProgress || state is StudyPaused) {
-                context.read<StudyBloc>().add(EndStudySession());
-              }
-            },
+            subtitle: isTimerActive ? 'End now' : 'Ready',
+            onTap: isTimerActive ? _endFocus : null,
             accent: AppColors.error,
+            enabled: isTimerActive,
           ),
         ),
       ],
@@ -181,6 +203,33 @@ class _StudyPageState extends State<StudyPage> {
     final userId = _loadedUserId ?? _currentUserId;
     if (userId == null) return;
     context.read<StudyBloc>().add(StartStudySession(userId: userId));
+  }
+
+  void _endFocus() {
+    _refreshProfileAfterStudy = true;
+    context.read<StudyBloc>().add(EndStudySession());
+  }
+
+  Future<void> _toggleTaskCompleted(TaskEntity task) async {
+    final userId = _loadedUserId ?? _currentUserId;
+    if (userId == null || task.id <= 0) return;
+    try {
+      await context.read<TaskBloc>().repository.toggleTaskCompletion(
+        task.id,
+        userId,
+      );
+      if (!mounted) return;
+      context.read<TaskBloc>().add(
+        LoadTasksByDate(date: DateTime.now(), userId: userId),
+      );
+      context.read<HomeBloc>().add(RefreshHomeData(userId: userId));
+    } catch (e) {
+      if (!mounted) return;
+      final message = e.toString().replaceFirst('Exception: ', '');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    }
   }
 }
 
@@ -206,10 +255,22 @@ class _FocusModeCard extends StatelessWidget {
       StudyPaused(:final elapsedSeconds) => elapsedSeconds,
       _ => 0,
     };
-    final remaining = math.max(0, 25 * 60 - elapsed);
-    final progress = (elapsed / (25 * 60)).clamp(0.0, 1.0);
+    final duration = switch (state) {
+      StudyInProgress(:final durationSeconds) => durationSeconds,
+      StudyPaused(:final durationSeconds) => durationSeconds,
+      _ => 25 * 60,
+    };
+    final mode = switch (state) {
+      StudyInProgress(:final mode) => mode,
+      StudyPaused(:final mode) => mode,
+      _ => StudyTimerMode.idle,
+    };
+    final remaining = math.max(0, duration - elapsed);
+    final progress = duration == 0 ? 0.0 : (elapsed / duration).clamp(0.0, 1.0);
     final isRunning = state is StudyInProgress;
     final isPaused = state is StudyPaused;
+    final isBreak =
+        mode == StudyTimerMode.shortBreak || mode == StudyTimerMode.longBreak;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
@@ -230,12 +291,12 @@ class _FocusModeCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Focus Mode',
+                mode.label,
                 style: AppTextStyles.title.copyWith(fontSize: 14),
               ),
               const Spacer(),
               Text(
-                'Pomodoro',
+                mode == StudyTimerMode.idle ? 'Pomodoro' : mode.label,
                 style: AppTextStyles.link.copyWith(fontSize: 11),
               ),
             ],
@@ -263,7 +324,11 @@ class _FocusModeCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      isPaused ? 'Paused' : "Let's focus!",
+                      isPaused
+                          ? 'Paused'
+                          : isBreak
+                          ? 'Break time'
+                          : "Let's focus!",
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -288,9 +353,13 @@ class _FocusModeCard extends StatelessWidget {
               ),
               child: Text(
                 isRunning
-                    ? 'Pause Focus'
+                    ? isBreak
+                          ? 'Pause Break'
+                          : 'Pause Focus'
                     : isPaused
-                    ? 'Resume Focus'
+                    ? isBreak
+                          ? 'Resume Break'
+                          : 'Resume Focus'
                     : 'Start Focus',
                 style: AppTextStyles.buttonPrimary.copyWith(fontSize: 15),
               ),
@@ -501,8 +570,9 @@ class _ModeTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final Color accent;
+  final bool enabled;
 
   const _ModeTile({
     required this.icon,
@@ -510,36 +580,47 @@ class _ModeTile extends StatelessWidget {
     required this.subtitle,
     required this.onTap,
     this.accent = AppColors.primary,
+    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
+    final effectiveAccent = enabled ? accent : AppColors.textMuted;
+    final borderColor = enabled ? AppColors.greyBorder : Colors.grey.shade300;
+    final backgroundColor = enabled ? AppColors.white : Colors.grey.shade100;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         height: 86,
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: backgroundColor,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.greyBorder),
+          border: Border.all(color: borderColor),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: accent, size: 28),
+            Icon(icon, color: effectiveAccent, size: 28),
             const SizedBox(height: 7),
             Text(
               title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.caption.copyWith(
-                color: AppColors.textMain,
+                color: enabled ? AppColors.textMain : AppColors.textMuted,
                 fontWeight: FontWeight.w700,
                 fontSize: 11,
               ),
             ),
-            Text(subtitle, style: AppTextStyles.caption.copyWith(fontSize: 9)),
+            Text(
+              subtitle,
+              style: AppTextStyles.caption.copyWith(
+                fontSize: 9,
+                color: enabled ? AppColors.textMuted : Colors.grey.shade400,
+              ),
+            ),
           ],
         ),
       ),
@@ -674,7 +755,6 @@ class _ScheduleSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return _SectionCard(
       title: "Today's Schedule",
-      action: 'View All',
       child: schedules.isEmpty
           ? const _EmptyRow(label: 'No schedules for today')
           : Column(
@@ -722,8 +802,12 @@ class _ScheduleSection extends StatelessWidget {
 
 class _UrgentTaskSection extends StatelessWidget {
   final List<TaskEntity> tasks;
+  final ValueChanged<TaskEntity> onToggleCompleted;
 
-  const _UrgentTaskSection({required this.tasks});
+  const _UrgentTaskSection({
+    required this.tasks,
+    required this.onToggleCompleted,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -742,14 +826,27 @@ class _UrgentTaskSection extends StatelessWidget {
           ? const _EmptyRow(label: 'No urgent task')
           : Row(
               children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: Color(task.color).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
+                InkWell(
+                  onTap: () => onToggleCompleted(task!),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: task.isCompleted
+                          ? AppColors.success.withValues(alpha: 0.12)
+                          : Color(task.color).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      task.isCompleted
+                          ? Icons.check_circle_rounded
+                          : Icons.task_alt_rounded,
+                      color: task.isCompleted
+                          ? AppColors.success
+                          : Color(task.color),
+                    ),
                   ),
-                  child: Icon(Icons.task_alt_rounded, color: Color(task.color)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -789,6 +886,21 @@ class _UrgentTaskSection extends StatelessWidget {
                     ],
                   ),
                 ),
+                const SizedBox(width: 8),
+                IconButton(
+                  tooltip: task.isCompleted
+                      ? 'Tandai belum selesai'
+                      : 'Tandai selesai',
+                  onPressed: () => onToggleCompleted(task!),
+                  icon: Icon(
+                    task.isCompleted
+                        ? Icons.check_circle_rounded
+                        : Icons.circle_outlined,
+                    color: task.isCompleted
+                        ? AppColors.success
+                        : AppColors.textMuted,
+                  ),
+                ),
               ],
             ),
     );
@@ -797,10 +909,9 @@ class _UrgentTaskSection extends StatelessWidget {
 
 class _SectionCard extends StatelessWidget {
   final String title;
-  final String? action;
   final Widget child;
 
-  const _SectionCard({required this.title, required this.child, this.action});
+  const _SectionCard({required this.title, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -822,8 +933,6 @@ class _SectionCard extends StatelessWidget {
                   style: AppTextStyles.title.copyWith(fontSize: 14),
                 ),
               ),
-              if (action != null)
-                Text(action!, style: AppTextStyles.link.copyWith(fontSize: 10)),
             ],
           ),
           const SizedBox(height: 12),

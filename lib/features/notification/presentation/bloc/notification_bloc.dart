@@ -9,7 +9,14 @@ abstract class NotificationEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoadNotifications extends NotificationEvent {}
+class LoadNotifications extends NotificationEvent {
+  final String? userId;
+
+  LoadNotifications({this.userId});
+
+  @override
+  List<Object?> get props => [userId];
+}
 
 class MarkNotificationAsRead extends NotificationEvent {
   final int id;
@@ -31,6 +38,8 @@ class DeleteNotification extends NotificationEvent {
   List<Object?> get props => [id];
 }
 
+class ClearNotifications extends NotificationEvent {}
+
 // States
 abstract class NotificationState extends Equatable {
   @override
@@ -45,11 +54,13 @@ class NotificationLoaded extends NotificationState {
   final List<NotificationEntity> allNotifications;
   final List<NotificationEntity> unreadNotifications;
   final int unreadCount;
+  final String userId;
 
   NotificationLoaded({
     required this.allNotifications,
     required this.unreadNotifications,
     required this.unreadCount,
+    required this.userId,
   });
 
   @override
@@ -57,6 +68,7 @@ class NotificationLoaded extends NotificationState {
     allNotifications,
     unreadNotifications,
     unreadCount,
+    userId,
   ];
 }
 
@@ -72,21 +84,30 @@ class NotificationError extends NotificationState {
 // BLoC
 class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   final NotificationRepository repository;
+  String? _currentUserId;
 
   NotificationBloc({required this.repository}) : super(NotificationInitial()) {
     on<LoadNotifications>(_onLoadNotifications);
     on<MarkNotificationAsRead>(_onMarkNotificationAsRead);
     on<MarkAllNotificationsAsRead>(_onMarkAllNotificationsAsRead);
     on<DeleteNotification>(_onDeleteNotification);
+    on<ClearNotifications>(_onClearNotifications);
   }
 
   Future<void> _onLoadNotifications(
     LoadNotifications event,
     Emitter<NotificationState> emit,
   ) async {
+    final userId = event.userId ?? _currentUserId;
+    if (userId == null || userId.isEmpty) {
+      emit(NotificationInitial());
+      return;
+    }
+
+    _currentUserId = userId;
     emit(NotificationLoading());
     try {
-      final all = await repository.getAllNotifications();
+      final all = await repository.getAllNotifications(userId);
       final unread = all
           .where((notification) => !notification.isRead)
           .toList(growable: false);
@@ -95,6 +116,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
           allNotifications: all,
           unreadNotifications: unread,
           unreadCount: unread.length,
+          userId: userId,
         ),
       );
     } catch (e) {
@@ -119,7 +141,9 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     Emitter<NotificationState> emit,
   ) async {
     try {
-      await repository.markAllAsRead();
+      final userId = _currentUserId;
+      if (userId == null || userId.isEmpty) return;
+      await repository.markAllAsRead(userId);
       add(LoadNotifications());
     } catch (e) {
       emit(NotificationError(message: e.toString()));
@@ -136,5 +160,17 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     } catch (e) {
       emit(NotificationError(message: e.toString()));
     }
+  }
+
+  Future<void> _onClearNotifications(
+    ClearNotifications event,
+    Emitter<NotificationState> emit,
+  ) async {
+    final userId = _currentUserId;
+    _currentUserId = null;
+    if (userId != null && userId.isNotEmpty) {
+      await repository.clearUserNotifications(userId);
+    }
+    emit(NotificationInitial());
   }
 }

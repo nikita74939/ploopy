@@ -38,7 +38,9 @@ class _ProfilePageState extends State<ProfilePage> {
     final authState = context.read<AuthBloc>().state;
     if (authState is Authenticated) {
       _currentUserId = authState.user.userId;
-      context.read<ProfileBloc>().add(LoadProfile(userId: _currentUserId!));
+      context.read<ProfileBloc>().add(
+        LoadProfile(userId: _currentUserId!, forceRefresh: true),
+      );
       context.read<ActivityBloc>().add(
         LoadActivitiesByUser(userId: _currentUserId!),
       );
@@ -52,7 +54,9 @@ class _ProfilePageState extends State<ProfilePage> {
         if (authState is Authenticated) {
           if (_currentUserId == authState.user.userId) return;
           _currentUserId = authState.user.userId;
-          context.read<ProfileBloc>().add(LoadProfile(userId: _currentUserId!));
+          context.read<ProfileBloc>().add(
+            LoadProfile(userId: _currentUserId!, forceRefresh: true),
+          );
           context.read<ActivityBloc>().add(
             LoadActivitiesByUser(userId: _currentUserId!),
           );
@@ -99,10 +103,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildContent(BuildContext context, ProfileLoaded state) {
     final user = state.user;
-    final streak = state.streak;
+    final stats = state.stats;
     final achievements = state.achievements;
     final userAchievements = state.userAchievements;
-    final friends = state.friends;
 
     final unlockedIds = userAchievements.map((ua) => ua.achievementId).toSet();
     final achievementMaps =
@@ -127,71 +130,78 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Stack(
       children: [
-        SingleChildScrollView(
-          child: Column(
-            children: [
-              ProfileHeader(
-                name: user.name,
-                email: user.email,
-                bio: user.bio,
-                avatarUrl: user.avatarUrl,
-                joinYear: user.joinedAt.year,
-                onEditPressed: () => _openEditProfile(user),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    ProfileStatsCard(
-                      totalFriends: friends.length,
-                      totalActivities: userAchievements.length,
-                      currentStreak: streak.currentStreak,
-                    ),
-                    const SizedBox(height: 16),
-                    ProfileStreakCard(
-                      currentStreak: streak.currentStreak,
-                      longestStreak: streak.longestStreak,
-                    ),
-                    const SizedBox(height: 20),
-                    ProfileAchievementSection(
-                      achievements: achievementMaps,
-                      onSeeAll: () => Navigator.pushNamed(
-                        context,
-                        AppRoutes.achievement,
-                        arguments: AchievementPageArgs(
-                          achievements: achievementMaps,
+        RefreshIndicator(
+          color: AppColors.primary,
+          onRefresh: _refreshProfile,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              children: [
+                ProfileHeader(
+                  name: user.name,
+                  email: user.email,
+                  bio: user.bio,
+                  avatarUrl: user.avatarUrl,
+                  joinYear: user.joinedAt.year,
+                  onEditPressed: () => _openEditProfile(user),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      ProfileStatsCard(
+                        totalFriends: stats.friendCount,
+                        totalActivities: stats.activityCount,
+                        currentStreak: stats.currentStreak,
+                      ),
+                      const SizedBox(height: 16),
+                      ProfileStreakCard(
+                        currentStreak: stats.currentStreak,
+                        longestStreak: stats.longestStreak,
+                      ),
+                      const SizedBox(height: 20),
+                      ProfileAchievementSection(
+                        achievements: achievementMaps,
+                        onSeeAll: () => Navigator.pushNamed(
+                          context,
+                          AppRoutes.achievement,
+                          arguments: AchievementPageArgs(
+                            achievements: achievementMaps,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    BlocBuilder<ActivityBloc, ActivityState>(
-                      builder: (context, activityState) {
-                        final currentUserId = _currentUserId;
-                        final activities =
-                            activityState is ActivitiesLoaded &&
-                                currentUserId != null
-                            ? activityState.activities
-                                  .where(
-                                    (activity) =>
-                                        activity.userId == currentUserId,
-                                  )
-                                  .toList()
-                            : <ActivityEntity>[];
-                        return ProfileActivitySection(
-                          activities: activities.map(_activityToPost).toList(),
-                          onCreatePost: _showActivityComposer,
-                          onSeeAll: () =>
-                              Navigator.pushNamed(context, AppRoutes.social),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                    _buildAppVersion(),
-                    const SizedBox(height: 100),
-                  ],
+                      const SizedBox(height: 20),
+                      BlocBuilder<ActivityBloc, ActivityState>(
+                        builder: (context, activityState) {
+                          final currentUserId = _currentUserId;
+                          final activities =
+                              activityState is ActivitiesLoaded &&
+                                  currentUserId != null
+                              ? activityState.activities
+                                    .where(
+                                      (activity) =>
+                                          activity.userId == currentUserId,
+                                    )
+                                    .toList()
+                              : <ActivityEntity>[];
+                          return ProfileActivitySection(
+                            activities: activities
+                                .map(_activityToPost)
+                                .toList(),
+                            onCreatePost: _showActivityComposer,
+                            onSeeAll: () =>
+                                Navigator.pushNamed(context, AppRoutes.social),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      _buildAppVersion(),
+                      const SizedBox(height: 100),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
 
@@ -216,7 +226,18 @@ class _ProfilePageState extends State<ProfilePage> {
       MaterialPageRoute(builder: (_) => EditProfilePage(user: user)),
     );
     if (!mounted || saved != true || _currentUserId == null) return;
-    context.read<ProfileBloc>().add(LoadProfile(userId: _currentUserId!));
+    context.read<ProfileBloc>().add(
+      LoadProfile(userId: _currentUserId!, forceRefresh: true),
+    );
+  }
+
+  Future<void> _refreshProfile() async {
+    final userId = _currentUserId;
+    if (userId == null) return;
+    context.read<ProfileBloc>().add(
+      LoadProfile(userId: userId, forceRefresh: true),
+    );
+    context.read<ActivityBloc>().add(LoadActivitiesByUser(userId: userId));
   }
 
   Widget _buildErrorState(BuildContext context) {
@@ -235,7 +256,7 @@ class _ProfilePageState extends State<ProfilePage> {
           if (_currentUserId != null)
             ElevatedButton(
               onPressed: () => context.read<ProfileBloc>().add(
-                LoadProfile(userId: _currentUserId!),
+                LoadProfile(userId: _currentUserId!, forceRefresh: true),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -304,6 +325,9 @@ class _ProfilePageState extends State<ProfilePage> {
     );
     if (!mounted || created != true) return;
     context.read<ActivityBloc>().add(LoadActivitiesByUser(userId: userId));
+    context.read<ProfileBloc>().add(
+      LoadProfile(userId: userId, forceRefresh: true),
+    );
   }
 
   Map<String, dynamic> _activityToPost(ActivityEntity activity) {

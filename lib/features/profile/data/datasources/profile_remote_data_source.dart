@@ -7,6 +7,7 @@ import '../../../auth/data/models/user_model.dart';
 import '../models/achievement_supabase_model.dart';
 import '../models/app_settings_model.dart';
 import '../models/friendship_model.dart';
+import '../models/profile_stats_model.dart';
 
 abstract class ProfileRemoteDataSource {
   Future<UserModel?> getUserById(String userId);
@@ -29,6 +30,8 @@ abstract class ProfileRemoteDataSource {
 
   Future<StreakModel> getStreak(String userId);
   Future<void> upsertStreak(StreakModel streak);
+
+  Future<ProfileStatsModel> getProfileStats();
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
@@ -237,5 +240,15 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       body: jsonEncode(streak.toUpsertJson()),
     );
     _decode(response);
+  }
+
+  @override
+  Future<ProfileStatsModel> getProfileStats() async {
+    final response = await client.get(
+      _uri('/api/profile/stats'),
+      headers: await _jsonHeaders(),
+    );
+    final stats = _decode(response)['stats'] as Map<String, dynamic>?;
+    return ProfileStatsModel.fromJson(stats ?? const <String, dynamic>{});
   }
 }

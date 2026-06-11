@@ -28,6 +28,16 @@ class RefreshHomeData extends HomeEvent {
   List<Object?> get props => [userId];
 }
 
+class ToggleHomeTaskCompletion extends HomeEvent {
+  final int taskId;
+  final String userId;
+
+  ToggleHomeTaskCompletion({required this.taskId, required this.userId});
+
+  @override
+  List<Object?> get props => [taskId, userId];
+}
+
 // States
 abstract class HomeState extends Equatable {
   @override
@@ -84,6 +94,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   HomeBloc({required this.repository}) : super(HomeInitial()) {
     on<LoadHomeData>(_onLoadHomeData);
     on<RefreshHomeData>(_onRefreshHomeData);
+    on<ToggleHomeTaskCompletion>(_onToggleHomeTaskCompletion);
   }
 
   Future<void> _onLoadHomeData(
@@ -138,5 +149,40 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       todayStudyMinutes: results[4] as int,
       weeklyStudyMinutes: results[5] as Map<int, int>,
     );
+  }
+
+  Future<void> _onToggleHomeTaskCompletion(
+    ToggleHomeTaskCompletion event,
+    Emitter<HomeState> emit,
+  ) async {
+    final previousState = state;
+    if (previousState is HomeLoaded) {
+      final updatedTasks = previousState.tasks.map((task) {
+        if (task.id != event.taskId) return task;
+        return task.copyWith(isCompleted: !task.isCompleted);
+      }).toList();
+
+      emit(
+        HomeLoaded(
+          todaySchedules: previousState.todaySchedules,
+          tasks: updatedTasks,
+          nextSchedule: previousState.nextSchedule,
+          nearestTask: previousState.nearestTask?.id == event.taskId
+              ? null
+              : previousState.nearestTask,
+          todayStudyMinutes: previousState.todayStudyMinutes,
+          weeklyStudyMinutes: previousState.weeklyStudyMinutes,
+        ),
+      );
+    }
+
+    try {
+      await repository.toggleTaskCompletion(event.taskId, event.userId);
+      emit(await _loadHomeData(event.userId));
+      _loadedUserId = event.userId;
+    } catch (e) {
+      if (previousState is HomeLoaded) emit(previousState);
+      emit(HomeError(message: e.toString()));
+    }
   }
 }

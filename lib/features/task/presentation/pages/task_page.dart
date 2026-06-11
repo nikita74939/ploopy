@@ -51,6 +51,36 @@ class _TaskPageState extends State<TaskPage> {
     );
   }
 
+  void _showTaskDetail(TaskEntity task) {
+    final userId = _currentUserId;
+    if (userId == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => BlocProvider.value(
+        value: context.read<TaskBloc>(),
+        child: _TaskDetailSheet(
+          task: task,
+          onEdit: () {
+            Navigator.pop(context);
+            _showTaskSheet(task: task);
+          },
+          onToggleCompleted: () {
+            context.read<TaskBloc>().add(
+              ToggleTaskCompletion(id: task.id, userId: userId),
+            );
+            Navigator.pop(context);
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -207,7 +237,7 @@ class _TaskPageState extends State<TaskPage> {
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(18),
           child: InkWell(
-            onTap: () => _showTaskSheet(task: task),
+            onTap: () => _showTaskDetail(task),
             onLongPress: () {
               final userId = _currentUserId;
               if (userId == null) return;
@@ -327,6 +357,12 @@ class _TaskPageState extends State<TaskPage> {
                           : AppColors.textMuted,
                     ),
                   ),
+                  IconButton(
+                    tooltip: 'Edit task',
+                    onPressed: () => _showTaskSheet(task: task),
+                    icon: const Icon(Icons.edit_outlined),
+                    color: AppColors.textSecondary,
+                  ),
                 ],
               ),
             ),
@@ -399,5 +435,174 @@ class _TaskPageState extends State<TaskPage> {
       default:
         return Icons.assignment_rounded;
     }
+  }
+}
+
+class _TaskDetailSheet extends StatelessWidget {
+  final TaskEntity task;
+  final VoidCallback onEdit;
+  final VoidCallback onToggleCompleted;
+
+  const _TaskDetailSheet({
+    required this.task,
+    required this.onEdit,
+    required this.onToggleCompleted,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Color(task.color);
+
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          12,
+          20,
+          MediaQuery.of(context).viewInsets.bottom + 20,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 42,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.greyBorder,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.13),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Icon(_taskIcon(task.iconName), color: color),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(task.name, style: AppTextStyles.heading),
+                      const SizedBox(height: 4),
+                      Text(
+                        task.subject?.trim().isNotEmpty == true
+                            ? task.subject!
+                            : 'Tanpa mata pelajaran',
+                        style: AppTextStyles.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            _DetailRow(
+              icon: Icons.schedule_rounded,
+              label: 'Deadline',
+              value: DateTimeUtils.formatDateTime(task.deadline),
+            ),
+            const SizedBox(height: 10),
+            _DetailRow(
+              icon: task.isCompleted
+                  ? Icons.check_circle_rounded
+                  : Icons.circle_outlined,
+              label: 'Status',
+              value: task.isCompleted ? 'Selesai' : 'Belum selesai',
+            ),
+            if (task.details?.trim().isNotEmpty == true) ...[
+              const SizedBox(height: 16),
+              Text('Detail', style: AppTextStyles.title),
+              const SizedBox(height: 6),
+              Text(task.details!, style: AppTextStyles.body),
+            ],
+            const SizedBox(height: 22),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: onToggleCompleted,
+                    icon: Icon(
+                      task.isCompleted
+                          ? Icons.undo_rounded
+                          : Icons.check_circle_rounded,
+                    ),
+                    label: Text(
+                      task.isCompleted ? 'Tandai Belum' : 'Tandai Selesai',
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: onEdit,
+                    icon: const Icon(Icons.edit_rounded),
+                    label: const Text('Edit'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  IconData _taskIcon(String? iconName) {
+    switch (iconName) {
+      case 'homework':
+        return Icons.home_work_rounded;
+      case 'exam':
+        return Icons.quiz_rounded;
+      case 'project':
+        return Icons.folder_rounded;
+      case 'personal':
+        return Icons.person_rounded;
+      default:
+        return Icons.assignment_rounded;
+    }
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: AppColors.primary),
+        const SizedBox(width: 8),
+        Text('$label: ', style: AppTextStyles.bodySmall),
+        Expanded(
+          child: Text(
+            value,
+            style: AppTextStyles.bodySmall.copyWith(
+              color: AppColors.textMain,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

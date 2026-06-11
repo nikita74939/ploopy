@@ -17,6 +17,7 @@ import 'core/constants/app_routes.dart';
 import 'core/di/injection_container.dart';
 import 'core/network/auth_session_guard.dart';
 import 'core/services/navigation_service.dart';
+import 'core/services/notification_service.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
@@ -122,5 +123,22 @@ class _SessionExpiredListenerState extends State<_SessionExpiredListener> {
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) {
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        final notificationBloc = context.read<NotificationBloc>();
+        if (state is Authenticated) {
+          notificationBloc.add(
+            LoadNotifications(userId: state.user.userId),
+          );
+          return;
+        }
+        if (state is Unauthenticated) {
+          notificationBloc.add(ClearNotifications());
+          NotificationService.cancelAllNotifications();
+        }
+      },
+      child: widget.child,
+    );
+  }
 }

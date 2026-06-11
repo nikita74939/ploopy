@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../config/supabase.js';
 import { httpError } from '../utils/httpError.js';
+import { evaluateUserAchievements } from './achievementService.js';
 import { createNotification } from './notificationService.js';
 
 const select = `id, requester_id, addressee_id, status, created_at,
@@ -53,6 +54,12 @@ export async function updateFriendshipStatus({ userId, friendshipId, status }) {
   const { data, error } = await supabaseAdmin.from('friendships').update({ status }).eq('id', friendshipId).select('id, requester_id, addressee_id, status, created_at').single();
   if (error) throw httpError(500, error.message);
   const recipientId = userId === data.requester_id ? data.addressee_id : data.requester_id;
+  if (status === 'accepted') {
+    await Promise.all([
+      evaluateUserAchievements({ userId: data.requester_id, triggerType: 'accepted_friends' }),
+      evaluateUserAchievements({ userId: data.addressee_id, triggerType: 'accepted_friends' }),
+    ]);
+  }
   await createNotification({
     userId: recipientId,
     input: {

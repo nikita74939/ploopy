@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/date_utils.dart';
@@ -24,7 +25,10 @@ class _NotificationPageState extends State<NotificationPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    context.read<NotificationBloc>().add(LoadNotifications());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _loadCurrentUserNotifications();
+    });
   }
 
   @override
@@ -115,7 +119,9 @@ class _NotificationPageState extends State<NotificationPage>
               controller: _tabController,
               children: [
                 _NotificationList(notifications: state.allNotifications),
-                _NotificationList(notifications: state.unreadNotifications),
+                _NotificationList(
+                  notifications: state.unreadNotifications,
+                ),
               ],
             );
           }
@@ -124,6 +130,13 @@ class _NotificationPageState extends State<NotificationPage>
         },
       ),
     );
+  }
+
+  Future<void> _loadCurrentUserNotifications() async {
+    final authState = context.read<AuthBloc>().state;
+    final userId = authState is Authenticated ? authState.user.userId : null;
+    if (userId == null || userId.isEmpty) return;
+    context.read<NotificationBloc>().add(LoadNotifications(userId: userId));
   }
 }
 
@@ -135,22 +148,42 @@ class _NotificationList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (notifications.isEmpty) {
-      return const _EmptyState(
-        icon: Icons.notifications_off_rounded,
-        title: 'No notifications',
-        subtitle: 'Semua sudah rapi untuk sekarang.',
+      return RefreshIndicator(
+        onRefresh: () => _refresh(context),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: const [
+            SizedBox(height: 160),
+            _EmptyState(
+              icon: Icons.notifications_off_rounded,
+              title: 'No notifications',
+              subtitle: 'Semua sudah rapi untuk sekarang.',
+            ),
+          ],
+        ),
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
-      itemCount: notifications.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final notification = notifications[index];
-        return _NotificationCard(notification: notification);
-      },
+    return RefreshIndicator(
+      onRefresh: () => _refresh(context),
+      child: ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
+        itemCount: notifications.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final notification = notifications[index];
+          return _NotificationCard(notification: notification);
+        },
+      ),
     );
+  }
+
+  Future<void> _refresh(BuildContext context) async {
+    final authState = context.read<AuthBloc>().state;
+    final userId = authState is Authenticated ? authState.user.userId : null;
+    if (userId == null || userId.isEmpty) return;
+    context.read<NotificationBloc>().add(LoadNotifications(userId: userId));
   }
 }
 
@@ -316,13 +349,31 @@ class _NotificationCard extends StatelessWidget {
       case 'social':
       case 'friend_request':
       case 'friend_accepted':
+      case 'friend_rejected':
+      case 'friend_blocked':
+      case 'activity_created':
+      case 'activity_like':
+      case 'activity_comment':
         return AppColors.blueAccent;
       case 'study':
+      case 'streak_update':
         return AppColors.success;
       case 'task':
+      case 'task_deadline':
+      case 'task_completed':
         return AppColors.warning;
       case 'schedule':
+      case 'schedule_created':
+      case 'schedule_updated':
+      case 'ai_plan_created':
         return AppColors.purpleAccent;
+      case 'event_joined':
+      case 'event_updated':
+      case 'event_cancelled':
+      case 'event_participant_joined':
+        return AppColors.primary;
+      case 'achievement_unlocked':
+        return AppColors.secondary;
       default:
         return AppColors.primary;
     }
@@ -333,13 +384,31 @@ class _NotificationCard extends StatelessWidget {
       case 'social':
       case 'friend_request':
       case 'friend_accepted':
+      case 'friend_rejected':
+      case 'friend_blocked':
+      case 'activity_created':
+      case 'activity_like':
+      case 'activity_comment':
         return Icons.people_alt_rounded;
       case 'study':
+      case 'streak_update':
         return Icons.school_rounded;
       case 'task':
+      case 'task_deadline':
+      case 'task_completed':
         return Icons.assignment_rounded;
       case 'schedule':
+      case 'schedule_created':
+      case 'schedule_updated':
+      case 'ai_plan_created':
         return Icons.event_rounded;
+      case 'event_joined':
+      case 'event_updated':
+      case 'event_cancelled':
+      case 'event_participant_joined':
+        return Icons.location_on_rounded;
+      case 'achievement_unlocked':
+        return Icons.emoji_events_rounded;
       default:
         return Icons.notifications_rounded;
     }
@@ -420,7 +489,7 @@ class _InlineFriendRequestButtonState
       await profileBloc.repository.acceptFriendRequest(friendshipId);
       if (!mounted) return;
 
-      profileBloc.add(LoadFriends(userId: userId));
+      profileBloc.add(LoadProfile(userId: userId, forceRefresh: true));
       context.read<NotificationBloc>().add(
         MarkNotificationAsRead(id: notification.id),
       );
@@ -574,6 +643,23 @@ class _NotificationDetailSheetState extends State<_NotificationDetailSheet> {
                     ),
                   ),
                 ),
+              )
+            else if (_targetRoute != null)
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: _openTarget,
+                  icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                  label: Text('Buka', style: AppTextStyles.buttonSecondary),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: AppColors.primaryBorder),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
               ),
           ],
         ),
@@ -599,7 +685,7 @@ class _NotificationDetailSheetState extends State<_NotificationDetailSheet> {
       await profileBloc.repository.acceptFriendRequest(friendshipId);
       if (!mounted) return;
 
-      profileBloc.add(LoadFriends(userId: userId));
+      profileBloc.add(LoadProfile(userId: userId, forceRefresh: true));
       context.read<NotificationBloc>().add(
         MarkNotificationAsRead(id: notification.id),
       );
@@ -621,6 +707,15 @@ class _NotificationDetailSheetState extends State<_NotificationDetailSheet> {
     }
   }
 
+  Future<void> _openTarget() async {
+    final route = _targetRoute;
+    if (route == null) return;
+    final navigator = Navigator.of(context);
+    final arguments = route == AppRoutes.schedule ? true : null;
+    navigator.pop();
+    await navigator.pushNamed(route, arguments: arguments);
+  }
+
   String _cleanError(Object error) {
     final message = error.toString();
     return message.startsWith('Exception: ') ? message.substring(11) : message;
@@ -635,16 +730,32 @@ class _NotificationDetailSheetState extends State<_NotificationDetailSheet> {
       case 'friend_rejected':
         return 'Permintaan pertemanan';
       case 'task':
+      case 'task_deadline':
+      case 'task_completed':
         return 'Tugas terkait';
       case 'schedule':
+      case 'schedule_created':
+      case 'schedule_updated':
         return 'Jadwal terkait';
       case 'study':
+      case 'streak_update':
         return 'Sesi belajar';
       case 'achievement':
+      case 'achievement_unlocked':
         return 'Achievement';
       case 'activity':
       case 'social':
+      case 'activity_created':
+      case 'activity_like':
+      case 'activity_comment':
         return 'Aktivitas sosial';
+      case 'event_joined':
+      case 'event_updated':
+      case 'event_cancelled':
+      case 'event_participant_joined':
+        return 'Event terkait';
+      case 'ai_plan_created':
+        return 'AI Daily Plan';
       default:
         return switch (notification.refType) {
           'friendship' => 'Pertemanan',
@@ -658,18 +769,68 @@ class _NotificationDetailSheetState extends State<_NotificationDetailSheet> {
     }
   }
 
+  String? get _targetRoute {
+    final tag = notification.tag;
+    final refType = notification.refType;
+    if (tag.startsWith('friend_') || refType == 'friendship') {
+      return AppRoutes.social;
+    }
+    if (tag.startsWith('activity_') || refType == 'activity') {
+      return AppRoutes.activity;
+    }
+    if (tag.startsWith('task_') || tag == 'task' || refType == 'task') {
+      return AppRoutes.task;
+    }
+    if (tag.startsWith('schedule_') ||
+        tag == 'schedule' ||
+        refType == 'schedule') {
+      return AppRoutes.schedule;
+    }
+    if (tag.startsWith('event_') || refType == 'event') {
+      return AppRoutes.event;
+    }
+    if (tag.startsWith('achievement_') || refType == 'achievement') {
+      return AppRoutes.profile;
+    }
+    if (tag.startsWith('streak_') || refType == 'study') {
+      return AppRoutes.study;
+    }
+    if (tag.startsWith('ai_plan_') || refType == 'ai_daily_plan') {
+      return AppRoutes.tools;
+    }
+    return null;
+  }
+
   Color _tagColor(String tag) {
     switch (tag) {
       case 'social':
       case 'friend_request':
       case 'friend_accepted':
+      case 'friend_rejected':
+      case 'friend_blocked':
+      case 'activity_created':
+      case 'activity_like':
+      case 'activity_comment':
         return AppColors.blueAccent;
       case 'study':
+      case 'streak_update':
         return AppColors.success;
       case 'task':
+      case 'task_deadline':
+      case 'task_completed':
         return AppColors.warning;
       case 'schedule':
+      case 'schedule_created':
+      case 'schedule_updated':
+      case 'ai_plan_created':
         return AppColors.purpleAccent;
+      case 'event_joined':
+      case 'event_updated':
+      case 'event_cancelled':
+      case 'event_participant_joined':
+        return AppColors.primary;
+      case 'achievement_unlocked':
+        return AppColors.secondary;
       default:
         return AppColors.primary;
     }
@@ -680,13 +841,31 @@ class _NotificationDetailSheetState extends State<_NotificationDetailSheet> {
       case 'social':
       case 'friend_request':
       case 'friend_accepted':
+      case 'friend_rejected':
+      case 'friend_blocked':
+      case 'activity_created':
+      case 'activity_like':
+      case 'activity_comment':
         return Icons.people_alt_rounded;
       case 'study':
+      case 'streak_update':
         return Icons.school_rounded;
       case 'task':
+      case 'task_deadline':
+      case 'task_completed':
         return Icons.assignment_rounded;
       case 'schedule':
+      case 'schedule_created':
+      case 'schedule_updated':
+      case 'ai_plan_created':
         return Icons.event_rounded;
+      case 'event_joined':
+      case 'event_updated':
+      case 'event_cancelled':
+      case 'event_participant_joined':
+        return Icons.location_on_rounded;
+      case 'achievement_unlocked':
+        return Icons.emoji_events_rounded;
       default:
         return Icons.notifications_rounded;
     }

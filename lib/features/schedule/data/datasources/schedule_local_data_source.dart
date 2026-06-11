@@ -3,7 +3,7 @@ import '../models/schedule_model.dart';
 
 abstract class ScheduleLocalDataSource {
   Future<List<ScheduleModel>> getSchedulesByDate(String userId, DateTime date);
-  Future<List<ScheduleModel>> getAllSchedules();
+  Future<List<ScheduleModel>> getAllSchedules(String userId);
   Future<ScheduleModel?> getScheduleById(int id);
   Future<void> addSchedule(ScheduleModel schedule);
   Future<void> updateSchedule(ScheduleModel schedule);
@@ -41,8 +41,11 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
   }
 
   @override
-  Future<List<ScheduleModel>> getAllSchedules() async {
-    final schedules = await isar.scheduleModels.where().findAll();
+  Future<List<ScheduleModel>> getAllSchedules(String userId) async {
+    final schedules = await isar.scheduleModels
+        .filter()
+        .userIdEqualTo(userId)
+        .findAll();
     return _visibleSorted(schedules);
   }
 

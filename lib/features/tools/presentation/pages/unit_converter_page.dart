@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/unit_data.dart';
+import '../../../../core/services/achievement_tracking_service.dart';
 import '../widgets/unit_category_sheet.dart';
 import '../widgets/unit_input_card.dart';
 import '../widgets/unit_picker_sheet.dart';
@@ -20,6 +21,7 @@ class _UnitConverterPageState extends State<UnitConverterPage> {
   String _categoryId = 'length';
   String _fromUnitCode = 'm';
   String _toUnitCode = 'km';
+  bool _trackedConversion = false;
 
   @override
   void initState() {
@@ -73,6 +75,10 @@ class _UnitConverterPageState extends State<UnitConverterPage> {
     }
 
     _toCtrl.text = _formatNumber(result);
+    if (!_trackedConversion) {
+      _trackedConversion = true;
+      AchievementTrackingService.track('converter_used');
+    }
   }
 
   String _formatNumber(double value) {

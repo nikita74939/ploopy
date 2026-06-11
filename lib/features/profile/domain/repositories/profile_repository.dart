@@ -2,6 +2,7 @@ import '../../../auth/domain/entities/user_entity.dart';
 import '../entities/achievement_entity.dart';
 import '../entities/app_settings_entity.dart';
 import '../entities/friendship_entity.dart';
+import '../entities/profile_stats_entity.dart';
 import '../entities/streak_entity.dart';
 
 abstract class ProfileRepository {
@@ -30,4 +31,7 @@ abstract class ProfileRepository {
   // Streaks
   Future<ProfileStreakEntity> getStreak(String userId);
   Future<void> upsertStreak(ProfileStreakEntity streak);
+
+  // Stats
+  Future<ProfileStatsEntity> getProfileStats();
 }

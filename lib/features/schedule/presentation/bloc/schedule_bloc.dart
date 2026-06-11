@@ -130,7 +130,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     _lastDate = null;
     emit(ScheduleLoading());
     try {
-      final schedules = await repository.getUpcomingSchedules(event.userId);
+      final schedules = await repository.getAllSchedules(event.userId);
       emit(ScheduleLoaded(schedules: schedules));
     } catch (e) {
       emit(ScheduleError(message: e.toString()));

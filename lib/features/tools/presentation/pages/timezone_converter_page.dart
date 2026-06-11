@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/services/achievement_tracking_service.dart';
 import '../../../../core/services/timezone_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../widgets/timezone_card.dart';
@@ -27,6 +28,7 @@ class _TimezoneConverterPageState extends State<TimezoneConverterPage> {
 
   bool _isLive = true; // Update real-time
   Timer? _liveTimer;
+  bool _trackedConversion = false;
 
   @override
   void initState() {
@@ -57,6 +59,7 @@ class _TimezoneConverterPageState extends State<TimezoneConverterPage> {
     if (sourceDetails?.currentLocalTime != null) {
       setState(() => _sourceDateTime = sourceDetails!.currentLocalTime!);
     }
+    _trackConversionOnce();
   }
 
   DateTime _convertTime(DateTime sourceTime, String sourceId, String targetId) {
@@ -65,6 +68,12 @@ class _TimezoneConverterPageState extends State<TimezoneConverterPage> {
       sourceId: sourceId,
       targetId: targetId,
     );
+  }
+
+  void _trackConversionOnce() {
+    if (_trackedConversion || _destinations.isEmpty) return;
+    _trackedConversion = true;
+    AchievementTrackingService.track('timezone_converter_used');
   }
 
   Future<void> _pickSourceTimezone() async {

@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_constants.dart' hide AppColors;
-import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/bottom_sheet_insets.dart';
@@ -15,6 +14,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../event/domain/entities/event_entity.dart';
 import '../../../event/presentation/bloc/event_bloc.dart';
 import '../../../event/presentation/pages/event_detail_page.dart';
+import '../../../event/presentation/pages/event_form_page.dart';
 import 'public_profile_page.dart';
 
 class SocialPage extends StatefulWidget {
@@ -27,6 +27,9 @@ class SocialPage extends StatefulWidget {
 class _SocialPageState extends State<SocialPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  late final TextEditingController _searchController;
+  bool _searchActive = false;
+  String _searchQuery = '';
 
   String? get _currentUserId {
     final state = context.read<AuthBloc>().state;
@@ -37,6 +40,13 @@ class _SocialPageState extends State<SocialPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
+    _searchController = TextEditingController()
+      ..addListener(() {
+        setState(() => _searchQuery = _searchController.text);
+      });
     context.read<ActivityBloc>().add(LoadActivities());
     context.read<EventBloc>().add(LoadEvents());
   }
@@ -44,6 +54,7 @@ class _SocialPageState extends State<SocialPage>
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -53,19 +64,37 @@ class _SocialPageState extends State<SocialPage>
       backgroundColor: AppColors.greyLighter,
       appBar: AppBar(
         backgroundColor: AppColors.greyLighter,
-        title: Text('Social', style: AppTextStyles.title),
+        title: _searchActive
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                style: AppTextStyles.body,
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  hintText: _tabController.index == 0
+                      ? 'Cari activity...'
+                      : 'Cari event...',
+                  hintStyle: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textMuted,
+                  ),
+                  border: InputBorder.none,
+                ),
+              )
+            : Text('Social', style: AppTextStyles.title),
         actions: [
-          _SocialIconButton(icon: Icons.search_rounded, onPressed: () {}),
-          IconButton(
-            icon: const Icon(Icons.notifications_rounded),
-            style: IconButton.styleFrom(
-              backgroundColor: AppColors.white,
-              foregroundColor: AppColors.textMain,
-              shape: const CircleBorder(),
-              side: const BorderSide(color: AppColors.greyBorder),
-            ),
-            onPressed: () =>
-                Navigator.pushNamed(context, AppRoutes.notification),
+          _SocialIconButton(
+            icon: _searchActive
+                ? Icons.close_rounded
+                : Icons.search_rounded,
+            onPressed: () {
+              setState(() {
+                if (_searchActive) {
+                  _searchController.clear();
+                  _searchQuery = '';
+                }
+                _searchActive = !_searchActive;
+              });
+            },
           ),
           const SizedBox(width: 8),
         ],
@@ -92,37 +121,116 @@ class _SocialPageState extends State<SocialPage>
       body: TabBarView(
         controller: _tabController,
         children: [
-          _ActivityTab(currentUserId: _currentUserId),
-          _EventTab(currentUserId: _currentUserId),
+          _ActivityTab(currentUserId: _currentUserId, query: _searchQuery),
+          _EventTab(currentUserId: _currentUserId, query: _searchQuery),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'social_fab',
-        onPressed: _showComposer,
+        onPressed: _showCreateSheet,
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+        foregroundColor: AppColors.white,
+        elevation: 0,
+        shape: const CircleBorder(),
+        child: const Icon(Icons.add_rounded, size: 30),
       ),
     );
   }
 
-  Future<void> _showComposer() async {
+  Future<void> _showCreateSheet() async {
     final userId = _currentUserId;
     if (userId == null) return;
     final created = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (_) => BlocProvider.value(
-        value: context.read<ActivityBloc>(),
-        child: ActivityComposerSheet(userId: userId),
+      backgroundColor: AppColors.transparent,
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: context.read<ActivityBloc>()),
+          BlocProvider.value(value: context.read<EventBloc>()),
+        ],
+        child: _SocialCreateSheet(userId: userId),
       ),
     );
     if (created == true && mounted) {
       context.read<ActivityBloc>().add(LoadActivities());
+      context.read<EventBloc>().add(LoadEvents());
     }
+  }
+}
+
+class _SocialCreateSheet extends StatelessWidget {
+  final String userId;
+
+  const _SocialCreateSheet({required this.userId});
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.9,
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+            Container(
+              width: 42,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.greyHandle,
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Container(
+              height: 42,
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.primaryLighter,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: TabBar(
+                indicator: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                labelColor: AppColors.white,
+                unselectedLabelColor: AppColors.textSecondary,
+                labelStyle: AppTextStyles.tabActive.copyWith(
+                  color: AppColors.white,
+                ),
+                unselectedLabelStyle: AppTextStyles.tabInactive,
+                dividerColor: AppColors.transparent,
+                indicatorSize: TabBarIndicatorSize.tab,
+                tabs: const [
+                  Tab(text: 'Activity'),
+                  Tab(text: 'Event'),
+                ],
+              ),
+            ),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  BlocProvider.value(
+                    value: context.read<ActivityBloc>(),
+                    child: ActivityComposerSheet(userId: userId),
+                  ),
+                  BlocProvider.value(
+                    value: context.read<EventBloc>(),
+                    child: EventFormPage(currentUserId: userId),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -153,8 +261,9 @@ class _SocialIconButton extends StatelessWidget {
 
 class _ActivityTab extends StatelessWidget {
   final String? currentUserId;
+  final String query;
 
-  const _ActivityTab({this.currentUserId});
+  const _ActivityTab({this.currentUserId, this.query = ''});
 
   @override
   Widget build(BuildContext context) {
@@ -188,17 +297,20 @@ class _ActivityTab extends StatelessWidget {
         }
 
         if (state is ActivitiesLoaded) {
-          if (state.activities.isEmpty) {
+          final activities = _filterActivities(state.activities, query);
+          if (activities.isEmpty) {
             return _buildEmptyState(
               icon: Icons.article_outlined,
-              label: 'No activities yet',
+              label: query.trim().isEmpty
+                  ? 'No activities yet'
+                  : 'Activity tidak ditemukan',
             );
           }
           return ListView.builder(
             padding: const EdgeInsets.all(AppStyle.paddingMedium),
-            itemCount: state.activities.length,
+            itemCount: activities.length,
             itemBuilder: (context, index) => _ActivityCard(
-              activity: state.activities[index],
+              activity: activities[index],
               currentUserId: currentUserId,
             ),
           );
@@ -207,6 +319,22 @@ class _ActivityTab extends StatelessWidget {
         return const SizedBox.shrink();
       },
     );
+  }
+
+  List<ActivityEntity> _filterActivities(
+    List<ActivityEntity> activities,
+    String rawQuery,
+  ) {
+    final keyword = rawQuery.trim().toLowerCase();
+    if (keyword.isEmpty) return activities;
+    return activities.where((activity) {
+      final haystack = [
+        activity.text,
+        activity.userName,
+        activity.achievementId,
+      ].whereType<String>().join(' ').toLowerCase();
+      return haystack.contains(keyword);
+    }).toList(growable: false);
   }
 }
 
@@ -883,8 +1011,9 @@ class _CommentsSheetState extends State<_CommentsSheet> {
 
 class _EventTab extends StatelessWidget {
   final String? currentUserId;
+  final String query;
 
-  const _EventTab({this.currentUserId});
+  const _EventTab({this.currentUserId, this.query = ''});
 
   @override
   Widget build(BuildContext context) {
@@ -910,17 +1039,18 @@ class _EventTab extends StatelessWidget {
         }
 
         if (state is EventsLoaded) {
-          if (state.events.isEmpty) {
+          final events = _filterEvents(state.events, query);
+          if (events.isEmpty) {
             return _buildEmptyState(
               icon: Icons.event_outlined,
-              label: 'No events yet',
+              label: query.trim().isEmpty ? 'No events yet' : 'Event tidak ditemukan',
             );
           }
           return ListView.builder(
             padding: const EdgeInsets.all(AppStyle.paddingMedium),
-            itemCount: state.events.length,
+            itemCount: events.length,
             itemBuilder: (context, index) => _EventCard(
-              event: state.events[index],
+              event: events[index],
               currentUserId: currentUserId,
             ),
           );
@@ -929,6 +1059,21 @@ class _EventTab extends StatelessWidget {
         return const SizedBox.shrink();
       },
     );
+  }
+
+  List<EventEntity> _filterEvents(List<EventEntity> events, String rawQuery) {
+    final keyword = rawQuery.trim().toLowerCase();
+    if (keyword.isEmpty) return events;
+    return events.where((event) {
+      final haystack = [
+        event.name,
+        event.description,
+        event.location,
+        event.address,
+        event.creatorName,
+      ].whereType<String>().join(' ').toLowerCase();
+      return haystack.contains(keyword);
+    }).toList(growable: false);
   }
 }
 

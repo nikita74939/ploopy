@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/services/achievement_tracking_service.dart';
 import '../../../../core/services/scanner_service.dart';
 import '../../domain/scanned_doc_model.dart';
 import '../widgets/scan_empty_state.dart';
@@ -63,6 +64,10 @@ class _ScannerHomePageState extends State<ScannerHomePage> {
         return;
       }
 
+      await AchievementTrackingService.track(
+        'scanner_used',
+        amount: imagePaths.length,
+      );
       await _loadDocs();
 
       _showSnackbar(

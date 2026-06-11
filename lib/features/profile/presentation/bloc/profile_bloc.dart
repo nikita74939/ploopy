@@ -4,6 +4,7 @@ import '../../../auth/domain/entities/user_entity.dart';
 import '../../domain/entities/achievement_entity.dart';
 import '../../domain/entities/app_settings_entity.dart';
 import '../../domain/entities/friendship_entity.dart';
+import '../../domain/entities/profile_stats_entity.dart';
 import '../../domain/entities/streak_entity.dart';
 import '../../domain/repositories/profile_repository.dart';
 
@@ -16,9 +17,10 @@ abstract class ProfileEvent extends Equatable {
 
 class LoadProfile extends ProfileEvent {
   final String userId;
-  LoadProfile({required this.userId});
+  final bool forceRefresh;
+  LoadProfile({required this.userId, this.forceRefresh = false});
   @override
-  List<Object?> get props => [userId];
+  List<Object?> get props => [userId, forceRefresh];
 }
 
 class UpdateProfile extends ProfileEvent {
@@ -105,6 +107,7 @@ class ProfileLoaded extends ProfileState {
   final List<UserAchievementEntity> userAchievements;
   final List<ProfileFriendshipEntity> friends;
   final ProfileStreakEntity streak;
+  final ProfileStatsEntity stats;
   final ProfileAppSettingsEntity settings;
 
   ProfileLoaded({
@@ -113,6 +116,7 @@ class ProfileLoaded extends ProfileState {
     required this.userAchievements,
     required this.friends,
     required this.streak,
+    required this.stats,
     required this.settings,
   });
 
@@ -123,6 +127,7 @@ class ProfileLoaded extends ProfileState {
     userAchievements,
     friends,
     streak,
+    stats,
     settings,
   ];
 
@@ -132,6 +137,7 @@ class ProfileLoaded extends ProfileState {
     List<UserAchievementEntity>? userAchievements,
     List<ProfileFriendshipEntity>? friends,
     ProfileStreakEntity? streak,
+    ProfileStatsEntity? stats,
     ProfileAppSettingsEntity? settings,
   }) {
     return ProfileLoaded(
@@ -140,6 +146,7 @@ class ProfileLoaded extends ProfileState {
       userAchievements: userAchievements ?? this.userAchievements,
       friends: friends ?? this.friends,
       streak: streak ?? this.streak,
+      stats: stats ?? this.stats,
       settings: settings ?? this.settings,
     );
   }
@@ -186,7 +193,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     Emitter<ProfileState> emit,
   ) async {
     if (_loadingUserId == event.userId) return;
-    if (state is ProfileLoaded && _loadedUserId == event.userId) return;
+    if (!event.forceRefresh &&
+        state is ProfileLoaded &&
+        _loadedUserId == event.userId) {
+      return;
+    }
     _loadingUserId = event.userId;
     emit(ProfileLoading());
     try {
@@ -203,6 +214,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       final streakFuture = repository
           .getStreak(event.userId)
           .catchError((_) => ProfileStreakEntity.defaultFor(event.userId));
+      final statsFuture = repository.getProfileStats().catchError(
+        (_) => const ProfileStatsEntity.empty(),
+      );
       final settingsFuture = repository
           .getAppSettings(event.userId)
           .catchError((_) => ProfileAppSettingsEntity.defaultFor(event.userId));
@@ -220,6 +234,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           userAchievements: await userAchievementsFuture,
           friends: await friendsFuture,
           streak: await streakFuture,
+          stats: await statsFuture,
           settings: await settingsFuture,
         ),
       );
@@ -289,7 +304,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     try {
       final friends = await repository.getFriends(event.userId);
       if (state is ProfileLoaded) {
-        emit((state as ProfileLoaded).copyWith(friends: friends));
+        final stats = await repository.getProfileStats().catchError(
+          (_) => (state as ProfileLoaded).stats,
+        );
+        emit((state as ProfileLoaded).copyWith(friends: friends, stats: stats));
       }
     } catch (e) {
       emit(ProfileError(message: _cleanError(e)));
@@ -302,7 +320,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ) async {
     try {
       await repository.sendFriendRequest(event.requesterId, event.addresseeId);
-      add(LoadFriends(userId: event.requesterId));
+      add(LoadProfile(userId: event.requesterId, forceRefresh: true));
     } catch (e) {
       emit(ProfileError(message: _cleanError(e)));
     }
@@ -314,7 +332,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ) async {
     try {
       await repository.acceptFriendRequest(event.friendshipId);
-      add(LoadFriends(userId: event.userId));
+      add(LoadProfile(userId: event.userId, forceRefresh: true));
     } catch (e) {
       emit(ProfileError(message: _cleanError(e)));
     }
@@ -326,7 +344,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ) async {
     try {
       await repository.removeFriend(event.friendshipId);
-      add(LoadFriends(userId: event.userId));
+      add(LoadProfile(userId: event.userId, forceRefresh: true));
     } catch (e) {
       emit(ProfileError(message: _cleanError(e)));
     }

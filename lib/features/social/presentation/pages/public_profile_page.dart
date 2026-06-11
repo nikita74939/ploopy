@@ -12,6 +12,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../activity/domain/entities/activity_entity.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../profile/presentation/bloc/profile_bloc.dart';
 
 class PublicProfilePage extends StatefulWidget {
   final String userId;
@@ -90,6 +91,7 @@ class _PublicProfilePageState extends State<PublicProfilePage> {
             ? null
             : _FriendshipInfo.fromJson(friendship);
       });
+      _refreshMyProfileStats();
       _showSnackBar('Permintaan pertemanan dikirim.');
     } catch (e) {
       if (mounted) _showSnackBar(_cleanError(e), isError: true);
@@ -138,6 +140,7 @@ class _PublicProfilePageState extends State<PublicProfilePage> {
       _decode(response);
       if (!mounted) return;
       setState(() => _friendship = null);
+      _refreshMyProfileStats();
       _showSnackBar('Pertemanan dihapus.');
     } catch (e) {
       if (mounted) _showSnackBar(_cleanError(e), isError: true);
@@ -181,6 +184,14 @@ class _PublicProfilePageState extends State<PublicProfilePage> {
         content: Text(message),
         backgroundColor: isError ? AppColors.error : null,
       ),
+    );
+  }
+
+  void _refreshMyProfileStats() {
+    final userId = _currentUserId;
+    if (userId == null) return;
+    context.read<ProfileBloc>().add(
+      LoadProfile(userId: userId, forceRefresh: true),
     );
   }
 

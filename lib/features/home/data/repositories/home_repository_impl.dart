@@ -96,6 +96,11 @@ class HomeRepositoryImpl implements HomeRepository {
     return await taskRepository.getTasksByDate(date, userId);
   }
 
+  @override
+  Future<void> toggleTaskCompletion(int taskId, String userId) async {
+    await taskRepository.toggleTaskCompletion(taskId, userId);
+  }
+
   Future<List<TaskEntity>> _getDashboardTasks(String userId) {
     if (_inFlightTasks != null && _inFlightTasksUserId == userId) {
       return _inFlightTasks!;

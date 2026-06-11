@@ -1,7 +1,11 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection_container.dart';
@@ -25,12 +29,18 @@ class EventDetailPage extends StatefulWidget {
 
 class _EventDetailPageState extends State<EventDetailPage> {
   static const _currencyOptions = ['IDR', 'USD', 'EUR'];
+  static const double _shakeThreshold = 22;
+  static const Duration _shakeCooldown = Duration(milliseconds: 1600);
 
   String _selectedCurrency = 'IDR';
   Map<String, double> _rates = const {'IDR': 1};
   bool _loadingRates = false;
+  late EventEntity _event;
+  StreamSubscription<AccelerometerEvent>? _shakeSubscription;
+  DateTime _lastShakeAt = DateTime.fromMillisecondsSinceEpoch(0);
+  bool _joiningFromShake = false;
 
-  EventEntity get event => widget.event;
+  EventEntity get event => _event;
 
   String? get _currentUserId {
     final state = context.read<AuthBloc>().state;
@@ -40,7 +50,15 @@ class _EventDetailPageState extends State<EventDetailPage> {
   @override
   void initState() {
     super.initState();
+    _event = widget.event;
     _loadRates();
+    _startShakeDetection();
+  }
+
+  @override
+  void dispose() {
+    _shakeSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadRates() async {
@@ -156,19 +174,84 @@ class _EventDetailPageState extends State<EventDetailPage> {
                           ? Icons.check_circle_rounded
                           : Icons.lock_rounded,
                       disabled: !canJoin,
-                      onPressed: () {
-                        if (userId == null || !canJoin) return;
-                        context.read<EventBloc>().add(
-                          JoinEvent(eventId: event.id, userId: userId),
-                        );
-                        Navigator.pop(context);
-                      },
+                      onPressed: () => _joinEvent(source: _JoinSource.button),
                     ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  void _startShakeDetection() {
+    try {
+      _shakeSubscription = accelerometerEventStream().listen((event) {
+        final now = DateTime.now();
+        if (now.difference(_lastShakeAt) < _shakeCooldown) return;
+
+        final acceleration = math.sqrt(
+          event.x * event.x + event.y * event.y + event.z * event.z,
+        );
+        if (acceleration < _shakeThreshold) return;
+
+        _lastShakeAt = now;
+        _joinEvent(source: _JoinSource.shake);
+      });
+    } catch (_) {
+      _shakeSubscription = null;
+    }
+  }
+
+  Future<void> _joinEvent({required _JoinSource source}) async {
+    final userId = _currentUserId;
+    final canJoin = !event.isJoinedByMe && !event.isFull && event.isUpcoming;
+
+    if (userId == null || userId.isEmpty) {
+      if (source == _JoinSource.button && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Silakan login ulang terlebih dahulu.')),
+        );
+      }
+      return;
+    }
+
+    if (!canJoin) {
+      if (source == _JoinSource.shake && mounted && event.isJoinedByMe) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Kamu sudah join event ini.')),
+        );
+      }
+      return;
+    }
+
+    if (_joiningFromShake) return;
+    setState(() => _joiningFromShake = true);
+    try {
+      await context.read<EventBloc>().repository.joinEvent(event.id, userId);
+      if (!mounted) return;
+      setState(() {
+        _event = event.copyWith(
+          isJoinedByMe: true,
+          currentParticipants: event.currentParticipants + 1,
+        );
+        _joiningFromShake = false;
+      });
+      context.read<EventBloc>().add(LoadEvents());
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Berhasil join event')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _joiningFromShake = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_cleanError(e))));
+    }
+  }
+
+  String _cleanError(Object error) {
+    final message = error.toString();
+    return message.startsWith('Exception: ') ? message.substring(11) : message;
   }
 
   String _priceLabel() {
@@ -211,6 +294,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
     }
   }
 }
+
+enum _JoinSource { button, shake }
 
 class _HeroCard extends StatelessWidget {
   final EventEntity event;

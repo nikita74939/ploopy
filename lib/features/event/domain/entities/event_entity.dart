@@ -54,4 +54,50 @@ class EventEntity {
     final value = address ?? location;
     return value == null || value.trim().isEmpty ? 'TBD' : value.trim();
   }
+
+  EventEntity copyWith({
+    String? id,
+    String? creatorId,
+    String? name,
+    String? icon,
+    String? color,
+    DateTime? eventDate,
+    String? location,
+    double? latitude,
+    double? longitude,
+    String? placeId,
+    String? address,
+    bool? isOnline,
+    int? maxParticipants,
+    int? currentParticipants,
+    String? description,
+    double? price,
+    bool? isJoinedByMe,
+    DateTime? createdAt,
+    String? creatorName,
+    String? creatorPhoto,
+  }) {
+    return EventEntity(
+      id: id ?? this.id,
+      creatorId: creatorId ?? this.creatorId,
+      name: name ?? this.name,
+      icon: icon ?? this.icon,
+      color: color ?? this.color,
+      eventDate: eventDate ?? this.eventDate,
+      location: location ?? this.location,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      placeId: placeId ?? this.placeId,
+      address: address ?? this.address,
+      isOnline: isOnline ?? this.isOnline,
+      maxParticipants: maxParticipants ?? this.maxParticipants,
+      currentParticipants: currentParticipants ?? this.currentParticipants,
+      description: description ?? this.description,
+      price: price ?? this.price,
+      isJoinedByMe: isJoinedByMe ?? this.isJoinedByMe,
+      createdAt: createdAt ?? this.createdAt,
+      creatorName: creatorName ?? this.creatorName,
+      creatorPhoto: creatorPhoto ?? this.creatorPhoto,
+    );
+  }
 }

@@ -3,6 +3,7 @@ import '../../../auth/domain/entities/user_entity.dart';
 import '../../domain/entities/achievement_entity.dart';
 import '../../domain/entities/app_settings_entity.dart';
 import '../../domain/entities/friendship_entity.dart';
+import '../../domain/entities/profile_stats_entity.dart';
 import '../../domain/entities/streak_entity.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../datasources/profile_local_data_source.dart';
@@ -121,5 +122,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
   @override
   Future<void> upsertStreak(ProfileStreakEntity streak) async {
     await remoteDataSource.upsertStreak(StreakModel.fromEntity(streak));
+  }
+
+  @override
+  Future<ProfileStatsEntity> getProfileStats() async {
+    final stats = await remoteDataSource.getProfileStats();
+    return stats.toEntity();
   }
 }

@@ -13,6 +13,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import { eventRoutes } from './routes/eventRoutes.js';
 import { friendRoutes } from './routes/friendRoutes.js';
 import { notificationRoutes } from './routes/notificationRoutes.js';
+import { profileRoutes } from './routes/profileRoutes.js';
 import { scheduleRoutes } from './routes/scheduleRoutes.js';
 import { settingsRoutes } from './routes/settingsRoutes.js';
 import { streakRoutes } from './routes/streakRoutes.js';
@@ -43,6 +44,7 @@ app.use('/api/friends', friendRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/profile', profileRoutes);
 
 app.use((req, res) => res.status(404).json({ message: 'Route not found.' }));
 app.use(errorHandler);

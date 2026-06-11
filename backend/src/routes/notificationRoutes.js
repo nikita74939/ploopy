@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
-import { createNotification, deleteNotification, getNotifications, markAllNotificationsRead, markNotificationRead } from '../services/notificationService.js';
+import { createSelfNotification, deleteNotification, getNotifications, getUnreadNotificationCount, markAllNotificationsRead, markNotificationRead } from '../services/notificationService.js';
 
 export const notificationRoutes = Router();
 notificationRoutes.use(requireAuth);
@@ -9,8 +9,12 @@ notificationRoutes.get('/', async (req, res, next) => {
   try { return res.json({ notifications: await getNotifications({ userId: req.authUser.id, unreadOnly: req.query.unread === 'true' }) }); }
   catch (err) { return next(err); }
 });
+notificationRoutes.get('/unread-count', async (req, res, next) => {
+  try { return res.json({ unreadCount: await getUnreadNotificationCount(req.authUser.id) }); }
+  catch (err) { return next(err); }
+});
 notificationRoutes.post('/', async (req, res, next) => {
-  try { return res.status(201).json({ notification: await createNotification({ userId: req.authUser.id, input: req.body }) }); }
+  try { return res.status(201).json({ notification: await createSelfNotification({ userId: req.authUser.id, input: req.body }) }); }
   catch (err) { return next(err); }
 });
 notificationRoutes.patch('/:id/read', async (req, res, next) => {

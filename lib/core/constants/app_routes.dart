@@ -79,7 +79,7 @@ class AppRoutes {
 
       // ── Schedule ───────────────────────────────────────────────────────────
       case schedule:
-        return _route(const SchedulePage());
+        return _route(SchedulePage(showAll: settings.arguments == true));
 
       // ── Task ───────────────────────────────────────────────────────────────
       case task:

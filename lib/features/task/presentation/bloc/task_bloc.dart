@@ -229,7 +229,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   ) async {
     try {
       await repository.toggleTaskCompletion(event.id, event.userId);
-      add(LoadTasks(userId: event.userId));
+      _reloadLastTasks(event.userId);
     } catch (e) {
       emit(TaskError(message: e.toString()));
     }
@@ -241,7 +241,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   ) async {
     try {
       await repository.toggleTaskPin(event.id, event.userId);
-      add(LoadTasks(userId: event.userId));
+      _reloadLastTasks(event.userId);
     } catch (e) {
       emit(TaskError(message: e.toString()));
     }
@@ -251,5 +251,14 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   Future<void> close() async {
     await _connectivitySubscription?.cancel();
     return super.close();
+  }
+
+  void _reloadLastTasks(String userId) {
+    final date = _lastDate;
+    if (date == null) {
+      add(LoadTasks(userId: userId));
+    } else {
+      add(LoadTasksByDate(date: date, userId: userId));
+    }
   }
 }

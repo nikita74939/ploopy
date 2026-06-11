@@ -7,13 +7,17 @@ import 'schedule_timeline_item.dart';
 class ScheduleTimeline extends StatefulWidget {
   final List<Map<String, dynamic>> scheduleItems;
   final List<Map<String, dynamic>> taskItems;
-  final VoidCallback? onSeeAll;
+  final ValueChanged<bool>? onSeeAll;
+  final ValueChanged<int>? onTaskTap;
+  final ValueChanged<int>? onTaskCompletionToggle;
 
   const ScheduleTimeline({
     super.key,
     required this.scheduleItems,
     required this.taskItems,
     this.onSeeAll,
+    this.onTaskTap,
+    this.onTaskCompletionToggle,
   });
 
   @override
@@ -131,7 +135,7 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
       color: AppColors.white,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
-        onTap: widget.onSeeAll,
+        onTap: () => widget.onSeeAll?.call(_showSchedule),
         borderRadius: BorderRadius.circular(14),
         child: Container(
           width: double.infinity,
@@ -281,6 +285,7 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
 
   // ── Task Item ────────────────────────────────────
   Widget _buildTaskItem(Map<String, dynamic> task) {
+    final int? taskId = task['id'] as int?;
     final bool done = task['done'] ?? false;
     final Color itemColor = task['color'] as Color;
     final String due = task['due'] ?? '';
@@ -304,6 +309,7 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
+        if (taskId != null) widget.onTaskTap?.call(taskId);
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
@@ -389,26 +395,38 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
               ),
             ),
             const SizedBox(width: 10),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOutBack,
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: done ? AppColors.primary : Colors.transparent,
-                borderRadius: BorderRadius.circular(7),
-                border: Border.all(
-                  color: done ? AppColors.primary : Colors.grey.shade300,
-                  width: 1.8,
+            InkWell(
+              onTap: taskId == null
+                  ? null
+                  : () {
+                      HapticFeedback.selectionClick();
+                      widget.onTaskCompletionToggle?.call(taskId);
+                    },
+              borderRadius: BorderRadius.circular(9),
+              child: Padding(
+                padding: const EdgeInsets.all(2),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOutBack,
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: done ? AppColors.primary : Colors.transparent,
+                    borderRadius: BorderRadius.circular(7),
+                    border: Border.all(
+                      color: done ? AppColors.primary : Colors.grey.shade300,
+                      width: 1.8,
+                    ),
+                  ),
+                  child: done
+                      ? const Icon(
+                          Icons.check_rounded,
+                          color: Colors.white,
+                          size: 14,
+                        )
+                      : null,
                 ),
               ),
-              child: done
-                  ? const Icon(
-                      Icons.check_rounded,
-                      color: Colors.white,
-                      size: 14,
-                    )
-                  : null,
             ),
           ],
         ),

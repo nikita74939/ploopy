@@ -11,18 +11,35 @@ export async function getNotifications({ userId, unreadOnly = false }) {
   return data ?? [];
 }
 
-export async function createNotification({ userId, input }) {
+export async function getUnreadNotificationCount(userId) {
+  const { count, error } = await supabaseAdmin
+    .from('notifications')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('is_read', false);
+  if (error) throw httpError(500, error.message);
+  return count ?? 0;
+}
+
+export async function createNotification({ userId, recipientUserId, senderUserId = null, input = {} }) {
+  const recipient = recipientUserId ?? userId;
+  if (!recipient) throw httpError(400, 'Penerima notifikasi wajib diisi.');
   if (!input.title) throw httpError(400, 'Title notifikasi wajib diisi.');
+
   const { data, error } = await supabaseAdmin.from('notifications').insert({
-    user_id: input.userId ?? input.user_id ?? userId,
+    user_id: recipient,
     title: input.title,
-    description: input.description ?? null,
-    tag: input.tag ?? null,
+    description: input.description ?? input.message ?? input.body ?? null,
+    tag: input.tag ?? input.type ?? 'general',
     ref_id: normalizeUuid(input.refId ?? input.ref_id),
     ref_type: input.refType ?? input.ref_type ?? null,
   }).select(select).single();
   if (error) throw httpError(500, error.message);
   return data;
+}
+
+export async function createSelfNotification({ userId, input }) {
+  return createNotification({ userId, recipientUserId: userId, input });
 }
 
 function normalizeUuid(value) {

@@ -7,6 +7,7 @@ import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/services/achievement_tracking_service.dart';
 import '../../../../core/services/scanner_service.dart';
 import '../../domain/scanned_doc_model.dart';
 
@@ -172,6 +173,10 @@ class _ScannerPreviewPageState extends State<ScannerPreviewPage> {
         return;
       }
 
+      await AchievementTrackingService.track(
+        'scanner_used',
+        amount: newPages.length,
+      );
       if (!mounted) return;
 
       setState(() {

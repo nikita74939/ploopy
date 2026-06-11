@@ -1,5 +1,7 @@
 import { supabaseAdmin } from '../config/supabase.js';
 import { httpError } from '../utils/httpError.js';
+import { evaluateUserAchievements } from './achievementService.js';
+import { createNotification } from './notificationService.js';
 
 const eventSelect = `id, creator_id, name, icon, color, event_date, location, latitude, longitude, place_id, address, is_online, max_participants, description, created_at, price,
   creator:users!events_creator_id_fkey(id, name, avatar_url),
@@ -59,6 +61,7 @@ export async function createEvent({ userId, input }) {
     price: input.price ?? 0,
   }).select(eventSelect).single();
   if (error) throw httpError(500, error.message);
+  await evaluateUserAchievements({ userId, triggerType: 'event_created' });
   return data;
 }
 
@@ -83,6 +86,13 @@ export async function updateEvent({ userId, eventId, input }) {
 
   const { data, error } = await supabaseAdmin.from('events').update(payload).eq('id', eventId).select(eventSelect).single();
   if (error) throw httpError(500, error.message);
+  await notifyEventParticipants({
+    event: data,
+    actorId: userId,
+    title: 'Event diperbarui',
+    description: `"${data.name}" baru saja diperbarui oleh pembuat event.`,
+    tag: 'event_updated',
+  });
   return data;
 }
 
@@ -107,6 +117,13 @@ export async function deleteEvent({ userId, eventId }) {
   if (event.creator_id !== userId) throw httpError(403, 'Tidak boleh menghapus event orang lain.');
   const { error } = await supabaseAdmin.from('events').delete().eq('id', eventId);
   if (error) throw httpError(500, error.message);
+  await notifyEventParticipants({
+    event,
+    actorId: userId,
+    title: 'Event dibatalkan',
+    description: `"${event.name}" sudah dihapus oleh pembuat event.`,
+    tag: 'event_cancelled',
+  });
 }
 
 export async function joinEvent({ userId, eventId }) {
@@ -117,10 +134,54 @@ export async function joinEvent({ userId, eventId }) {
   if (event.max_participants && (event.event_participants?.length ?? 0) >= event.max_participants) throw httpError(400, 'Event sudah penuh.');
   const { data, error } = await supabaseAdmin.from('event_participants').insert({ event_id: eventId, user_id: userId }).select('id, event_id, user_id, joined_at').single();
   if (error) throw httpError(500, error.message);
+  await evaluateUserAchievements({ userId, triggerType: 'event_joined' });
+  await createNotification({
+    userId,
+    input: {
+      title: 'Berhasil join event',
+      description: `Kamu sudah bergabung ke "${event.name}".`,
+      tag: 'event_joined',
+      refId: eventId,
+      refType: 'event',
+    },
+  });
+  if (event.creator_id && event.creator_id !== userId) {
+    await createNotification({
+      userId: event.creator_id,
+      senderUserId: userId,
+      input: {
+        title: 'Peserta event baru',
+        description: `Ada peserta baru yang bergabung ke "${event.name}".`,
+        tag: 'event_participant_joined',
+        refId: eventId,
+        refType: 'event',
+      },
+    });
+  }
   return data;
 }
 
 export async function leaveEvent({ userId, eventId }) {
   const { error } = await supabaseAdmin.from('event_participants').delete().eq('event_id', eventId).eq('user_id', userId);
   if (error) throw httpError(500, error.message);
+}
+
+async function notifyEventParticipants({ event, actorId, title, description, tag }) {
+  const participantIds = [
+    ...(event.event_participants ?? []).map((participant) => participant.user_id),
+    event.creator_id,
+  ].filter(Boolean);
+  const recipients = [...new Set(participantIds)].filter((id) => id !== actorId);
+
+  await Promise.all(recipients.map((recipientId) => createNotification({
+    userId: recipientId,
+    senderUserId: actorId,
+    input: {
+      title,
+      description,
+      tag,
+      refId: event.id,
+      refType: 'event',
+    },
+  })));
 }

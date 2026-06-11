@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '../config/supabase.js';
 import { httpError } from '../utils/httpError.js';
 import { createActivity } from './activityService.js';
+import { evaluateUserAchievements } from './achievementService.js';
 import { createNotification } from './notificationService.js';
 import { checkInStreak } from './streakService.js';
 
@@ -110,6 +111,7 @@ export async function createTask({ userId, input }) {
 
   if (error) throw httpError(500, error.message);
   await notifyTaskDeadline(userId, data);
+  await evaluateUserAchievements({ userId, triggerType: 'task_created' });
   return data;
 }
 
@@ -215,6 +217,17 @@ async function recordTaskCompletionIfNeeded(userId, previousTask, task) {
 
   await Promise.all([
     checkInStreak(userId),
+    evaluateUserAchievements({ userId, triggerType: 'task_completed' }),
+    createNotification({
+      userId,
+      input: {
+        title: 'Task selesai',
+        description: `Kamu menyelesaikan "${task.name}".`,
+        tag: 'task_completed',
+        refId: task.id,
+        refType: 'task',
+      },
+    }),
     createActivity({
       userId,
       input: {

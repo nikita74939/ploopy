@@ -135,6 +135,7 @@ class _HomePageState extends State<HomePage> {
       }
 
       return {
+        'id': t.id,
         'title': t.name,
         'subject': t.subject ?? '',
         'due': dueLabel,
@@ -186,7 +187,9 @@ class _HomePageState extends State<HomePage> {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (!mounted) return;
               context.read<HomeBloc>().add(LoadHomeData(userId: userId));
-              context.read<NotificationBloc>().add(LoadNotifications());
+              context.read<NotificationBloc>().add(
+                LoadNotifications(userId: userId),
+              );
             });
           }
         } else if (authState is AuthLoading || authState is AuthInitial) {
@@ -200,165 +203,196 @@ class _HomePageState extends State<HomePage> {
           name = 'Pengguna';
         }
 
-        return Stack(
-          children: [
-            SafeArea(
-              child: RefreshIndicator(
-                color: AppColors.primary,
-                onRefresh: () async {
-                  final userId = _loadedUserId;
-                  if (userId != null) {
-                    context.read<HomeBloc>().add(
-                      RefreshHomeData(userId: userId),
-                    );
-                    context.read<NotificationBloc>().add(LoadNotifications());
-                  }
-                  await Future.delayed(const Duration(milliseconds: 600));
-                },
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 20,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ── Header Greeting ───────────────────────────────────
-                      BlocBuilder<NotificationBloc, NotificationState>(
-                        builder: (context, notificationState) {
-                          final unreadCount =
-                              notificationState is NotificationLoaded
-                              ? notificationState.unreadCount
-                              : 0;
-                          final notificationBloc = context
-                              .read<NotificationBloc>();
+        return BlocListener<HomeBloc, HomeState>(
+          listener: (context, homeState) {
+            if (homeState is! HomeError) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  homeState.message.replaceFirst('Exception: ', ''),
+                ),
+              ),
+            );
+          },
+          child: Stack(
+            children: [
+              SafeArea(
+                child: RefreshIndicator(
+                  color: AppColors.primary,
+                  onRefresh: () async {
+                    final userId = _loadedUserId;
+                    if (userId != null) {
+                      context.read<HomeBloc>().add(
+                        RefreshHomeData(userId: userId),
+                      );
+                      context.read<NotificationBloc>().add(
+                        LoadNotifications(userId: userId),
+                      );
+                    }
+                    await Future.delayed(const Duration(milliseconds: 600));
+                  },
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 20,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ── Header Greeting ───────────────────────────────────
+                        BlocBuilder<NotificationBloc, NotificationState>(
+                          builder: (context, notificationState) {
+                            final unreadCount =
+                                notificationState is NotificationLoaded
+                                ? notificationState.unreadCount
+                                : 0;
+                            final notificationBloc = context
+                                .read<NotificationBloc>();
 
-                          return HomeGreetingHeader(
-                            name: name,
-                            unreadNotifCount: unreadCount,
-                            onNotifTap: () async {
-                              HapticFeedback.lightImpact();
-                              await Navigator.push(
+                            return HomeGreetingHeader(
+                              name: name,
+                              unreadNotifCount: unreadCount,
+                              onNotifTap: () async {
+                                HapticFeedback.lightImpact();
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const NotificationPage(),
+                                  ),
+                                );
+                                if (!mounted) return;
+                                notificationBloc.add(LoadNotifications());
+                              },
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 20),
+
+                        // ── Mini Calendar ─────────────────────────────────────
+                        BlocBuilder<HomeBloc, HomeState>(
+                          builder: (context, homeState) {
+                            final weeklyStudyMinutes = homeState is HomeLoaded
+                                ? homeState.weeklyStudyMinutes
+                                : <int, int>{};
+                            return MiniCalendar(
+                              selectedDay: _selectedDay,
+                              activityMinutesByDay: weeklyStudyMinutes,
+                              onDaySelected: (day) =>
+                                  setState(() => _selectedDay = day),
+                              onOpenCalendar: () => Navigator.pushNamed(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (_) => const NotificationPage(),
-                                ),
-                              );
-                              if (!mounted) return;
-                              notificationBloc.add(LoadNotifications());
-                            },
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 20),
+                                AppRoutes.calendar,
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 20),
 
-                      // ── Mini Calendar ─────────────────────────────────────
-                      BlocBuilder<HomeBloc, HomeState>(
-                        builder: (context, homeState) {
-                          final weeklyStudyMinutes = homeState is HomeLoaded
-                              ? homeState.weeklyStudyMinutes
-                              : <int, int>{};
-                          return MiniCalendar(
-                            selectedDay: _selectedDay,
-                            activityMinutesByDay: weeklyStudyMinutes,
-                            onDaySelected: (day) =>
-                                setState(() => _selectedDay = day),
-                            onOpenCalendar: () => Navigator.pushNamed(
-                              context,
-                              AppRoutes.calendar,
+                        // ── Banner Belajar ────────────────────────────────────
+                        LearnNowBanner(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const AiDailyPlanPage(),
                             ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 20),
-
-                      // ── Banner Belajar ────────────────────────────────────
-                      LearnNowBanner(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const AiDailyPlanPage(),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
+                        const SizedBox(height: 16),
 
-                      BlocBuilder<HomeBloc, HomeState>(
-                        builder: (context, homeState) {
-                          final minutes = homeState is HomeLoaded
-                              ? homeState.todayStudyMinutes
-                              : 0;
-                          return _StudyDeskCard(
-                            minutes: minutes,
-                            onTap: () =>
-                                Navigator.pushNamed(context, AppRoutes.study),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 24),
-
-                      // ── Schedule & Task dari HomeBloc ─────────────────────
-                      BlocBuilder<HomeBloc, HomeState>(
-                        builder: (context, homeState) {
-                          if (homeState is HomeLoading ||
-                              homeState is HomeInitial) {
-                            return const _ScheduleSkeleton();
-                          }
-
-                          if (homeState is HomeError) {
-                            return _ErrorCard(
-                              message: homeState.message,
-                              onRetry: () {
-                                final userId = _loadedUserId;
-                                if (userId == null) return;
-                                context.read<HomeBloc>().add(
-                                  LoadHomeData(userId: userId),
-                                );
-                              },
+                        BlocBuilder<HomeBloc, HomeState>(
+                          builder: (context, homeState) {
+                            final minutes = homeState is HomeLoaded
+                                ? homeState.todayStudyMinutes
+                                : 0;
+                            return _StudyDeskCard(
+                              minutes: minutes,
+                              onTap: () =>
+                                  Navigator.pushNamed(context, AppRoutes.study),
                             );
-                          }
+                          },
+                        ),
+                        const SizedBox(height: 24),
 
-                          if (homeState is HomeLoaded) {
-                            return ScheduleTimeline(
-                              scheduleItems: _mapSchedules(
-                                homeState.todaySchedules,
-                              ),
-                              taskItems: _mapTasks(homeState.tasks),
-                              onSeeAll: () {
-                                Navigator.pushNamed(
+                        // ── Schedule & Task dari HomeBloc ─────────────────────
+                        BlocBuilder<HomeBloc, HomeState>(
+                          builder: (context, homeState) {
+                            if (homeState is HomeLoading ||
+                                homeState is HomeInitial) {
+                              return const _ScheduleSkeleton();
+                            }
+
+                            if (homeState is HomeError) {
+                              return _ErrorCard(
+                                message: homeState.message,
+                                onRetry: () {
+                                  final userId = _loadedUserId;
+                                  if (userId == null) return;
+                                  context.read<HomeBloc>().add(
+                                    LoadHomeData(userId: userId),
+                                  );
+                                },
+                              );
+                            }
+
+                            if (homeState is HomeLoaded) {
+                              return ScheduleTimeline(
+                                scheduleItems: _mapSchedules(
+                                  homeState.todaySchedules,
+                                ),
+                                taskItems: _mapTasks(homeState.tasks),
+                                onSeeAll: (showSchedule) {
+                                  Navigator.pushNamed(
+                                    context,
+                                    showSchedule
+                                        ? AppRoutes.schedule
+                                        : AppRoutes.task,
+                                    arguments: showSchedule ? true : null,
+                                  );
+                                },
+                                onTaskTap: (_) => Navigator.pushNamed(
                                   context,
-                                  AppRoutes.schedule,
-                                );
-                              },
-                            );
-                          }
+                                  AppRoutes.task,
+                                ),
+                                onTaskCompletionToggle: (taskId) {
+                                  final userId = _loadedUserId;
+                                  if (userId == null) return;
+                                  context.read<HomeBloc>().add(
+                                    ToggleHomeTaskCompletion(
+                                      taskId: taskId,
+                                      userId: userId,
+                                    ),
+                                  );
+                                },
+                              );
+                            }
 
-                          return const SizedBox.shrink();
-                        },
-                      ),
+                            return const SizedBox.shrink();
+                          },
+                        ),
 
-                      const SizedBox(height: 80),
-                    ],
+                        const SizedBox(height: 80),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            Positioned(
-              right: 24,
-              bottom: 22,
-              child: SafeArea(
-                child: FloatingActionButton(
-                  onPressed: _showAddSheet,
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
-                  elevation: 0,
-                  shape: const CircleBorder(),
-                  child: const Icon(Icons.add_rounded, size: 30),
+              Positioned(
+                right: 24,
+                bottom: 22,
+                child: SafeArea(
+                  child: FloatingActionButton(
+                    onPressed: _showAddSheet,
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.white,
+                    elevation: 0,
+                    shape: const CircleBorder(),
+                    child: const Icon(Icons.add_rounded, size: 30),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
