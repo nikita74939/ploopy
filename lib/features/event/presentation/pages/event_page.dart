@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
@@ -355,30 +356,41 @@ class _EventCard extends StatelessWidget {
     final isCreator = userId == event.creatorId;
     final canJoin = !event.isJoinedByMe && !event.isFull && event.isUpcoming;
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.greyBorder),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 18,
-            offset: Offset(0, 8),
+    return Material(
+      color: AppColors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(22),
+        onTap: () => Navigator.pushNamed(
+          context,
+          AppRoutes.eventDetail,
+          arguments: event,
+        ),
+        child: Ink(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: AppColors.primaryBorder),
+            boxShadow: const [
+              BoxShadow(
+                color: AppColors.shadow,
+                blurRadius: 16,
+                offset: Offset(0, 7),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(top: -14, right: 18, child: _BookmarkMark(color: accent)),
-          Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  _PloopyEventArt(
+                    icon: _iconFromName(event.icon),
+                    color: accent,
+                    isOnline: event.isOnline,
+                  ),
+                  const SizedBox(width: 13),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -388,7 +400,7 @@ class _EventCard extends StatelessWidget {
                           runSpacing: 7,
                           children: [
                             _StatusPill(event: event),
-                            _PricePill(event: event, color: accent),
+                            _PricePill(event: event, color: AppColors.primary),
                           ],
                         ),
                         const SizedBox(height: 9),
@@ -406,15 +418,26 @@ class _EventCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  _EventIconTile(
-                    icon: _iconFromName(event.icon),
-                    color: accent,
-                    isOnline: event.isOnline,
-                  ),
                 ],
               ),
-              const SizedBox(height: 14),
+              if (event.description?.isNotEmpty == true) ...[
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(11),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLighter,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    event.description!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bodySmall.copyWith(height: 1.45),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -437,56 +460,58 @@ class _EventCard extends StatelessWidget {
                     ),
                 ],
               ),
-              if (event.description?.isNotEmpty == true) ...[
-                const SizedBox(height: 12),
-                Text(
-                  event.description!,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bodySmall.copyWith(height: 1.45),
-                ),
-              ],
-              const SizedBox(height: 14),
+              const SizedBox(height: 13),
               Row(
                 children: [
-                  if (event.creatorName != null)
-                    Expanded(
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 15,
-                            backgroundColor: accent.withValues(alpha: 0.14),
-                            backgroundImage: event.creatorPhoto != null
-                                ? NetworkImage(event.creatorPhoto!)
-                                : null,
-                            child: event.creatorPhoto == null
-                                ? Text(
-                                    event.creatorName![0].toUpperCase(),
-                                    style: AppTextStyles.small.copyWith(
-                                      color: accent,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  )
-                                : null,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              event.creatorName!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTextStyles.caption.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
+                  Expanded(
+                    child: event.creatorName == null
+                        ? Text(
+                            'Komunitas Ploopy',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.caption.copyWith(
+                              color: AppColors.textSecondary,
                             ),
+                          )
+                        : Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 15,
+                                backgroundColor: AppColors.primaryLight,
+                                backgroundImage: event.creatorPhoto != null
+                                    ? NetworkImage(event.creatorPhoto!)
+                                    : null,
+                                child: event.creatorPhoto == null
+                                    ? Text(
+                                        event.creatorName![0].toUpperCase(),
+                                        style: AppTextStyles.small.copyWith(
+                                          color: AppColors.primary,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  event.creatorName!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTextStyles.caption.copyWith(
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    )
-                  else
-                    const Spacer(),
+                  ),
+                  const SizedBox(width: 10),
                   if (isCreator)
-                    _ActionButton(label: 'Edit', color: accent, onTap: () {})
+                    _ActionButton(
+                      label: 'Edit',
+                      color: AppColors.primary,
+                      onTap: () {},
+                    )
                   else if (event.isJoinedByMe)
                     _ActionButton(
                       label: 'Leave',
@@ -517,7 +542,7 @@ class _EventCard extends StatelessWidget {
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -559,6 +584,72 @@ class _EventCard extends StatelessWidget {
       default:
         return Icons.event_rounded;
     }
+  }
+}
+
+class _PloopyEventArt extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final bool isOnline;
+
+  const _PloopyEventArt({
+    required this.icon,
+    required this.color,
+    required this.isOnline,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 82,
+      height: 96,
+      decoration: BoxDecoration(
+        color: AppColors.cream,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primaryBorder),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: 9,
+            left: 10,
+            child: Icon(
+              Icons.auto_awesome_rounded,
+              size: 15,
+              color: AppColors.warning,
+            ),
+          ),
+          Center(
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icon, color: color, size: 27),
+            ),
+          ),
+          Positioned(
+            right: 9,
+            bottom: 9,
+            child: Container(
+              width: 26,
+              height: 26,
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isOnline ? Icons.wifi_rounded : Icons.location_on_rounded,
+                size: 14,
+                color: AppColors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

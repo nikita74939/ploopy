@@ -179,7 +179,7 @@ class StudyBloc extends Bloc<StudyEvent, StudyState> {
       _currentUserId = event.userId;
       _currentSessionId = await repository.startSession(event.userId);
       _elapsedSeconds = 0;
-      _startTimer();
+      _startTimer(fromSeconds: _elapsedSeconds);
       emit(
         StudyInProgress(
           sessionId: _currentSessionId,
@@ -209,8 +209,7 @@ class StudyBloc extends Bloc<StudyEvent, StudyState> {
     ResumeStudySession event,
     Emitter<StudyState> emit,
   ) {
-    _elapsedSeconds = 0; // Reset for new session segment
-    _startTimer();
+    _startTimer(fromSeconds: _elapsedSeconds);
     emit(
       StudyInProgress(
         sessionId: _currentSessionId,
@@ -232,13 +231,6 @@ class StudyBloc extends Bloc<StudyEvent, StudyState> {
       final durationMinutes = _elapsedSeconds ~/ 60;
       await repository.endSession(_currentSessionId, durationMinutes);
 
-      // Update streak if studied >= 15 minutes today
-      _todayMinutes += durationMinutes;
-      if (_todayMinutes >= 15) {
-        _streak++;
-        await repository.updateStreak(userId, _streak);
-      }
-
       add(LoadStudyData(userId: userId));
     } catch (e) {
       emit(StudyError(message: e.toString()));
@@ -257,10 +249,10 @@ class StudyBloc extends Bloc<StudyEvent, StudyState> {
     );
   }
 
-  void _startTimer() {
+  void _startTimer({required int fromSeconds}) {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      add(_TimerTick(seconds: timer.tick));
+      add(_TimerTick(seconds: fromSeconds + timer.tick));
     });
   }
 }

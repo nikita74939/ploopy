@@ -110,7 +110,7 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
               key: ValueKey(_showSchedule),
               alignment: Alignment.centerLeft,
               child: Text(
-                _showSchedule ? 'Jadwal Hari Ini' : 'Tugas',
+                _showSchedule ? 'Jadwal Hari Ini' : 'Tugas Mendesak',
                 style: GoogleFonts.poppins(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -267,7 +267,7 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
           Text(
             _showSchedule
                 ? 'Tidak ada jadwal hari ini'
-                : 'Semua tugas selesai!',
+                : 'Tidak ada tugas mendesak',
             style: GoogleFonts.poppins(
               fontSize: 13,
               color: AppColors.textMuted,
@@ -304,7 +304,6 @@ class _ScheduleTimelineState extends State<ScheduleTimeline>
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
-        setState(() => task['done'] = !done);
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),

@@ -44,6 +44,7 @@ class HomeLoaded extends HomeState {
   final ScheduleEntity? nextSchedule;
   final TaskEntity? nearestTask;
   final int todayStudyMinutes;
+  final Map<int, int> weeklyStudyMinutes;
 
   HomeLoaded({
     required this.todaySchedules,
@@ -51,6 +52,7 @@ class HomeLoaded extends HomeState {
     this.nextSchedule,
     this.nearestTask,
     required this.todayStudyMinutes,
+    required this.weeklyStudyMinutes,
   });
 
   @override
@@ -60,6 +62,7 @@ class HomeLoaded extends HomeState {
     nextSchedule,
     nearestTask,
     todayStudyMinutes,
+    weeklyStudyMinutes,
   ];
 }
 
@@ -92,6 +95,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final nextSchedule = await repository.getNextSchedule(event.userId);
       final nearestTask = await repository.getNearestTask(event.userId);
       final studyMinutes = await repository.getTodayStudyMinutes(event.userId);
+      final weeklyStudyMinutes = await repository.getCurrentWeekStudyMinutes(
+        event.userId,
+      );
 
       emit(
         HomeLoaded(
@@ -100,6 +106,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           nextSchedule: nextSchedule,
           nearestTask: nearestTask,
           todayStudyMinutes: studyMinutes,
+          weeklyStudyMinutes: weeklyStudyMinutes,
         ),
       );
     } catch (e) {
@@ -117,6 +124,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final nextSchedule = await repository.getNextSchedule(event.userId);
       final nearestTask = await repository.getNearestTask(event.userId);
       final studyMinutes = await repository.getTodayStudyMinutes(event.userId);
+      final weeklyStudyMinutes = await repository.getCurrentWeekStudyMinutes(
+        event.userId,
+      );
 
       emit(
         HomeLoaded(
@@ -125,6 +135,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           nextSchedule: nextSchedule,
           nearestTask: nearestTask,
           todayStudyMinutes: studyMinutes,
+          weeklyStudyMinutes: weeklyStudyMinutes,
         ),
       );
     } catch (e) {

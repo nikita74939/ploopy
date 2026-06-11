@@ -175,12 +175,16 @@ class TaskLocalDataSourceImpl implements TaskLocalDataSource {
         }
       }
 
+      final seenRemotePayloads = <String>{};
       for (final task in tasks) {
         final targetId = task.remoteId ?? task.id;
+        final contentKey = _contentKey(task);
         if (dirtyRemoteIds.contains(targetId) ||
             dirtyLocalIds.contains(targetId)) {
           continue;
         }
+        if (seenRemotePayloads.contains(contentKey)) continue;
+        seenRemotePayloads.add(contentKey);
         task
           ..id = targetId
           ..remoteId = targetId
@@ -222,6 +226,33 @@ class TaskLocalDataSourceImpl implements TaskLocalDataSource {
       if (pinned != 0) return pinned;
       return a.deadline.compareTo(b.deadline);
     });
-    return visible;
+    final seenIds = <String>{};
+    final seenContent = <String>{};
+    final result = <TaskModel>[];
+
+    for (final task in visible) {
+      final remoteKey = task.remoteId == null
+          ? null
+          : 'remote:${task.remoteId}';
+      final contentKey = _contentKey(task);
+
+      if (remoteKey != null && seenIds.contains(remoteKey)) continue;
+      if (seenContent.contains(contentKey)) continue;
+
+      if (remoteKey != null) seenIds.add(remoteKey);
+      seenContent.add(contentKey);
+      result.add(task);
+    }
+
+    return result;
+  }
+
+  String _contentKey(TaskModel task) {
+    return [
+      task.userId,
+      task.name.trim().toLowerCase(),
+      task.subject?.trim().toLowerCase() ?? '',
+      task.deadline.toUtc().toIso8601String(),
+    ].join('|');
   }
 }

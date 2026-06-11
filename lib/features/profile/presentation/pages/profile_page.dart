@@ -10,6 +10,7 @@ import '../../../activity/presentation/bloc/activity_bloc.dart';
 import '../../../activity/presentation/widgets/activity_composer_sheet.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
 import '../bloc/profile_bloc.dart';
+import 'achievement_page.dart';
 import 'edit_profile_page.dart';
 import '../widgets/profile_achievement_section.dart';
 import '../widgets/profile_activity_section.dart';
@@ -104,18 +105,25 @@ class _ProfilePageState extends State<ProfilePage> {
     final friends = state.friends;
 
     final unlockedIds = userAchievements.map((ua) => ua.achievementId).toSet();
-    final achievementMaps = achievements
-        .map(
-          (a) => {
-            'id': a.id,
-            'title': a.name,
-            'desc': a.description,
-            'badgeAsset': _resolveBadgeAsset(a.badgeIcon),
-            'color': _resolveColor(a.conditionType),
-            'unlocked': unlockedIds.contains(a.id),
-          },
-        )
-        .toList();
+    final achievementMaps =
+        achievements
+            .map(
+              (a) => {
+                'id': a.id,
+                'title': a.name,
+                'desc': a.description,
+                'badgeAsset': _resolveBadgeAsset(a.badgeIcon),
+                'color': _resolveColor(a.conditionType),
+                'unlocked': unlockedIds.contains(a.id),
+              },
+            )
+            .toList()
+          ..sort((a, b) {
+            final aUnlocked = a['unlocked'] as bool;
+            final bUnlocked = b['unlocked'] as bool;
+            if (aUnlocked != bUnlocked) return aUnlocked ? -1 : 1;
+            return (a['title'] as String).compareTo(b['title'] as String);
+          });
 
     return Stack(
       children: [
@@ -140,15 +148,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       currentStreak: streak.currentStreak,
                     ),
                     const SizedBox(height: 16),
-                    _ProfileSimpleMenu(
-                      onEditProfile: () => _openEditProfile(user),
-                      onSettings: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const SettingsPage()),
-                      ),
-                      onLogout: _showLogoutDialog,
-                    ),
-                    const SizedBox(height: 16),
                     ProfileStreakCard(
                       currentStreak: streak.currentStreak,
                       longestStreak: streak.longestStreak,
@@ -156,13 +155,27 @@ class _ProfilePageState extends State<ProfilePage> {
                     const SizedBox(height: 20),
                     ProfileAchievementSection(
                       achievements: achievementMaps,
-                      onSeeAll: () {},
+                      onSeeAll: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.achievement,
+                        arguments: AchievementPageArgs(
+                          achievements: achievementMaps,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 20),
                     BlocBuilder<ActivityBloc, ActivityState>(
                       builder: (context, activityState) {
-                        final activities = activityState is ActivitiesLoaded
+                        final currentUserId = _currentUserId;
+                        final activities =
+                            activityState is ActivitiesLoaded &&
+                                currentUserId != null
                             ? activityState.activities
+                                  .where(
+                                    (activity) =>
+                                        activity.userId == currentUserId,
+                                  )
+                                  .toList()
                             : <ActivityEntity>[];
                         return ProfileActivitySection(
                           activities: activities.map(_activityToPost).toList(),
@@ -204,38 +217,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
     if (!mounted || saved != true || _currentUserId == null) return;
     context.read<ProfileBloc>().add(LoadProfile(userId: _currentUserId!));
-  }
-
-  void _showLogoutDialog() {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('Logout', style: AppTextStyles.title),
-        content: Text(
-          'Apakah kamu yakin ingin keluar dari akun ini?',
-          style: AppTextStyles.body,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text('Batal', style: AppTextStyles.buttonSecondary),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              context.read<AuthBloc>().add(LogoutRequested());
-            },
-            child: Text(
-              'Logout',
-              style: AppTextStyles.body.copyWith(
-                color: AppColors.error,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildErrorState(BuildContext context) {
@@ -304,9 +285,12 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _showActivityComposer() async {
-    final userId = _currentUserId;
+    final authState = context.read<AuthBloc>().state;
+    final userId =
+        _currentUserId ??
+        (authState is Authenticated ? authState.user.userId : null);
     if (userId == null) return;
-    await showModalBottomSheet<bool>(
+    final created = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.white,
@@ -318,7 +302,7 @@ class _ProfilePageState extends State<ProfilePage> {
         child: ActivityComposerSheet(userId: userId),
       ),
     );
-    if (!mounted) return;
+    if (!mounted || created != true) return;
     context.read<ActivityBloc>().add(LoadActivitiesByUser(userId: userId));
   }
 
@@ -333,7 +317,11 @@ class _ProfilePageState extends State<ProfilePage> {
       'fullDate': activity.createdAt.toString(),
       'achievements': const [],
       'images': activity.imageUrls,
-      'info': activity.location == null ? const [] : [activity.location],
+      'info': activity.location == null
+          ? const []
+          : [
+              {'icon': '', 'text': activity.location},
+            ],
       'content': activity.text,
     };
   }
@@ -382,111 +370,6 @@ class _SettingsIconButton extends StatelessWidget {
           ],
         ),
         child: Icon(Icons.settings_rounded, size: 20, color: AppColors.primary),
-      ),
-    );
-  }
-}
-
-class _ProfileSimpleMenu extends StatelessWidget {
-  final VoidCallback onEditProfile;
-  final VoidCallback onSettings;
-  final VoidCallback onLogout;
-
-  const _ProfileSimpleMenu({
-    required this.onEditProfile,
-    required this.onSettings,
-    required this.onLogout,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.greyBorder),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 16,
-            offset: Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          _ProfileSimpleMenuItem(
-            icon: Icons.edit_outlined,
-            title: 'Edit Profil',
-            onTap: onEditProfile,
-          ),
-          const Divider(height: 1, color: AppColors.greyBorder, indent: 58),
-          _ProfileSimpleMenuItem(
-            icon: Icons.settings_outlined,
-            title: 'Settings',
-            onTap: onSettings,
-          ),
-          const Divider(height: 1, color: AppColors.greyBorder, indent: 58),
-          _ProfileSimpleMenuItem(
-            icon: Icons.logout_rounded,
-            title: 'Logout',
-            color: AppColors.error,
-            onTap: onLogout,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProfileSimpleMenuItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final Color? color;
-  final VoidCallback onTap;
-
-  const _ProfileSimpleMenuItem({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-    this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final effectiveColor = color ?? AppColors.textSecondary;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-        child: Row(
-          children: [
-            Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: effectiveColor.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 17, color: effectiveColor),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                title,
-                style: AppTextStyles.body.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: color ?? AppColors.textMain,
-                ),
-              ),
-            ),
-            Icon(
-              Icons.chevron_right_rounded,
-              color: color ?? AppColors.textMuted,
-            ),
-          ],
-        ),
       ),
     );
   }

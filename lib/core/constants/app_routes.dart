@@ -10,6 +10,8 @@ import '../../features/study/presentation/pages/study_page.dart';
 import '../../features/calendar/presentation/pages/calendar_page.dart';
 import '../../features/notification/presentation/pages/notification_page.dart';
 import '../../features/activity/presentation/pages/activity_page.dart';
+import '../../features/event/domain/entities/event_entity.dart';
+import '../../features/event/presentation/pages/event_detail_page.dart';
 import '../../features/event/presentation/pages/event_page.dart';
 import '../../features/social/presentation/pages/social_page.dart';
 import '../../features/tools/presentation/pages/tools_page.dart';
@@ -17,6 +19,7 @@ import '../../features/tools/presentation/pages/currency_converter_page.dart';
 import '../../features/tools/presentation/pages/timezone_converter_page.dart';
 import '../../features/tools/presentation/pages/unit_converter_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/profile/presentation/pages/achievement_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 
 class AppRoutes {
@@ -99,6 +102,12 @@ class AppRoutes {
         return _route(const ActivityPage());
       case event:
         return _route(const EventPage());
+      case eventDetail:
+        final event = settings.arguments;
+        if (event is EventEntity) {
+          return _route(EventDetailPage(event: event));
+        }
+        return _route(const EventPage());
 
       // ── Social ─────────────────────────────────────────────────────────────
       case social:
@@ -119,8 +128,12 @@ class AppRoutes {
         return _route(const ProfilePage());
       // case editProfile:
       //   return _route(const EditProfilePage());
-      // case achievement:
-      //   return _route(const AchievementPage());
+      case achievement:
+        final args = settings.arguments;
+        if (args is AchievementPageArgs) {
+          return _route(AchievementPage(achievements: args.achievements));
+        }
+        return _route(const AchievementPage(achievements: []));
       case settingsprofile:
         return _route(const SettingsPage());
       // case security:

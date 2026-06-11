@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/currency_data.dart';
+import '../../../../core/services/currency_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/bottom_sheet_insets.dart';
 
@@ -31,16 +32,30 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
     super.initState();
     _filtered = CurrencyData.currencies;
     _searchCtrl.addListener(_onSearch);
+    _loadCurrencies();
+  }
+
+  Future<void> _loadCurrencies() async {
+    final currencies = await CurrencyService.getCurrencies();
+    if (!mounted) return;
+    setState(() => _filtered = _filter(currencies, _searchCtrl.text));
   }
 
   void _onSearch() {
-    final q = _searchCtrl.text.toLowerCase();
-    setState(() {
-      _filtered = CurrencyData.currencies.where((c) {
-        return c['code']!.toLowerCase().contains(q) ||
-            c['name']!.toLowerCase().contains(q);
-      }).toList();
-    });
+    setState(
+      () => _filtered = _filter(CurrencyData.currencies, _searchCtrl.text),
+    );
+  }
+
+  List<Map<String, String>> _filter(
+    List<Map<String, String>> currencies,
+    String query,
+  ) {
+    final q = query.toLowerCase();
+    return currencies.where((c) {
+      return c['code']!.toLowerCase().contains(q) ||
+          c['name']!.toLowerCase().contains(q);
+    }).toList();
   }
 
   @override
@@ -186,7 +201,11 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
             child: Row(
               children: [
-                Text(c['flag']!, style: const TextStyle(fontSize: 26)),
+                Icon(
+                  Icons.payments_rounded,
+                  size: 24,
+                  color: Colors.grey.shade500,
+                ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(

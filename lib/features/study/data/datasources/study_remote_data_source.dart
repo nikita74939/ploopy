@@ -15,6 +15,7 @@ abstract class StudyRemoteDataSource {
   Future<int> startSession(String userId);
   Future<void> endSession(int sessionId, int durationMinutes);
   Future<int> getTodayStudyMinutes(String userId);
+  Future<int> getStreak(String userId);
   Future<Map<int, int>> getStudyMinutesByDay(
     String userId,
     int year,
@@ -86,6 +87,15 @@ class StudyRemoteDataSourceImpl implements StudyRemoteDataSource {
         .get(_uri('/api/study/today'), headers: await _jsonHeaders())
         .timeout(const Duration(seconds: 5));
     return (_decode(response)['minutes'] as num?)?.toInt() ?? 0;
+  }
+
+  @override
+  Future<int> getStreak(String userId) async {
+    final response = await client
+        .get(_uri('/api/streaks/me'), headers: await _jsonHeaders())
+        .timeout(const Duration(seconds: 5));
+    final streak = _decode(response)['streak'] as Map<String, dynamic>? ?? {};
+    return (streak['current_streak'] as num?)?.toInt() ?? 0;
   }
 
   @override

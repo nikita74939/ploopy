@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:timezone/data/latest.dart' as tz_data;
-import 'package:timezone/timezone.dart' as tz;
+import '../../../../core/services/timezone_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../widgets/timezone_card.dart';
 import '../widgets/timezone_picker_sheet.dart';
@@ -32,7 +31,7 @@ class _TimezoneConverterPageState extends State<TimezoneConverterPage> {
   @override
   void initState() {
     super.initState();
-    tz_data.initializeTimeZones();
+    _loadApiTimezones();
     _startLiveTimer();
   }
 
@@ -46,56 +45,47 @@ class _TimezoneConverterPageState extends State<TimezoneConverterPage> {
     _liveTimer?.cancel();
     _liveTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (_isLive && mounted) {
-        setState(() {
-          _sourceDateTime = DateTime.now();
-        });
+        _tickLiveNow();
       }
     });
   }
 
-  /// Konversi waktu dari source timezone ke target timezone
-  DateTime _convertTime(DateTime sourceTime, String sourceId, String targetId) {
-    try {
-      final sourceLocation = tz.getLocation(sourceId);
-      final targetLocation = tz.getLocation(targetId);
-
-      // Buat TZDateTime dari sourceTime di source timezone
-      final sourceTz = tz.TZDateTime(
-        sourceLocation,
-        sourceTime.year,
-        sourceTime.month,
-        sourceTime.day,
-        sourceTime.hour,
-        sourceTime.minute,
-        sourceTime.second,
-      );
-
-      // Convert ke target timezone
-      final targetTz = tz.TZDateTime.from(sourceTz, targetLocation);
-
-      return DateTime(
-        targetTz.year,
-        targetTz.month,
-        targetTz.day,
-        targetTz.hour,
-        targetTz.minute,
-        targetTz.second,
-      );
-    } catch (e) {
-      return sourceTime;
+  Future<void> _loadApiTimezones() async {
+    await TimezoneService.warmUp({_sourceTzId, ..._destinations});
+    final sourceDetails = await TimezoneService.getDetails(_sourceTzId);
+    if (!mounted) return;
+    if (sourceDetails?.currentLocalTime != null) {
+      setState(() => _sourceDateTime = sourceDetails!.currentLocalTime!);
     }
+  }
+
+  DateTime _convertTime(DateTime sourceTime, String sourceId, String targetId) {
+    return TimezoneService.convertWithApiOffsets(
+      sourceTime: sourceTime,
+      sourceId: sourceId,
+      targetId: targetId,
+    );
   }
 
   Future<void> _pickSourceTimezone() async {
     final id = await TimezonePickerSheet.show(context, _sourceTzId);
     if (id != null && id != _sourceTzId) {
-      setState(() => _sourceTzId = id);
+      final details = await TimezoneService.getDetails(id);
+      if (!mounted) return;
+      setState(() {
+        _sourceTzId = id;
+        if (details?.currentLocalTime != null && _isLive) {
+          _sourceDateTime = details!.currentLocalTime!;
+        }
+      });
     }
   }
 
   Future<void> _pickDestTimezone(int index) async {
     final id = await TimezonePickerSheet.show(context, _destinations[index]);
     if (id != null) {
+      await TimezoneService.getDetails(id);
+      if (!mounted) return;
       setState(() => _destinations[index] = id);
     }
   }
@@ -107,6 +97,8 @@ class _TimezoneConverterPageState extends State<TimezoneConverterPage> {
   Future<void> _addDestination() async {
     final id = await TimezonePickerSheet.show(context, '');
     if (id != null && !_destinations.contains(id) && id != _sourceTzId) {
+      await TimezoneService.getDetails(id);
+      if (!mounted) return;
       setState(() => _destinations.add(id));
     }
   }
@@ -119,17 +111,24 @@ class _TimezoneConverterPageState extends State<TimezoneConverterPage> {
   }
 
   void _resetToNow() {
+    TimezoneService.getDetails(_sourceTzId).then((details) {
+      if (!mounted) return;
+      setState(() {
+        _isLive = true;
+        _sourceDateTime = details?.currentLocalTime ?? DateTime.now();
+      });
+    });
+  }
+
+  void _tickLiveNow() {
     setState(() {
       _isLive = true;
-      _sourceDateTime = DateTime.now();
+      _sourceDateTime = _sourceDateTime.add(const Duration(seconds: 1));
     });
   }
 
   int _calculateDiffHours(String targetId) {
-    final now = DateTime.now();
-    final converted = _convertTime(now, _sourceTzId, targetId);
-    final diff = converted.difference(now).inMinutes;
-    return diff;
+    return TimezoneService.diffMinutes(_sourceTzId, targetId);
   }
 
   String _formatDiff(int minutes) {

@@ -44,13 +44,16 @@ class EventModel {
     final creator =
         json['creator'] as Map<String, dynamic>? ??
         json['profiles'] as Map<String, dynamic>?;
+    final createdAt = _parseDate(json['created_at']) ?? DateTime.now();
     return EventModel(
-      id: json['id'] as String,
-      creatorId: json['creator_id'] as String,
-      name: json['name'] as String,
+      id: json['id']?.toString() ?? '',
+      creatorId: json['creator_id']?.toString() ?? '',
+      name: json['name']?.toString() ?? 'Event',
       icon: json['icon'] as String?,
-      color: json['color'] as String,
-      eventDate: DateTime.parse(json['event_date'] as String),
+      color: json['color']?.toString().isNotEmpty == true
+          ? json['color'].toString()
+          : '#FF7600',
+      eventDate: _parseDate(json['event_date']) ?? createdAt,
       location: json['location'] as String?,
       isOnline: json['is_online'] as bool? ?? false,
       maxParticipants: json['max_participants'] as int?,
@@ -60,10 +63,16 @@ class EventModel {
       description: json['description'] as String?,
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       isJoinedByMe: json['is_joined_by_me'] as bool? ?? false,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: createdAt,
       creatorName: creator?['name'] as String?,
       creatorPhoto: creator?['avatar_url'] as String?,
     );
+  }
+
+  static DateTime? _parseDate(dynamic value) {
+    final raw = value?.toString();
+    if (raw == null || raw.isEmpty) return null;
+    return DateTime.tryParse(raw);
   }
 
   factory EventModel.fromEntity(EventEntity entity) {

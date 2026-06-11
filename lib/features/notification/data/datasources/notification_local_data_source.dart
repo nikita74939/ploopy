@@ -21,7 +21,8 @@ class NotificationLocalDataSourceImpl implements NotificationLocalDataSource {
   @override
   Future<List<NotificationModel>> getAllNotifications() async {
     return await isar.notificationModels
-        .where()
+        .filter()
+        .createdAtLessThan(DateTime.now(), include: true)
         .sortByCreatedAtDesc()
         .findAll();
   }
@@ -30,6 +31,7 @@ class NotificationLocalDataSourceImpl implements NotificationLocalDataSource {
   Future<List<NotificationModel>> getUnreadNotifications() async {
     return await isar.notificationModels
         .filter()
+        .createdAtLessThan(DateTime.now(), include: true)
         .isReadEqualTo(false)
         .sortByCreatedAtDesc()
         .findAll();
@@ -47,8 +49,15 @@ class NotificationLocalDataSourceImpl implements NotificationLocalDataSource {
     List<NotificationModel> notifications,
   ) async {
     await isar.writeTxn(() async {
+      final localOnly = await isar.notificationModels.where().findAll();
+      final localNotifications = localOnly
+          .where((notification) => notification.senderId == null)
+          .toList();
       await isar.notificationModels.clear();
-      await isar.notificationModels.putAll(notifications);
+      await isar.notificationModels.putAll([
+        ...notifications,
+        ...localNotifications,
+      ]);
     });
   }
 
@@ -84,7 +93,11 @@ class NotificationLocalDataSourceImpl implements NotificationLocalDataSource {
 
   @override
   Future<int> getUnreadCount() async {
-    return await isar.notificationModels.filter().isReadEqualTo(false).count();
+    return await isar.notificationModels
+        .filter()
+        .createdAtLessThan(DateTime.now(), include: true)
+        .isReadEqualTo(false)
+        .count();
   }
 
   @override

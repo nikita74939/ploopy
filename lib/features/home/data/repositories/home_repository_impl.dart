@@ -24,7 +24,8 @@ class HomeRepositoryImpl implements HomeRepository {
   @override
   Future<List<TaskEntity>> getTasksOrderedByDeadline(String userId) async {
     final tasks = await taskRepository.getAllTasks(userId);
-    return tasks..sort((a, b) => a.deadline.compareTo(b.deadline));
+    final urgentTasks = tasks.where((task) => !task.isCompleted).toList();
+    return urgentTasks..sort((a, b) => a.deadline.compareTo(b.deadline));
   }
 
   @override
@@ -46,6 +47,38 @@ class HomeRepositoryImpl implements HomeRepository {
   @override
   Future<int> getTodayStudyMinutes(String userId) async {
     return await studyRepository.getTodayStudyMinutes(userId);
+  }
+
+  @override
+  Future<Map<int, int>> getCurrentWeekStudyMinutes(String userId) async {
+    final now = DateTime.now();
+    final weekStart = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: now.weekday - 1));
+    final weekDates = List.generate(7, (index) {
+      final date = weekStart.add(Duration(days: index));
+      return DateTime(date.year, date.month, date.day);
+    });
+
+    final months = {
+      for (final date in weekDates) DateTime(date.year, date.month),
+    };
+    final minutesByMonth = <DateTime, Map<int, int>>{};
+    for (final month in months) {
+      minutesByMonth[month] = await studyRepository.getStudyMinutesByDay(
+        userId,
+        month.year,
+        month.month,
+      );
+    }
+
+    return {
+      for (final date in weekDates)
+        date.day:
+            minutesByMonth[DateTime(date.year, date.month)]?[date.day] ?? 0,
+    };
   }
 
   @override

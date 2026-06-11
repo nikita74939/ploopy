@@ -98,6 +98,12 @@ class StudyRepositoryImpl implements StudyRepository {
 
   @override
   Future<int> getStreak(String userId) async {
+    try {
+      final remote = await remoteDataSource?.getStreak(userId);
+      if (remote != null) return remote;
+    } catch (_) {
+      // Backend unavailable: use local study cache.
+    }
     return await localDataSource.getStreak(userId);
   }
 

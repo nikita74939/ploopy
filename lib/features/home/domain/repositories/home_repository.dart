@@ -7,6 +7,7 @@ abstract class HomeRepository {
   Future<ScheduleEntity?> getNextSchedule(String userId);
   Future<TaskEntity?> getNearestTask(String userId);
   Future<int> getTodayStudyMinutes(String userId);
+  Future<Map<int, int>> getCurrentWeekStudyMinutes(String userId);
   Future<List<ScheduleEntity>> getSchedulesByDate(String userId, DateTime date);
   Future<List<TaskEntity>> getTasksByDate(String userId, DateTime date);
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/timezone_data.dart';
+import '../../../../core/services/timezone_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/bottom_sheet_insets.dart';
 
@@ -31,17 +32,32 @@ class _TimezonePickerSheetState extends State<TimezonePickerSheet> {
     super.initState();
     _filtered = TimezoneData.timezones;
     _searchCtrl.addListener(_onSearch);
+    _loadTimezones();
+  }
+
+  Future<void> _loadTimezones() async {
+    final timezones = await TimezoneService.getTimezones();
+    if (!mounted) return;
+    setState(() => _filtered = _filter(timezones, _searchCtrl.text));
   }
 
   void _onSearch() {
-    final q = _searchCtrl.text.toLowerCase();
-    setState(() {
-      _filtered = TimezoneData.timezones.where((t) {
-        return t['city']!.toLowerCase().contains(q) ||
-            t['country']!.toLowerCase().contains(q) ||
-            t['name']!.toLowerCase().contains(q);
-      }).toList();
-    });
+    setState(
+      () => _filtered = _filter(TimezoneData.timezones, _searchCtrl.text),
+    );
+  }
+
+  List<Map<String, String>> _filter(
+    List<Map<String, String>> timezones,
+    String query,
+  ) {
+    final q = query.toLowerCase();
+    return timezones.where((t) {
+      return t['id']!.toLowerCase().contains(q) ||
+          t['city']!.toLowerCase().contains(q) ||
+          t['country']!.toLowerCase().contains(q) ||
+          t['name']!.toLowerCase().contains(q);
+    }).toList();
   }
 
   @override
@@ -187,7 +203,11 @@ class _TimezonePickerSheetState extends State<TimezonePickerSheet> {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
             child: Row(
               children: [
-                Text(t['flag']!, style: const TextStyle(fontSize: 26)),
+                Icon(
+                  Icons.public_rounded,
+                  size: 24,
+                  color: Colors.grey.shade500,
+                ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(

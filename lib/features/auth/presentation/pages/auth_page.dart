@@ -23,11 +23,17 @@ class _AuthPageState extends State<AuthPage> {
   bool _isBiometricActivationSheetOpen = false;
   bool _isBiometricLoginSheetOpen = false;
   bool _hasBiometricLogin = false;
+  bool _isNavigatingToHome = false;
 
   @override
   void initState() {
     super.initState();
-    context.read<AuthBloc>().add(CheckAuthStatus());
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthInitial) {
+      context.read<AuthBloc>().add(CheckAuthStatus());
+    } else if (authState is Authenticated) {
+      _navigateToHome();
+    }
     _refreshBiometricAvailability();
   }
 
@@ -36,6 +42,8 @@ class _AuthPageState extends State<AuthPage> {
   }
 
   void _navigateToHome() {
+    if (_isNavigatingToHome) return;
+    _isNavigatingToHome = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, AppRoutes.home);

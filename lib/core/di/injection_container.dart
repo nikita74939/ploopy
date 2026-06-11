@@ -163,6 +163,7 @@ class DependencyInjection {
   static ScheduleRepository get scheduleRepository => ScheduleRepositoryImpl(
     localDataSource: scheduleLocalDataSource,
     remoteDataSource: scheduleRemoteDataSource,
+    notificationLocalDataSource: notificationLocalDataSource,
   );
 
   static ScheduleBloc get scheduleBloc =>

@@ -56,9 +56,12 @@ class FeedPostCard extends StatelessWidget {
       width: 50,
       height: 50,
       decoration: BoxDecoration(
-        color: authorColor.withOpacity(0.15),
+        color: authorColor.withValues(alpha: 0.15),
         shape: BoxShape.circle,
-        border: Border.all(color: authorColor.withOpacity(0.3), width: 1.5),
+        border: Border.all(
+          color: authorColor.withValues(alpha: 0.3),
+          width: 1.5,
+        ),
       ),
       alignment: Alignment.center,
       child: Text(
@@ -141,10 +144,7 @@ class FeedPostCard extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           post['fullDate'] as String? ?? post['date'] as String,
-          style: GoogleFonts.poppins(
-            fontSize: 11,
-            color: Colors.grey.shade500,
-          ),
+          style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500),
         ),
       ],
     );
@@ -153,7 +153,8 @@ class FeedPostCard extends StatelessWidget {
   Widget _buildAchievementBadges(List achievements) {
     return Row(
       children: achievements.take(5).map((a) {
-        final achievement = a as Map<String, dynamic>;
+        if (a is! Map) return const SizedBox.shrink();
+        final achievement = Map<String, dynamic>.from(a);
         return Padding(
           padding: const EdgeInsets.only(right: 6),
           child: Container(
@@ -165,7 +166,7 @@ class FeedPostCard extends StatelessWidget {
             ),
             alignment: Alignment.center,
             child: Text(
-              achievement['icon'] as String,
+              achievement['icon'] as String? ?? '',
               style: const TextStyle(fontSize: 15),
             ),
           ),
@@ -197,9 +198,7 @@ class FeedPostCard extends StatelessWidget {
       children: images.take(3).map((img) {
         return Expanded(
           child: Padding(
-            padding: EdgeInsets.only(
-              right: img == images.last ? 0 : 6,
-            ),
+            padding: EdgeInsets.only(right: img == images.last ? 0 : 6),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: AspectRatio(
@@ -244,6 +243,12 @@ class FeedPostCard extends StatelessWidget {
   }
 
   Widget _buildInfoBox(List info) {
+    final items = info
+        .map(_normalizeInfoItem)
+        .whereType<_InfoItem>()
+        .toList(growable: false);
+    if (items.isEmpty) return const SizedBox.shrink();
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
@@ -252,22 +257,22 @@ class FeedPostCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: info.map((i) {
-          final item = i as Map<String, dynamic>;
+        children: items.map((item) {
           return Padding(
-            padding: EdgeInsets.only(bottom: item == info.last ? 0 : 6),
+            padding: EdgeInsets.only(bottom: item == items.last ? 0 : 6),
             child: Row(
               children: [
-                Text(
-                  item['icon'] as String,
-                  style: const TextStyle(fontSize: 14),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  item['text'] as String,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: Colors.grey.shade700,
+                if (item.icon.isNotEmpty) ...[
+                  Text(item.icon, style: const TextStyle(fontSize: 14)),
+                  const SizedBox(width: 8),
+                ],
+                Expanded(
+                  child: Text(
+                    item.text,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: Colors.grey.shade700,
+                    ),
                   ),
                 ),
               ],
@@ -277,4 +282,25 @@ class FeedPostCard extends StatelessWidget {
       ),
     );
   }
+
+  _InfoItem? _normalizeInfoItem(Object? raw) {
+    if (raw is String) {
+      final text = raw.trim();
+      return text.isEmpty ? null : _InfoItem(text: text);
+    }
+    if (raw is Map) {
+      final item = Map<String, dynamic>.from(raw);
+      final text = item['text']?.toString().trim() ?? '';
+      if (text.isEmpty) return null;
+      return _InfoItem(icon: item['icon']?.toString() ?? '', text: text);
+    }
+    return null;
+  }
+}
+
+class _InfoItem {
+  final String icon;
+  final String text;
+
+  const _InfoItem({this.icon = '', required this.text});
 }

@@ -89,3 +89,36 @@ export async function unlockUserAchievement({ userId, achievementId }) {
 
   return data;
 }
+
+export async function unlockEligibleAchievements({ userId, metrics }) {
+  const achievements = await getAllAchievements();
+  const unlocked = [];
+
+  for (const achievement of achievements) {
+    const currentValue = achievementMetricValue(achievement.condition_type, metrics);
+    const targetValue = Number(achievement.condition_value ?? 0);
+    if (currentValue < targetValue) continue;
+
+    const userAchievement = await unlockUserAchievement({
+      userId,
+      achievementId: achievement.id,
+    });
+    unlocked.push(userAchievement);
+  }
+
+  return unlocked;
+}
+
+function achievementMetricValue(conditionType, metrics) {
+  switch (conditionType) {
+    case 'streak_day':
+      return metrics.currentStreak ?? 0;
+    case 'study_minutes':
+    case 'total_study_minutes':
+      return metrics.totalStudyMinutes ?? 0;
+    case 'study_session_count':
+      return metrics.studySessionCount ?? 0;
+    default:
+      return -1;
+  }
+}

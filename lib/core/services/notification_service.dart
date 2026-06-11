@@ -1,11 +1,15 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/timezone.dart';
+import 'package:timezone/data/latest.dart' as tzdata;
+import 'package:timezone/timezone.dart' as tz;
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
+  static bool _timezoneReady = false;
 
   static Future<void> initialize() async {
+    _ensureTimezoneReady();
+
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
@@ -21,6 +25,7 @@ class NotificationService {
     );
 
     await _notifications.initialize(settings);
+    await _requestAndroidPermissions();
   }
 
   static Future<void> showNotification({
@@ -81,7 +86,7 @@ class NotificationService {
       id,
       title,
       body,
-      TZDateTime.from(scheduledTime, local),
+      _toLocalTzDateTime(scheduledTime),
       details,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       payload: payload,
@@ -96,5 +101,35 @@ class NotificationService {
 
   static Future<void> cancelAllNotifications() async {
     await _notifications.cancelAll();
+  }
+
+  static void _ensureTimezoneReady() {
+    if (_timezoneReady) return;
+    tzdata.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
+    _timezoneReady = true;
+  }
+
+  static tz.TZDateTime _toLocalTzDateTime(DateTime time) {
+    _ensureTimezoneReady();
+    return tz.TZDateTime(
+      tz.local,
+      time.year,
+      time.month,
+      time.day,
+      time.hour,
+      time.minute,
+      time.second,
+    );
+  }
+
+  static Future<void> _requestAndroidPermissions() async {
+    final androidPlugin = _notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    if (androidPlugin == null) return;
+    await androidPlugin.requestNotificationsPermission();
+    await androidPlugin.requestExactAlarmsPermission();
   }
 }

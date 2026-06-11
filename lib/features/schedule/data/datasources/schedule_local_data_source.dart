@@ -133,12 +133,16 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
         }
       }
 
+      final seenRemotePayloads = <String>{};
       for (final schedule in schedules) {
         final targetId = schedule.remoteId ?? schedule.id;
+        final contentKey = _contentKey(schedule);
         if (dirtyRemoteIds.contains(targetId) ||
             dirtyLocalIds.contains(targetId)) {
           continue;
         }
+        if (seenRemotePayloads.contains(contentKey)) continue;
+        seenRemotePayloads.add(contentKey);
         schedule
           ..id = targetId
           ..remoteId = targetId
@@ -176,6 +180,34 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
   List<ScheduleModel> _visibleSorted(List<ScheduleModel> schedules) {
     final visible = schedules.where(_isVisible).toList();
     visible.sort((a, b) => a.startTime.compareTo(b.startTime));
-    return visible;
+    final seenIds = <String>{};
+    final seenContent = <String>{};
+    final result = <ScheduleModel>[];
+
+    for (final schedule in visible) {
+      final remoteKey = schedule.remoteId == null
+          ? null
+          : 'remote:${schedule.remoteId}';
+      final contentKey = _contentKey(schedule);
+
+      if (remoteKey != null && seenIds.contains(remoteKey)) continue;
+      if (seenContent.contains(contentKey)) continue;
+
+      if (remoteKey != null) seenIds.add(remoteKey);
+      seenContent.add(contentKey);
+      result.add(schedule);
+    }
+
+    return result;
+  }
+
+  String _contentKey(ScheduleModel schedule) {
+    return [
+      schedule.userId,
+      schedule.name.trim().toLowerCase(),
+      schedule.startTime.toUtc().toIso8601String(),
+      schedule.endTime.toUtc().toIso8601String(),
+      schedule.location?.trim().toLowerCase() ?? '',
+    ].join('|');
   }
 }

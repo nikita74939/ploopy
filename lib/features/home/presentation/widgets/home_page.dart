@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,10 +30,17 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedDay = DateTime.now().day;
   String? _loadedUserId;
+  Timer? _notificationRefreshTimer;
 
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _notificationRefreshTimer?.cancel();
+    super.dispose();
   }
 
   // ── Helper: iconName string → IconData ──────────────────────────────────
@@ -103,7 +112,7 @@ class _HomePageState extends State<HomePage> {
   // ── Mapping TaskEntity → Map<String, dynamic> ───────────────────────────
   // Field: name, subject, deadline, color (int), iconName, isCompleted
   List<Map<String, dynamic>> _mapTasks(List<TaskEntity> tasks) {
-    return tasks.map((t) {
+    return tasks.take(5).map((t) {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       final deadlineDay = DateTime(
@@ -172,6 +181,7 @@ class _HomePageState extends State<HomePage> {
           final userId = authState.user.userId;
           if (_loadedUserId != userId) {
             _loadedUserId = userId;
+            _startNotificationPolling();
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (!mounted) return;
               context.read<HomeBloc>().add(LoadHomeData(userId: userId));
@@ -200,6 +210,7 @@ class _HomePageState extends State<HomePage> {
                     context.read<HomeBloc>().add(
                       RefreshHomeData(userId: userId),
                     );
+                    context.read<NotificationBloc>().add(LoadNotifications());
                   }
                   await Future.delayed(const Duration(milliseconds: 600));
                 },
@@ -242,12 +253,22 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: 20),
 
                       // ── Mini Calendar ─────────────────────────────────────
-                      MiniCalendar(
-                        selectedDay: _selectedDay,
-                        onDaySelected: (day) =>
-                            setState(() => _selectedDay = day),
-                        onOpenCalendar: () =>
-                            Navigator.pushNamed(context, AppRoutes.calendar),
+                      BlocBuilder<HomeBloc, HomeState>(
+                        builder: (context, homeState) {
+                          final weeklyStudyMinutes = homeState is HomeLoaded
+                              ? homeState.weeklyStudyMinutes
+                              : <int, int>{};
+                          return MiniCalendar(
+                            selectedDay: _selectedDay,
+                            activityMinutesByDay: weeklyStudyMinutes,
+                            onDaySelected: (day) =>
+                                setState(() => _selectedDay = day),
+                            onOpenCalendar: () => Navigator.pushNamed(
+                              context,
+                              AppRoutes.calendar,
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 20),
 
@@ -336,6 +357,14 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
+  }
+
+  void _startNotificationPolling() {
+    _notificationRefreshTimer?.cancel();
+    _notificationRefreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (!mounted) return;
+      context.read<NotificationBloc>().add(LoadNotifications());
+    });
   }
 }
 
