@@ -98,47 +98,51 @@ class _AchievementBadge extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
               color: unlocked
                   ? color.withValues(alpha: 0.15)
                   : Colors.grey.shade100,
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(14),
             ),
+            clipBehavior: Clip.antiAlias,
             child: Stack(
-              alignment: Alignment.center,
+              fit: StackFit.expand,
               children: [
-                Opacity(
-                  opacity: unlocked ? 1 : 0.28,
-                  child: ColorFiltered(
-                    colorFilter: unlocked
-                        ? const ColorFilter.mode(
-                            Colors.transparent,
-                            BlendMode.dst,
-                          )
-                        : const ColorFilter.mode(
-                            Colors.grey,
-                            BlendMode.saturation,
-                          ),
+                ColorFiltered(
+                  colorFilter: unlocked
+                      ? const ColorFilter.mode(
+                          Colors.transparent,
+                          BlendMode.dst,
+                        )
+                      : const ColorFilter.mode(
+                          Colors.grey,
+                          BlendMode.saturation,
+                        ),
+                  child: Opacity(
+                    opacity: unlocked ? 1 : 0.28,
                     child: Image.asset(
                       badgeAsset,
-                      width: 34,
-                      height: 34,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Icon(
-                        Icons.emoji_events_rounded,
-                        color: unlocked ? color : Colors.grey.shade400,
-                        size: 24,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Center(
+                        child: Icon(
+                          Icons.emoji_events_rounded,
+                          color: unlocked ? color : Colors.grey.shade400,
+                          size: 26,
+                        ),
                       ),
                     ),
                   ),
                 ),
                 if (!unlocked)
-                  Icon(
-                    Icons.lock_rounded,
-                    color: Colors.grey.shade500,
-                    size: 18,
+                  Container(
+                    color: Colors.white.withValues(alpha: 0.38),
+                    child: Icon(
+                      Icons.lock_rounded,
+                      color: Colors.grey.shade600,
+                      size: 18,
+                    ),
                   ),
               ],
             ),

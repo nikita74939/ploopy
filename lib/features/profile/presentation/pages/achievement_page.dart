@@ -156,46 +156,51 @@ class _AchievementTile extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 62,
-            height: 62,
+            width: 72,
+            height: 72,
             decoration: BoxDecoration(
               color: unlocked
                   ? color.withValues(alpha: 0.14)
                   : AppColors.greyLight,
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(18),
             ),
+            clipBehavior: Clip.antiAlias,
             child: Stack(
-              alignment: Alignment.center,
+              fit: StackFit.expand,
               children: [
-                Opacity(
-                  opacity: unlocked ? 1 : 0.28,
-                  child: ColorFiltered(
-                    colorFilter: unlocked
-                        ? const ColorFilter.mode(
-                            Colors.transparent,
-                            BlendMode.dst,
-                          )
-                        : const ColorFilter.mode(
-                            Colors.grey,
-                            BlendMode.saturation,
-                          ),
+                ColorFiltered(
+                  colorFilter: unlocked
+                      ? const ColorFilter.mode(
+                          Colors.transparent,
+                          BlendMode.dst,
+                        )
+                      : const ColorFilter.mode(
+                          Colors.grey,
+                          BlendMode.saturation,
+                        ),
+                  child: Opacity(
+                    opacity: unlocked ? 1 : 0.28,
                     child: Image.asset(
                       badgeAsset,
-                      width: 46,
-                      height: 46,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Icon(
-                        Icons.emoji_events_rounded,
-                        color: unlocked ? color : AppColors.textMuted,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Center(
+                        child: Icon(
+                          Icons.emoji_events_rounded,
+                          color: unlocked ? color : AppColors.textMuted,
+                          size: 30,
+                        ),
                       ),
                     ),
                   ),
                 ),
                 if (!unlocked)
-                  const Icon(
-                    Icons.lock_rounded,
-                    color: AppColors.textMuted,
-                    size: 20,
+                  Container(
+                    color: AppColors.white.withValues(alpha: 0.38),
+                    child: const Icon(
+                      Icons.lock_rounded,
+                      color: AppColors.textMuted,
+                      size: 20,
+                    ),
                   ),
               ],
             ),
