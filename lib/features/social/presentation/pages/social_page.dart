@@ -7,7 +7,6 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/bottom_sheet_insets.dart';
-import '../../../../core/widgets/neo_container.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../activity/domain/entities/activity_entity.dart';
 import '../../../activity/presentation/bloc/activity_bloc.dart';
@@ -15,6 +14,7 @@ import '../../../activity/presentation/widgets/activity_composer_sheet.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../event/domain/entities/event_entity.dart';
 import '../../../event/presentation/bloc/event_bloc.dart';
+import '../../../event/presentation/pages/event_detail_page.dart';
 import 'public_profile_page.dart';
 
 class SocialPage extends StatefulWidget {
@@ -1006,265 +1006,282 @@ class _EventCard extends StatelessWidget {
     final isCreator = userId == event.creatorId;
     final canJoin = !event.isJoinedByMe && !event.isFull && event.isUpcoming;
 
-    return GestureDetector(
-      onTap: () =>
-          Navigator.pushNamed(context, AppRoutes.eventDetail, arguments: event),
-      child: NeoCard(
-        accentColor: accent,
-        child: Padding(
-          padding: const EdgeInsets.all(AppStyle.paddingMedium),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(_icon, color: accent),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          event.name,
-                          style: GoogleFonts.poppins(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.calendar_today,
-                              size: 13,
-                              color: AppColors.greyText,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              DateTimeUtils.formatDateTime(event.eventDate),
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: AppColors.greyText,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Price badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: event.isFree
-                          ? AppColors.success.withValues(alpha: 0.15)
-                          : accent.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: event.isFree ? AppColors.success : accent,
-                        width: 1,
-                      ),
-                    ),
-                    child: Text(
-                      event.isFree
-                          ? 'FREE'
-                          : NumberFormat.currency(
-                              locale: 'id_ID',
-                              symbol: 'Rp',
-                              decimalDigits: 0,
-                            ).format(event.price),
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: event.isFree ? AppColors.success : accent,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Meta
-              Row(
-                children: [
-                  Icon(
-                    event.isOnline ? Icons.videocam : Icons.location_on,
-                    size: 15,
-                    color: AppColors.greyText,
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      event.isOnline ? 'Online' : (event.location ?? 'TBD'),
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        color: AppColors.greyText,
-                      ),
-                    ),
-                  ),
-                  if (event.maxParticipants != null &&
-                      event.maxParticipants! > 0) ...[
-                    Icon(Icons.people, size: 15, color: AppColors.greyText),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${event.currentParticipants}/${event.maxParticipants}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        color: event.isFull
-                            ? AppColors.error
-                            : AppColors.greyText,
-                        fontWeight: event.isFull
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
-                    ),
-                    if (event.isFull) ...[
-                      const SizedBox(width: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.error.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'FULL',
-                          style: GoogleFonts.poppins(
-                            fontSize: 10,
-                            color: AppColors.error,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ],
-              ),
-              if (event.description != null &&
-                  event.description!.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  event.description!,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    color: AppColors.greyText,
-                  ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Material(
+        color: AppColors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => EventDetailPage(event: event)),
+          ),
+          child: Ink(
+            padding: const EdgeInsets.all(AppStyle.paddingMedium),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.greyBorder),
+              boxShadow: const [
+                BoxShadow(
+                  color: AppColors.shadow,
+                  blurRadius: 12,
+                  offset: Offset(0, 5),
                 ),
               ],
-              const SizedBox(height: 12),
-              // Footer
-              Row(
-                children: [
-                  if (event.creatorName != null) ...[
-                    CircleAvatar(
-                      radius: 12,
-                      backgroundColor: accent.withValues(alpha: 0.2),
-                      child: event.creatorPhoto != null
-                          ? ClipOval(
-                              child: Image.network(
-                                event.creatorPhoto!,
-                                width: 24,
-                                height: 24,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          : Text(
-                              event.creatorName![0].toUpperCase(),
-                              style: TextStyle(fontSize: 10, color: accent),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(_icon, color: accent),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            event.name,
+                            style: GoogleFonts.poppins(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
                             ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      event.creatorName!,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: AppColors.greyText,
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_today,
+                                size: 13,
+                                color: AppColors.greyText,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                DateTimeUtils.formatDateTime(event.eventDate),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: AppColors.greyText,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                  const Spacer(),
-                  if (isCreator)
-                    OutlinedButton(
-                      onPressed: () {},
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: accent,
-                        side: BorderSide(color: accent),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 8,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                    // Price badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
                       ),
-                      child: const Text('Edit'),
-                    )
-                  else if (event.isJoinedByMe)
-                    OutlinedButton(
-                      onPressed: () {
-                        if (userId == null) return;
-                        context.read<EventBloc>().add(
-                          LeaveEvent(eventId: event.id, userId: userId),
-                        );
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.error,
-                        side: const BorderSide(color: AppColors.error),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 8,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text('Leave'),
-                    )
-                  else
-                    ElevatedButton(
-                      onPressed: canJoin
-                          ? () {
-                              if (userId == null) return;
-                              context.read<EventBloc>().add(
-                                JoinEvent(eventId: event.id, userId: userId),
-                              );
-                            }
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: accent,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 8,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                      decoration: BoxDecoration(
+                        color: event.isFree
+                            ? AppColors.success.withValues(alpha: 0.15)
+                            : accent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: event.isFree ? AppColors.success : accent,
+                          width: 1,
                         ),
                       ),
                       child: Text(
-                        canJoin
-                            ? 'Join'
-                            : (!event.isUpcoming ? 'Ended' : 'Full'),
-                        style: const TextStyle(color: Colors.white),
+                        event.isFree
+                            ? 'FREE'
+                            : NumberFormat.currency(
+                                locale: 'id_ID',
+                                symbol: 'Rp',
+                                decimalDigits: 0,
+                              ).format(event.price),
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: event.isFree ? AppColors.success : accent,
+                        ),
                       ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Meta
+                Row(
+                  children: [
+                    Icon(
+                      event.isOnline ? Icons.videocam : Icons.location_on,
+                      size: 15,
+                      color: AppColors.greyText,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        event.isOnline ? 'Online' : (event.location ?? 'TBD'),
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: AppColors.greyText,
+                        ),
+                      ),
+                    ),
+                    if (event.maxParticipants != null &&
+                        event.maxParticipants! > 0) ...[
+                      Icon(Icons.people, size: 15, color: AppColors.greyText),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${event.currentParticipants}/${event.maxParticipants}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: event.isFull
+                              ? AppColors.error
+                              : AppColors.greyText,
+                          fontWeight: event.isFull
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                      if (event.isFull) ...[
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.error.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'FULL',
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              color: AppColors.error,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ],
+                ),
+                if (event.description != null &&
+                    event.description!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    event.description!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: AppColors.greyText,
+                    ),
+                  ),
                 ],
-              ),
-            ],
+                const SizedBox(height: 12),
+                // Footer
+                Row(
+                  children: [
+                    if (event.creatorName != null) ...[
+                      CircleAvatar(
+                        radius: 12,
+                        backgroundColor: accent.withValues(alpha: 0.2),
+                        child: event.creatorPhoto != null
+                            ? ClipOval(
+                                child: Image.network(
+                                  event.creatorPhoto!,
+                                  width: 24,
+                                  height: 24,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : Text(
+                                event.creatorName![0].toUpperCase(),
+                                style: TextStyle(fontSize: 10, color: accent),
+                              ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        event.creatorName!,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: AppColors.greyText,
+                        ),
+                      ),
+                    ],
+                    const Spacer(),
+                    if (isCreator)
+                      OutlinedButton(
+                        onPressed: () {},
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: accent,
+                          side: BorderSide(color: accent),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 8,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text('Edit'),
+                      )
+                    else if (event.isJoinedByMe)
+                      OutlinedButton(
+                        onPressed: () {
+                          if (userId == null) return;
+                          context.read<EventBloc>().add(
+                            LeaveEvent(eventId: event.id, userId: userId),
+                          );
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.error,
+                          side: const BorderSide(color: AppColors.error),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 8,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text('Leave'),
+                      )
+                    else
+                      ElevatedButton(
+                        onPressed: canJoin
+                            ? () {
+                                if (userId == null) return;
+                                context.read<EventBloc>().add(
+                                  JoinEvent(eventId: event.id, userId: userId),
+                                );
+                              }
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: accent,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 8,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          canJoin
+                              ? 'Join'
+                              : (!event.isUpcoming ? 'Ended' : 'Full'),
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

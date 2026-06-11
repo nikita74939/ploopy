@@ -3,12 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/event_entity.dart';
 import '../bloc/event_bloc.dart';
+import 'event_detail_page.dart';
 
 class EventPage extends StatefulWidget {
   const EventPage({super.key});
@@ -46,7 +46,7 @@ class _EventPageState extends State<EventPage>
       appBar: AppBar(
         backgroundColor: AppColors.background,
         elevation: 0,
-        title: Text('Events', style: AppTextStyles.title),
+        title: Text('Events', style: AppTextStyles.heading),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(
@@ -56,7 +56,7 @@ class _EventPageState extends State<EventPage>
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 color: AppColors.white,
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.greyBorder),
               ),
               child: TabBar(
@@ -68,7 +68,7 @@ class _EventPageState extends State<EventPage>
                 },
                 indicator: BoxDecoration(
                   color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(9),
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
                 dividerColor: AppColors.transparent,
@@ -210,18 +210,10 @@ class _EventOverview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.primaryBorder),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 18,
-            offset: Offset(0, 8),
-          ),
-        ],
+        color: AppColors.textMain,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,12 +224,12 @@ class _EventOverview extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: const BoxDecoration(
-                  color: AppColors.primary,
+                  color: AppColors.white,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.local_activity_rounded,
-                  color: AppColors.white,
+                  color: AppColors.primary,
                 ),
               ),
               const SizedBox(width: 12),
@@ -249,7 +241,10 @@ class _EventOverview extends StatelessWidget {
                       nextEvent?.name ?? 'Events',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.heading.copyWith(fontSize: 17),
+                      style: AppTextStyles.heading.copyWith(
+                        color: AppColors.white,
+                        fontSize: 17,
+                      ),
                     ),
                     const SizedBox(height: 3),
                     Text(
@@ -259,7 +254,7 @@ class _EventOverview extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.caption.copyWith(
-                        color: AppColors.textSecondary,
+                        color: AppColors.white,
                       ),
                     ),
                   ],
@@ -274,7 +269,7 @@ class _EventOverview extends StatelessWidget {
                 child: _MetricTile(
                   label: 'Upcoming',
                   value: upcomingCount.toString(),
-                  color: AppColors.primary,
+                  color: AppColors.primaryLight,
                 ),
               ),
               const SizedBox(width: 8),
@@ -282,7 +277,7 @@ class _EventOverview extends StatelessWidget {
                 child: _MetricTile(
                   label: 'Joined',
                   value: joinedCount.toString(),
-                  color: AppColors.blueAccent,
+                  color: AppColors.primaryLight,
                 ),
               ),
               const SizedBox(width: 8),
@@ -290,7 +285,7 @@ class _EventOverview extends StatelessWidget {
                 child: _MetricTile(
                   label: 'Free',
                   value: freeCount.toString(),
-                  color: AppColors.success,
+                  color: AppColors.primaryLight,
                 ),
               ),
             ],
@@ -318,15 +313,18 @@ class _MetricTile extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 58),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.09),
-        borderRadius: BorderRadius.circular(14),
+        color: AppColors.white.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             value,
-            style: AppTextStyles.heading.copyWith(color: color, fontSize: 18),
+            style: AppTextStyles.heading.copyWith(
+              color: AppColors.white,
+              fontSize: 18,
+            ),
           ),
           const SizedBox(height: 1),
           Text(
@@ -334,7 +332,7 @@ class _MetricTile extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.caption.copyWith(
-              color: AppColors.textSecondary,
+              color: AppColors.white.withValues(alpha: 0.72),
             ),
           ),
         ],
@@ -359,23 +357,21 @@ class _EventCard extends StatelessWidget {
     return Material(
       color: AppColors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(22),
-        onTap: () => Navigator.pushNamed(
-          context,
-          AppRoutes.eventDetail,
-          arguments: event,
+        borderRadius: BorderRadius.circular(8),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => EventDetailPage(event: event)),
         ),
         child: Ink(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.white,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: AppColors.primaryBorder),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.greyBorder),
             boxShadow: const [
               BoxShadow(
                 color: AppColors.shadow,
-                blurRadius: 16,
-                offset: Offset(0, 7),
+                blurRadius: 12,
+                offset: Offset(0, 5),
               ),
             ],
           ),
@@ -385,7 +381,7 @@ class _EventCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _PloopyEventArt(
+                  _EventIconTile(
                     icon: _iconFromName(event.icon),
                     color: accent,
                     isOnline: event.isOnline,
@@ -426,8 +422,9 @@ class _EventCard extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(11),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryLighter,
-                    borderRadius: BorderRadius.circular(16),
+                    color: AppColors.greyLighter,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.greyBorder),
                   ),
                   child: Text(
                     event.description!,
@@ -587,101 +584,6 @@ class _EventCard extends StatelessWidget {
   }
 }
 
-class _PloopyEventArt extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final bool isOnline;
-
-  const _PloopyEventArt({
-    required this.icon,
-    required this.color,
-    required this.isOnline,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 82,
-      height: 96,
-      decoration: BoxDecoration(
-        color: AppColors.cream,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primaryBorder),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: 9,
-            left: 10,
-            child: Icon(
-              Icons.auto_awesome_rounded,
-              size: 15,
-              color: AppColors.warning,
-            ),
-          ),
-          Center(
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(icon, color: color, size: 27),
-            ),
-          ),
-          Positioned(
-            right: 9,
-            bottom: 9,
-            child: Container(
-              width: 26,
-              height: 26,
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                isOnline ? Icons.wifi_rounded : Icons.location_on_rounded,
-                size: 14,
-                color: AppColors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BookmarkMark extends StatelessWidget {
-  final Color color;
-
-  const _BookmarkMark({required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipPath(
-      clipper: _BookmarkClipper(),
-      child: Container(width: 24, height: 34, color: color),
-    );
-  }
-}
-
-class _BookmarkClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    return Path()
-      ..lineTo(size.width, 0)
-      ..lineTo(size.width, size.height)
-      ..lineTo(size.width / 2, size.height - 7)
-      ..lineTo(0, size.height)
-      ..close();
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
-}
-
 class _EventIconTile extends StatelessWidget {
   final IconData icon;
   final Color color;
@@ -700,7 +602,7 @@ class _EventIconTile extends StatelessWidget {
       height: 86,
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.11),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: color.withValues(alpha: 0.18)),
       ),
       child: Stack(
@@ -764,7 +666,7 @@ class _StatusPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(99),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
         label,
@@ -798,7 +700,7 @@ class _PricePill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
         color: pillColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(99),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
         label,
@@ -858,7 +760,7 @@ class _InfoPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.primaryLighter,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -906,7 +808,7 @@ class _ActionButton extends StatelessWidget {
                 foregroundColor: effectiveColor,
                 side: BorderSide(color: effectiveColor),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
               child: Text(
@@ -923,7 +825,7 @@ class _ActionButton extends StatelessWidget {
                 foregroundColor: AppColors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
               child: Text(label, style: AppTextStyles.buttonPrimary),
@@ -940,10 +842,10 @@ class _EventSkeleton extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 96),
       children: [
-        _SkeletonBox(height: 150, radius: 22),
+        _SkeletonBox(height: 150, radius: 8),
         const SizedBox(height: 16),
         for (var i = 0; i < 4; i++) ...[
-          _SkeletonBox(height: 178, radius: 22),
+          _SkeletonBox(height: 178, radius: 8),
           const SizedBox(height: 14),
         ],
       ],
