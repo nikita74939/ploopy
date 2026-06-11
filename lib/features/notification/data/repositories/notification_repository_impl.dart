@@ -1,0 +1,78 @@
+// lib/features/notification/data/repositories/notification_repository_impl.dart
+import '../../domain/repositories/notification_repository.dart';
+import '../datasources/notification_local_data_source.dart';
+import '../datasources/notification_remote_data_source.dart';
+import '../models/notification_model.dart';
+import '../../domain/entities/notification_entity.dart';
+
+class NotificationRepositoryImpl implements NotificationRepository {
+  final NotificationLocalDataSource localDataSource;
+  final NotificationRemoteDataSource? remoteDataSource;
+
+  NotificationRepositoryImpl({
+    required this.localDataSource,
+    this.remoteDataSource,
+  });
+
+  @override
+  Future<List<NotificationEntity>> getAllNotifications() async {
+    await _refreshRemote();
+    final notifications = await localDataSource.getAllNotifications();
+    return notifications
+        .map((notification) => notification.toEntity())
+        .toList();
+  }
+
+  @override
+  Future<List<NotificationEntity>> getUnreadNotifications() async {
+    final notifications = await localDataSource.getUnreadNotifications();
+    return notifications
+        .map((notification) => notification.toEntity())
+        .toList();
+  }
+
+  @override
+  Future<void> addNotification(NotificationEntity notification) async {
+    await localDataSource.addNotification(
+      NotificationModel.fromEntity(notification),
+    );
+  }
+
+  @override
+  Future<void> markAsRead(int id) async {
+    final notification = await localDataSource.getNotificationById(id);
+    final remoteId = notification?.senderId;
+    if (remoteId != null && remoteDataSource != null) {
+      await remoteDataSource!.markAsRead(remoteId);
+    }
+    await localDataSource.markAsRead(id);
+  }
+
+  @override
+  Future<void> markAllAsRead() async {
+    await remoteDataSource?.markAllAsRead();
+    await localDataSource.markAllAsRead();
+  }
+
+  @override
+  Future<int> getUnreadCount() async {
+    return await localDataSource.getUnreadCount();
+  }
+
+  @override
+  Future<void> deleteNotification(int id) async {
+    final notification = await localDataSource.getNotificationById(id);
+    final remoteId = notification?.senderId;
+    if (remoteId != null && remoteDataSource != null) {
+      await remoteDataSource!.deleteNotification(remoteId);
+    }
+    await localDataSource.deleteNotification(id);
+  }
+
+  Future<void> _refreshRemote() async {
+    final remote = remoteDataSource;
+    if (remote == null) return;
+    final notifications = await remote.getNotifications();
+    await localDataSource.replaceNotifications(notifications);
+  }
+}
