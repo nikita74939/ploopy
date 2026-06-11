@@ -31,11 +31,13 @@ export async function sendFriendRequest({ requesterId, addresseeId }) {
 
   const { data, error } = await supabaseAdmin.from('friendships').insert({ requester_id: requesterId, addressee_id: addresseeId, status: 'pending' }).select('id, requester_id, addressee_id, status, created_at').single();
   if (error) throw httpError(500, error.message);
+  const requesterName = await getUserDisplayName(requesterId);
   await createNotification({
     userId: addresseeId,
+    senderUserId: requesterId,
     input: {
-      title: 'Permintaan pertemanan baru',
-      description: 'Ada pengguna yang ingin berteman denganmu.',
+      title: `${requesterName} mengajak berteman`,
+      description: `${requesterName} ingin berteman denganmu.`,
       tag: 'friend_request',
       refId: data.id,
       refType: 'friendship',
@@ -60,11 +62,13 @@ export async function updateFriendshipStatus({ userId, friendshipId, status }) {
       evaluateUserAchievements({ userId: data.addressee_id, triggerType: 'accepted_friends' }),
     ]);
   }
+  const actorName = await getUserDisplayName(userId);
   await createNotification({
     userId: recipientId,
+    senderUserId: userId,
     input: {
-      title: status === 'accepted' ? 'Pertemanan disetujui' : status === 'rejected' ? 'Permintaan pertemanan ditolak' : 'Pertemanan diperbarui',
-      description: status === 'accepted' ? 'Sekarang kalian sudah berteman.' : 'Status pertemananmu baru saja diperbarui.',
+      title: status === 'accepted' ? `${actorName} menerima permintaanmu` : status === 'rejected' ? 'Permintaan pertemanan ditolak' : 'Pertemanan diperbarui',
+      description: status === 'accepted' ? `Kamu dan ${actorName} sekarang berteman.` : 'Status pertemananmu baru saja diperbarui.',
       tag: `friend_${status}`,
       refId: data.id,
       refType: 'friendship',
@@ -81,4 +85,14 @@ export async function removeFriendship({ userId, friendshipId }) {
 
   const { error } = await supabaseAdmin.from('friendships').delete().eq('id', friendshipId);
   if (error) throw httpError(500, error.message);
+}
+
+async function getUserDisplayName(userId) {
+  const { data, error } = await supabaseAdmin
+    .from('users')
+    .select('name, email')
+    .eq('id', userId)
+    .maybeSingle();
+  if (error) throw httpError(500, error.message);
+  return data?.name?.trim() || data?.email?.trim() || 'Seseorang';
 }

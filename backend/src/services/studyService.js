@@ -1,6 +1,5 @@
 import { supabaseAdmin } from '../config/supabase.js';
 import { httpError } from '../utils/httpError.js';
-import { createActivity } from './activityService.js';
 import { unlockEligibleAchievements } from './achievementService.js';
 import { checkInStreak } from './streakService.js';
 
@@ -91,12 +90,6 @@ export async function endStudySession({ userId, sessionId, durationMinutes }) {
           currentStreak: streak.current_streak ?? 0,
           totalStudyMinutes,
           studySessionCount,
-        },
-      }),
-      createActivity({
-        userId,
-        input: {
-          text: `Menyelesaikan sesi fokus ${durationMinutes} menit.`,
         },
       }),
     ]);

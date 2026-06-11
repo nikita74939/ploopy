@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../domain/repositories/notification_repository.dart';
 import '../../domain/entities/notification_entity.dart';
 
@@ -85,6 +86,7 @@ class NotificationError extends NotificationState {
 class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   final NotificationRepository repository;
   String? _currentUserId;
+  Set<int>? _knownNotificationIds;
 
   NotificationBloc({required this.repository}) : super(NotificationInitial()) {
     on<LoadNotifications>(_onLoadNotifications);
@@ -108,6 +110,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     emit(NotificationLoading());
     try {
       final all = await repository.getAllNotifications(userId);
+      await _showNewUnreadNotifications(all);
       final unread = all
           .where((notification) => !notification.isRead)
           .toList(growable: false);
@@ -168,9 +171,42 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   ) async {
     final userId = _currentUserId;
     _currentUserId = null;
+    _knownNotificationIds = null;
     if (userId != null && userId.isNotEmpty) {
       await repository.clearUserNotifications(userId);
     }
     emit(NotificationInitial());
+  }
+
+  Future<void> _showNewUnreadNotifications(
+    List<NotificationEntity> notifications,
+  ) async {
+    final previousIds = _knownNotificationIds;
+    final currentIds = notifications
+        .map((notification) => notification.id)
+        .toSet();
+    _knownNotificationIds = currentIds;
+
+    if (previousIds == null) return;
+
+    final newUnread = notifications.where(
+      (notification) =>
+          !notification.isRead && !previousIds.contains(notification.id),
+    );
+
+    for (final notification in newUnread) {
+      await NotificationService.showNotification(
+        id: notification.id,
+        title: notification.title,
+        body: notification.description,
+        payload: _payloadFor(notification),
+      );
+    }
+  }
+
+  String _payloadFor(NotificationEntity notification) {
+    final refType = notification.refType ?? '';
+    final refId = notification.refId ?? '';
+    return '${notification.tag}|$refType|$refId';
   }
 }

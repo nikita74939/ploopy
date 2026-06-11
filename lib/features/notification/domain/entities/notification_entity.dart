@@ -8,6 +8,7 @@ class NotificationEntity {
   final DateTime createdAt;
   final String? refId;
   final String? refType;
+  final String? senderUserId;
 
   const NotificationEntity({
     required this.id,
@@ -19,5 +20,6 @@ class NotificationEntity {
     required this.createdAt,
     this.refId,
     this.refType,
+    this.senderUserId,
   });
 }

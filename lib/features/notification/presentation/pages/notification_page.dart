@@ -7,6 +7,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../profile/presentation/bloc/profile_bloc.dart';
+import '../../../social/presentation/pages/public_profile_page.dart';
 import '../../domain/entities/notification_entity.dart';
 import '../bloc/notification_bloc.dart';
 
@@ -119,9 +120,7 @@ class _NotificationPageState extends State<NotificationPage>
               controller: _tabController,
               children: [
                 _NotificationList(notifications: state.allNotifications),
-                _NotificationList(
-                  notifications: state.unreadNotifications,
-                ),
+                _NotificationList(notifications: state.unreadNotifications),
               ],
             );
           }
@@ -298,11 +297,30 @@ class _NotificationCard extends StatelessWidget {
                       ),
                       if (_isAcceptableFriendRequest(notification)) ...[
                         const SizedBox(height: 12),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: _InlineFriendRequestButton(
-                            notification: notification,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            if (_hasSenderProfile(notification)) ...[
+                              TextButton.icon(
+                                onPressed: () =>
+                                    _openSenderProfile(context, notification),
+                                icon: const Icon(
+                                  Icons.account_circle_outlined,
+                                  size: 16,
+                                ),
+                                label: Text(
+                                  'Lihat profil',
+                                  style: AppTextStyles.link.copyWith(
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+                            _InlineFriendRequestButton(
+                              notification: notification,
+                            ),
+                          ],
                         ),
                       ],
                     ],
@@ -322,6 +340,27 @@ class _NotificationCard extends StatelessWidget {
         notification.refType == 'friendship' &&
         friendshipId != null &&
         friendshipId.isNotEmpty;
+  }
+
+  bool _hasSenderProfile(NotificationEntity notification) {
+    final senderUserId = notification.senderUserId;
+    return senderUserId != null && senderUserId.isNotEmpty;
+  }
+
+  Future<void> _openSenderProfile(
+    BuildContext context,
+    NotificationEntity notification,
+  ) async {
+    final senderUserId = notification.senderUserId;
+    if (senderUserId == null || senderUserId.isEmpty) return;
+    context.read<NotificationBloc>().add(
+      MarkNotificationAsRead(id: notification.id),
+    );
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PublicProfilePage(userId: senderUserId),
+      ),
+    );
   }
 
   Future<void> _openDetail(BuildContext context) async {
@@ -433,11 +472,24 @@ class _InlineFriendRequestButtonState
   @override
   Widget build(BuildContext context) {
     if (_accepted) {
-      return Text(
-        'Diterima',
-        style: AppTextStyles.caption.copyWith(
-          color: AppColors.success,
-          fontWeight: FontWeight.w800,
+      return SizedBox(
+        height: 36,
+        child: ElevatedButton.icon(
+          onPressed: null,
+          icon: const Icon(Icons.check_rounded, size: 16),
+          label: Text(
+            'Diterima',
+            style: AppTextStyles.buttonPrimary.copyWith(fontSize: 12),
+          ),
+          style: ElevatedButton.styleFrom(
+            disabledBackgroundColor: AppColors.greyBorder,
+            disabledForegroundColor: AppColors.textMuted,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
         ),
       );
     }
@@ -615,34 +667,89 @@ class _NotificationDetailSheetState extends State<_NotificationDetailSheet> {
               ],
             ),
             const SizedBox(height: 18),
-            if (_accepted)
-              _AcceptedBanner(color: tagColor)
-            else if (_canAcceptFriendRequest)
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton.icon(
-                  onPressed: _accepting ? null : _acceptFriendRequest,
-                  icon: _accepting
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.person_add_alt_1_rounded, size: 18),
-                  label: Text(
-                    _accepting ? 'Menerima...' : 'Terima Permintaan',
-                    style: AppTextStyles.buttonPrimary,
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+            if (_isFriendNotification)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_hasSenderProfile)
+                    SizedBox(
+                      height: 48,
+                      child: OutlinedButton.icon(
+                        onPressed: _openSenderProfile,
+                        icon: const Icon(
+                          Icons.account_circle_outlined,
+                          size: 18,
+                        ),
+                        label: Text(
+                          'Lihat Profil',
+                          style: AppTextStyles.buttonSecondary,
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: const BorderSide(
+                            color: AppColors.primaryBorder,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  if (_hasSenderProfile &&
+                      (_accepted || _canAcceptFriendRequest))
+                    const SizedBox(height: 10),
+                  if (_accepted)
+                    SizedBox(
+                      height: 48,
+                      child: ElevatedButton.icon(
+                        onPressed: null,
+                        icon: const Icon(Icons.check_rounded, size: 18),
+                        label: Text(
+                          'Diterima',
+                          style: AppTextStyles.buttonPrimary,
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          disabledBackgroundColor: AppColors.greyBorder,
+                          disabledForegroundColor: AppColors.textMuted,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    )
+                  else if (_canAcceptFriendRequest)
+                    SizedBox(
+                      height: 48,
+                      child: ElevatedButton.icon(
+                        onPressed: _accepting ? null : _acceptFriendRequest,
+                        icon: _accepting
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.person_add_alt_1_rounded,
+                                size: 18,
+                              ),
+                        label: Text(
+                          _accepting ? 'Menerima...' : 'Terima Permintaan',
+                          style: AppTextStyles.buttonPrimary,
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               )
             else if (_targetRoute != null)
               SizedBox(
@@ -716,6 +823,18 @@ class _NotificationDetailSheetState extends State<_NotificationDetailSheet> {
     await navigator.pushNamed(route, arguments: arguments);
   }
 
+  Future<void> _openSenderProfile() async {
+    final senderUserId = notification.senderUserId;
+    if (senderUserId == null || senderUserId.isEmpty) return;
+    final navigator = Navigator.of(context);
+    navigator.pop();
+    await navigator.push(
+      MaterialPageRoute<void>(
+        builder: (_) => PublicProfilePage(userId: senderUserId),
+      ),
+    );
+  }
+
   String _cleanError(Object error) {
     final message = error.toString();
     return message.startsWith('Exception: ') ? message.substring(11) : message;
@@ -767,6 +886,16 @@ class _NotificationDetailSheetState extends State<_NotificationDetailSheet> {
           _ => null,
         };
     }
+  }
+
+  bool get _isFriendNotification {
+    final tag = notification.tag;
+    return tag.startsWith('friend_') || notification.refType == 'friendship';
+  }
+
+  bool get _hasSenderProfile {
+    final senderUserId = notification.senderUserId;
+    return senderUserId != null && senderUserId.isNotEmpty;
   }
 
   String? get _targetRoute {

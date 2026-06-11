@@ -1,7 +1,7 @@
 import { supabaseAdmin } from '../config/supabase.js';
 import { httpError } from '../utils/httpError.js';
 
-const select = 'id, user_id, title, description, tag, is_read, created_at, ref_id, ref_type';
+const select = 'id, user_id, sender_user_id, title, description, tag, is_read, created_at, ref_id, ref_type';
 
 export async function getNotifications({ userId, unreadOnly = false }) {
   let query = supabaseAdmin.from('notifications').select(select).eq('user_id', userId).order('created_at', { ascending: false });
@@ -31,6 +31,7 @@ export async function createNotification({ userId, recipientUserId, senderUserId
     title: input.title,
     description: input.description ?? input.message ?? input.body ?? null,
     tag: input.tag ?? input.type ?? 'general',
+    sender_user_id: normalizeUuid(senderUserId ?? input.senderUserId ?? input.sender_user_id),
     ref_id: normalizeUuid(input.refId ?? input.ref_id),
     ref_type: input.refType ?? input.ref_type ?? null,
   }).select(select).single();

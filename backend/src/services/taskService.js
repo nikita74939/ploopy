@@ -1,6 +1,5 @@
 import { supabaseAdmin } from '../config/supabase.js';
 import { httpError } from '../utils/httpError.js';
-import { createActivity } from './activityService.js';
 import { evaluateUserAchievements } from './achievementService.js';
 import { createNotification } from './notificationService.js';
 import { checkInStreak } from './streakService.js';
@@ -226,12 +225,6 @@ async function recordTaskCompletionIfNeeded(userId, previousTask, task) {
         tag: 'task_completed',
         refId: task.id,
         refType: 'task',
-      },
-    }),
-    createActivity({
-      userId,
-      input: {
-        text: `Menyelesaikan tugas "${task.name}".`,
       },
     }),
   ]);

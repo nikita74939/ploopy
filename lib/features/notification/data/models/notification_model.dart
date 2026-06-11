@@ -13,6 +13,7 @@ class NotificationModel {
   late String tag; // social, study, task, schedule
   String? iconName;
   String? senderId;
+  String? senderUserId;
   String? relatedId;
   bool isRead = false;
   late DateTime createdAt;
@@ -26,6 +27,7 @@ class NotificationModel {
     required String tag,
     String? iconName,
     String? senderId,
+    String? senderUserId,
     String? relatedId,
     required String userId,
   }) {
@@ -35,6 +37,7 @@ class NotificationModel {
       ..tag = tag
       ..iconName = iconName
       ..senderId = senderId
+      ..senderUserId = senderUserId
       ..relatedId = relatedId
       ..isRead = false
       ..createdAt = DateTime.now()
@@ -49,6 +52,7 @@ class NotificationModel {
       ..description = json['description']?.toString() ?? ''
       ..tag = json['tag']?.toString() ?? 'general'
       ..senderId = remoteId
+      ..senderUserId = json['sender_user_id']?.toString()
       ..relatedId = json['ref_id']?.toString()
       ..iconName = json['ref_type']?.toString()
       ..isRead = (json['is_read'] as bool?) ?? false
@@ -63,6 +67,7 @@ class NotificationModel {
       ..description = entity.description
       ..tag = entity.tag
       ..iconName = entity.refType
+      ..senderUserId = entity.senderUserId
       ..relatedId = entity.refId
       ..isRead = entity.isRead
       ..createdAt = entity.createdAt
@@ -79,6 +84,7 @@ class NotificationModel {
     createdAt: createdAt,
     refId: relatedId,
     refType: iconName,
+    senderUserId: senderUserId,
   );
 }
 

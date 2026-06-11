@@ -97,6 +97,8 @@ class _SessionExpiredListener extends StatefulWidget {
 
 class _SessionExpiredListenerState extends State<_SessionExpiredListener> {
   late final StreamSubscription<void> _subscription;
+  Timer? _notificationPollingTimer;
+  String? _notificationPollingUserId;
   bool _handlingExpiredSession = false;
 
   @override
@@ -119,6 +121,7 @@ class _SessionExpiredListenerState extends State<_SessionExpiredListener> {
   @override
   void dispose() {
     _subscription.cancel();
+    _notificationPollingTimer?.cancel();
     super.dispose();
   }
 
@@ -128,17 +131,36 @@ class _SessionExpiredListenerState extends State<_SessionExpiredListener> {
       listener: (context, state) {
         final notificationBloc = context.read<NotificationBloc>();
         if (state is Authenticated) {
-          notificationBloc.add(
-            LoadNotifications(userId: state.user.userId),
-          );
+          _startNotificationPolling(state.user.userId);
+          notificationBloc.add(LoadNotifications(userId: state.user.userId));
           return;
         }
         if (state is Unauthenticated) {
+          _stopNotificationPolling();
           notificationBloc.add(ClearNotifications());
           NotificationService.cancelAllNotifications();
         }
       },
       child: widget.child,
     );
+  }
+
+  void _startNotificationPolling(String userId) {
+    if (_notificationPollingUserId == userId &&
+        _notificationPollingTimer != null) {
+      return;
+    }
+    _notificationPollingTimer?.cancel();
+    _notificationPollingUserId = userId;
+    _notificationPollingTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (!mounted) return;
+      context.read<NotificationBloc>().add(LoadNotifications(userId: userId));
+    });
+  }
+
+  void _stopNotificationPolling() {
+    _notificationPollingTimer?.cancel();
+    _notificationPollingTimer = null;
+    _notificationPollingUserId = null;
   }
 }
