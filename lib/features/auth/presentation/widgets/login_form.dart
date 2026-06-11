@@ -25,7 +25,6 @@ class LoginForm extends StatefulWidget {
 class _LoginFormState extends State<LoginForm> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -34,8 +33,8 @@ class _LoginFormState extends State<LoginForm> {
     super.dispose();
   }
 
-  void _submit() {
-    if (_formKey.currentState!.validate()) {
+  void _submit(BuildContext formContext) {
+    if (Form.maybeOf(formContext)?.validate() == true) {
       context.read<AuthBloc>().add(
         LoginRequested(email: _emailCtrl.text.trim(), password: _passCtrl.text),
       );
@@ -45,51 +44,54 @@ class _LoginFormState extends State<LoginForm> {
   @override
   Widget build(BuildContext context) {
     return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _AuthTextField(
-            controller: _emailCtrl,
-            hint: 'Email',
-            prefixIcon: Icons.email_outlined,
-            keyboardType: TextInputType.emailAddress,
-            validator: (v) {
-              if (v == null || v.isEmpty) return 'Masukkan email kamu';
-              if (!v.contains('@')) return 'Email tidak valid';
-              return null;
-            },
-          ),
-          const SizedBox(height: 12),
-          _AuthTextField(
-            controller: _passCtrl,
-            hint: 'Password',
-            prefixIcon: Icons.lock_outline,
-            obscure: true,
-            validator: (v) {
-              if (v == null || v.isEmpty) return 'Masukkan password kamu';
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-          BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) {
-              return _PrimaryButton(
-                label: state is AuthLoading ? 'Memuat...' : 'Masuk',
-                onPressed: state is AuthLoading ? null : _submit,
-              );
-            },
-          ),
-          if (widget.showBiometricLogin) ...[
-            const SizedBox(height: 22),
-            _buildDivider(),
+      child: Builder(
+        builder: (formContext) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _AuthTextField(
+              controller: _emailCtrl,
+              hint: 'Email',
+              prefixIcon: Icons.email_outlined,
+              keyboardType: TextInputType.emailAddress,
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Masukkan email kamu';
+                if (!v.contains('@')) return 'Email tidak valid';
+                return null;
+              },
+            ),
             const SizedBox(height: 12),
-            _buildBiometricButton(),
+            _AuthTextField(
+              controller: _passCtrl,
+              hint: 'Password',
+              prefixIcon: Icons.lock_outline,
+              obscure: true,
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Masukkan password kamu';
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, state) {
+                return _PrimaryButton(
+                  label: state is AuthLoading ? 'Memuat...' : 'Masuk',
+                  onPressed: state is AuthLoading
+                      ? null
+                      : () => _submit(formContext),
+                );
+              },
+            ),
+            if (widget.showBiometricLogin) ...[
+              const SizedBox(height: 22),
+              _buildDivider(),
+              const SizedBox(height: 12),
+              _buildBiometricButton(),
+            ],
+            const SizedBox(height: 16),
+            _buildRegisterRedirect(),
+            const SizedBox(height: 8),
           ],
-          const SizedBox(height: 16),
-          _buildRegisterRedirect(),
-          const SizedBox(height: 8),
-        ],
+        ),
       ),
     );
   }

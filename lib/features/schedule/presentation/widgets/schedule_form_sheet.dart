@@ -30,7 +30,6 @@ class ScheduleFormSheet extends StatefulWidget {
 }
 
 class _ScheduleFormSheetState extends State<ScheduleFormSheet> {
-  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _linkController = TextEditingController();
@@ -96,8 +95,8 @@ class _ScheduleFormSheetState extends State<ScheduleFormSheet> {
     super.dispose();
   }
 
-  void _save() {
-    if (!_formKey.currentState!.validate()) return;
+  void _save(BuildContext formContext) {
+    if (Form.maybeOf(formContext)?.validate() != true) return;
 
     final start = DateTime(
       _startDate.year,
@@ -164,106 +163,107 @@ class _ScheduleFormSheetState extends State<ScheduleFormSheet> {
           bottom: BottomSheetInsets.bottom(context),
         ),
         child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const _SheetHandle(),
-                const SizedBox(height: 18),
-                Text(
-                  _isEditing ? 'Edit Jadwal' : 'Tambah Jadwal',
-                  style: AppTextStyles.heading,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 18),
-                TextFormField(
-                  controller: _nameController,
-                  style: AppTextStyles.body,
-                  decoration: const InputDecoration(
-                    hintText: 'Nama jadwal',
-                    prefixIcon: Icon(Icons.event_outlined),
+          child: Builder(
+            builder: (formContext) => SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const _SheetHandle(),
+                  const SizedBox(height: 18),
+                  Text(
+                    _isEditing ? 'Edit Jadwal' : 'Tambah Jadwal',
+                    style: AppTextStyles.heading,
+                    textAlign: TextAlign.center,
                   ),
-                  validator: (value) => value == null || value.trim().isEmpty
-                      ? 'Nama jadwal wajib diisi'
-                      : null,
-                ),
-                const SizedBox(height: 16),
-                _SectionLabel('Waktu Mulai'),
-                const SizedBox(height: 8),
-                _DateTimeRow(
-                  dateLabel: _formatDate(_startDate),
-                  timeLabel: _formatTime(_startTime),
-                  onDateTap: () => _pickDate(isStart: true),
-                  onTimeTap: () => _pickTime(isStart: true),
-                ),
-                const SizedBox(height: 14),
-                _SectionLabel('Waktu Selesai'),
-                const SizedBox(height: 8),
-                _DateTimeRow(
-                  dateLabel: _formatDate(_endDate),
-                  timeLabel: _formatTime(_endTime),
-                  onDateTap: () => _pickDate(isStart: false),
-                  onTimeTap: () => _pickTime(isStart: false),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _descriptionController,
-                  style: AppTextStyles.body,
-                  maxLines: 3,
-                  decoration: const InputDecoration(
-                    hintText: 'Deskripsi (opsional)',
-                    prefixIcon: Icon(Icons.notes_outlined),
+                  const SizedBox(height: 18),
+                  TextFormField(
+                    controller: _nameController,
+                    style: AppTextStyles.body,
+                    decoration: const InputDecoration(
+                      hintText: 'Nama jadwal',
+                      prefixIcon: Icon(Icons.event_outlined),
+                    ),
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? 'Nama jadwal wajib diisi'
+                        : null,
                   ),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _linkController,
-                  style: AppTextStyles.body,
-                  decoration: const InputDecoration(
-                    hintText: 'Tautan (opsional)',
-                    prefixIcon: Icon(Icons.link_rounded),
+                  const SizedBox(height: 16),
+                  _SectionLabel('Waktu Mulai'),
+                  const SizedBox(height: 8),
+                  _DateTimeRow(
+                    dateLabel: _formatDate(_startDate),
+                    timeLabel: _formatTime(_startTime),
+                    onDateTap: () => _pickDate(isStart: true),
+                    onTimeTap: () => _pickTime(isStart: true),
                   ),
-                ),
-                const SizedBox(height: 16),
-                _SectionLabel('Perulangan'),
-                const SizedBox(height: 8),
-                RecurrencePickerWidget(
-                  selectedRecurrence: _selectedRecurrence,
-                  recurrenceEnd: _recurrenceEnd,
-                  onRecurrenceChanged: (value) =>
-                      setState(() => _selectedRecurrence = value),
-                  onRecurrenceEndChanged: (value) =>
-                      setState(() => _recurrenceEnd = value),
-                ),
-                const SizedBox(height: 16),
-                _SectionLabel('Warna'),
-                const SizedBox(height: 8),
-                ColorPickerWidget(
-                  selectedColor: _selectedColor,
-                  onColorSelected: (value) =>
-                      setState(() => _selectedColor = value),
-                ),
-                const SizedBox(height: 16),
-                _SectionLabel('Ikon'),
-                const SizedBox(height: 8),
-                IconPickerWidget(
-                  selectedIcon: _selectedIcon,
-                  onIconSelected: (value) =>
-                      setState(() => _selectedIcon = value),
-                ),
-                const SizedBox(height: 22),
-                SizedBox(
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _save,
-                    child: Text(
-                      _isEditing ? 'Simpan Perubahan' : 'Tambah Jadwal',
+                  const SizedBox(height: 14),
+                  _SectionLabel('Waktu Selesai'),
+                  const SizedBox(height: 8),
+                  _DateTimeRow(
+                    dateLabel: _formatDate(_endDate),
+                    timeLabel: _formatTime(_endTime),
+                    onDateTap: () => _pickDate(isStart: false),
+                    onTimeTap: () => _pickTime(isStart: false),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _descriptionController,
+                    style: AppTextStyles.body,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      hintText: 'Deskripsi (opsional)',
+                      prefixIcon: Icon(Icons.notes_outlined),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _linkController,
+                    style: AppTextStyles.body,
+                    decoration: const InputDecoration(
+                      hintText: 'Tautan (opsional)',
+                      prefixIcon: Icon(Icons.link_rounded),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _SectionLabel('Perulangan'),
+                  const SizedBox(height: 8),
+                  RecurrencePickerWidget(
+                    selectedRecurrence: _selectedRecurrence,
+                    recurrenceEnd: _recurrenceEnd,
+                    onRecurrenceChanged: (value) =>
+                        setState(() => _selectedRecurrence = value),
+                    onRecurrenceEndChanged: (value) =>
+                        setState(() => _recurrenceEnd = value),
+                  ),
+                  const SizedBox(height: 16),
+                  _SectionLabel('Warna'),
+                  const SizedBox(height: 8),
+                  ColorPickerWidget(
+                    selectedColor: _selectedColor,
+                    onColorSelected: (value) =>
+                        setState(() => _selectedColor = value),
+                  ),
+                  const SizedBox(height: 16),
+                  _SectionLabel('Ikon'),
+                  const SizedBox(height: 8),
+                  IconPickerWidget(
+                    selectedIcon: _selectedIcon,
+                    onIconSelected: (value) =>
+                        setState(() => _selectedIcon = value),
+                  ),
+                  const SizedBox(height: 22),
+                  SizedBox(
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () => _save(formContext),
+                      child: Text(
+                        _isEditing ? 'Simpan Perubahan' : 'Tambah Jadwal',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

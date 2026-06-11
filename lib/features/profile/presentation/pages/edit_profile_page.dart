@@ -24,7 +24,6 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _bioController = TextEditingController();
   final _picker = ImagePicker();
@@ -67,8 +66,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
     });
   }
 
-  Future<void> _save() async {
-    if (!_formKey.currentState!.validate() || _isSaving) return;
+  Future<void> _save(BuildContext formContext) async {
+    if (Form.maybeOf(formContext)?.validate() != true || _isSaving) return;
 
     setState(() => _isSaving = true);
     try {
@@ -173,54 +172,55 @@ class _EditProfilePageState extends State<EditProfilePage> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
           child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _AvatarPicker(
-                  name: _nameController.text,
-                  avatarUrl: _avatarUrl,
-                  pickedBytes: _pickedBytes,
-                  onPick: _pickPhoto,
-                ),
-                const SizedBox(height: 24),
-                TextFormField(
-                  controller: _nameController,
-                  style: AppTextStyles.body,
-                  decoration: const InputDecoration(
-                    labelText: 'Nama',
-                    prefixIcon: Icon(Icons.person_outline_rounded),
+            child: Builder(
+              builder: (formContext) => Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _AvatarPicker(
+                    name: _nameController.text,
+                    avatarUrl: _avatarUrl,
+                    pickedBytes: _pickedBytes,
+                    onPick: _pickPhoto,
                   ),
-                  validator: (value) => value == null || value.trim().isEmpty
-                      ? 'Nama wajib diisi'
-                      : null,
-                ),
-                const SizedBox(height: 14),
-                TextFormField(
-                  controller: _bioController,
-                  style: AppTextStyles.body,
-                  minLines: 3,
-                  maxLines: 4,
-                  decoration: const InputDecoration(
-                    labelText: 'Bio',
-                    prefixIcon: Icon(Icons.notes_outlined),
+                  const SizedBox(height: 24),
+                  TextFormField(
+                    controller: _nameController,
+                    style: AppTextStyles.body,
+                    decoration: const InputDecoration(
+                      labelText: 'Nama',
+                      prefixIcon: Icon(Icons.person_outline_rounded),
+                    ),
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? 'Nama wajib diisi'
+                        : null,
                   ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _isSaving ? null : _save,
-                    child: _isSaving
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Simpan Profil'),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: _bioController,
+                    style: AppTextStyles.body,
+                    minLines: 3,
+                    maxLines: 4,
+                    decoration: const InputDecoration(
+                      labelText: 'Bio',
+                      prefixIcon: Icon(Icons.notes_outlined),
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _isSaving ? null : () => _save(formContext),
+                      child: _isSaving
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Simpan Profil'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

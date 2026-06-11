@@ -25,7 +25,6 @@ class _RegisterFormState extends State<RegisterForm> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   final _confirmPassCtrl = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -36,8 +35,8 @@ class _RegisterFormState extends State<RegisterForm> {
     super.dispose();
   }
 
-  void _submit() {
-    if (_formKey.currentState!.validate()) {
+  void _submit(BuildContext formContext) {
+    if (Form.maybeOf(formContext)?.validate() == true) {
       context.read<AuthBloc>().add(
         RegisterRequested(
           name: _nameCtrl.text.trim(),
@@ -60,76 +59,79 @@ class _RegisterFormState extends State<RegisterForm> {
         // AuthError ditangani oleh AuthPage BlocListener (snackbar global)
       },
       child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _AuthTextField(
-                controller: _nameCtrl,
-                hint: 'Nama Lengkap',
-                prefixIcon: Icons.person_outline,
-                keyboardType: TextInputType.name,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) {
-                    return 'Masukkan nama kamu';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              _AuthTextField(
-                controller: _emailCtrl,
-                hint: 'Email',
-                prefixIcon: Icons.email_outlined,
-                keyboardType: TextInputType.emailAddress,
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Masukkan email kamu';
-                  if (!v.contains('@')) return 'Email tidak valid';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              _AuthTextField(
-                controller: _passCtrl,
-                hint: 'Password (min. 6 karakter)',
-                prefixIcon: Icons.lock_outline,
-                obscure: true,
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Masukkan password';
-                  if (v.length < 6) return 'Password minimal 6 karakter';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              _AuthTextField(
-                controller: _confirmPassCtrl,
-                hint: 'Konfirmasi Password',
-                prefixIcon: Icons.lock_outline,
-                obscure: true,
-                validator: (v) {
-                  if (v == null || v.isEmpty) {
-                    return 'Konfirmasi password kamu';
-                  }
-                  if (v != _passCtrl.text) return 'Password tidak cocok';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-              BlocBuilder<AuthBloc, AuthState>(
-                builder: (context, state) {
-                  return _PrimaryButton(
-                    label: state is AuthLoading ? 'Memuat...' : 'Daftar',
-                    onPressed: state is AuthLoading ? null : _submit,
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-              _buildTermsText(),
-              const SizedBox(height: 16),
-              _buildLoginRedirect(),
-              const SizedBox(height: 16),
-            ],
+        child: Builder(
+          builder: (formContext) => SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _AuthTextField(
+                  controller: _nameCtrl,
+                  hint: 'Nama Lengkap',
+                  prefixIcon: Icons.person_outline,
+                  keyboardType: TextInputType.name,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) {
+                      return 'Masukkan nama kamu';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                _AuthTextField(
+                  controller: _emailCtrl,
+                  hint: 'Email',
+                  prefixIcon: Icons.email_outlined,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Masukkan email kamu';
+                    if (!v.contains('@')) return 'Email tidak valid';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                _AuthTextField(
+                  controller: _passCtrl,
+                  hint: 'Password (min. 6 karakter)',
+                  prefixIcon: Icons.lock_outline,
+                  obscure: true,
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Masukkan password';
+                    if (v.length < 6) return 'Password minimal 6 karakter';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                _AuthTextField(
+                  controller: _confirmPassCtrl,
+                  hint: 'Konfirmasi Password',
+                  prefixIcon: Icons.lock_outline,
+                  obscure: true,
+                  validator: (v) {
+                    if (v == null || v.isEmpty) {
+                      return 'Konfirmasi password kamu';
+                    }
+                    if (v != _passCtrl.text) return 'Password tidak cocok';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+                BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    return _PrimaryButton(
+                      label: state is AuthLoading ? 'Memuat...' : 'Daftar',
+                      onPressed: state is AuthLoading
+                          ? null
+                          : () => _submit(formContext),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+                _buildTermsText(),
+                const SizedBox(height: 16),
+                _buildLoginRedirect(),
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
         ),
       ),

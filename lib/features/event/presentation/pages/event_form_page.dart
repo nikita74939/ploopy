@@ -20,7 +20,6 @@ class EventFormPage extends StatefulWidget {
 }
 
 class _EventFormPageState extends State<EventFormPage> {
-  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
@@ -79,104 +78,105 @@ class _EventFormPageState extends State<EventFormPage> {
         ),
       ),
       body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-          children: [
-            _FieldCard(
-              child: TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nama event',
-                  border: InputBorder.none,
-                ),
-                validator: (value) => value == null || value.trim().isEmpty
-                    ? 'Nama event wajib diisi.'
-                    : null,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _FieldCard(
-              child: SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                value: _isOnline,
-                onChanged: (value) => setState(() => _isOnline = value),
-                activeThumbColor: AppColors.primary,
-                title: Text('Event online', style: AppTextStyles.body),
-                subtitle: Text(
-                  _isOnline
-                      ? 'Event online tidak wajib punya titik peta.'
-                      : 'Event offline wajib memilih lokasi di peta.',
-                  style: AppTextStyles.bodySmall,
+        child: Builder(
+          builder: (formContext) => ListView(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+            children: [
+              _FieldCard(
+                child: TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nama event',
+                    border: InputBorder.none,
+                  ),
+                  validator: (value) => value == null || value.trim().isEmpty
+                      ? 'Nama event wajib diisi.'
+                      : null,
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-            _DatePickerCard(date: _eventDate, onTap: _pickDateTime),
-            const SizedBox(height: 12),
-            if (!_isOnline)
-              _LocationSection(
-                controller: _locationController,
-                selectedLocation: _selectedLocation,
-                onPickLocation: _pickLocation,
-              ),
-            if (!_isOnline) const SizedBox(height: 12),
-            _FieldCard(
-              child: TextFormField(
-                controller: _maxParticipantsController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Maksimal peserta',
-                  hintText: 'Kosongkan jika tidak dibatasi',
-                  border: InputBorder.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            _FieldCard(
-              child: TextFormField(
-                controller: _priceController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Harga',
-                  prefixText: 'Rp ',
-                  border: InputBorder.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            _FieldCard(
-              child: TextFormField(
-                controller: _descriptionController,
-                minLines: 3,
-                maxLines: 5,
-                decoration: const InputDecoration(
-                  labelText: 'Deskripsi',
-                  border: InputBorder.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 18),
-            SizedBox(
-              height: 52,
-              child: ElevatedButton.icon(
-                onPressed: _submit,
-                icon: const Icon(Icons.save_rounded, size: 18),
-                label: Text(
-                  _isEditing ? 'Simpan Perubahan' : 'Buat Event',
-                  style: AppTextStyles.buttonPrimary,
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+              const SizedBox(height: 12),
+              _FieldCard(
+                child: SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: _isOnline,
+                  onChanged: (value) => setState(() => _isOnline = value),
+                  activeThumbColor: AppColors.primary,
+                  title: Text('Event online', style: AppTextStyles.body),
+                  subtitle: Text(
+                    _isOnline
+                        ? 'Event online tidak wajib punya titik peta.'
+                        : 'Event offline wajib memilih lokasi di peta.',
+                    style: AppTextStyles.bodySmall,
                   ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              _DatePickerCard(date: _eventDate, onTap: _pickDateTime),
+              const SizedBox(height: 12),
+              if (!_isOnline)
+                _LocationSection(
+                  controller: _locationController,
+                  selectedLocation: _selectedLocation,
+                  onPickLocation: _pickLocation,
+                ),
+              if (!_isOnline) const SizedBox(height: 12),
+              _FieldCard(
+                child: TextFormField(
+                  controller: _maxParticipantsController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Maksimal peserta',
+                    hintText: 'Kosongkan jika tidak dibatasi',
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _FieldCard(
+                child: TextFormField(
+                  controller: _priceController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Harga',
+                    prefixText: 'Rp ',
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _FieldCard(
+                child: TextFormField(
+                  controller: _descriptionController,
+                  minLines: 3,
+                  maxLines: 5,
+                  decoration: const InputDecoration(
+                    labelText: 'Deskripsi',
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: () => _submit(formContext),
+                  icon: const Icon(Icons.save_rounded, size: 18),
+                  label: Text(
+                    _isEditing ? 'Simpan Perubahan' : 'Buat Event',
+                    style: AppTextStyles.buttonPrimary,
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -225,8 +225,8 @@ class _EventFormPageState extends State<EventFormPage> {
     });
   }
 
-  void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+  void _submit(BuildContext formContext) {
+    if (Form.maybeOf(formContext)?.validate() != true) return;
     if (!_isOnline && _selectedLocation == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

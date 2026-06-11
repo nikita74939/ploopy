@@ -24,7 +24,6 @@ class TaskFormSheet extends StatefulWidget {
 }
 
 class _TaskFormSheetState extends State<TaskFormSheet> {
-  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _subjectController = TextEditingController();
   final _detailsController = TextEditingController();
@@ -87,8 +86,8 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
     super.dispose();
   }
 
-  void _save() {
-    if (!_formKey.currentState!.validate()) return;
+  void _save(BuildContext formContext) {
+    if (Form.maybeOf(formContext)?.validate() != true) return;
 
     final deadline = DateTime(
       _deadline.year,
@@ -141,102 +140,104 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
           bottom: BottomSheetInsets.bottom(context),
         ),
         child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const _SheetHandle(),
-                const SizedBox(height: 18),
-                Text(
-                  _isEditing ? 'Edit Task' : 'Tambah Task',
-                  style: AppTextStyles.heading,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 18),
-                TextFormField(
-                  controller: _nameController,
-                  style: AppTextStyles.body,
-                  decoration: const InputDecoration(
-                    hintText: 'Nama task',
-                    prefixIcon: Icon(Icons.assignment_outlined),
+          child: Builder(
+            builder: (formContext) => SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const _SheetHandle(),
+                  const SizedBox(height: 18),
+                  Text(
+                    _isEditing ? 'Edit Task' : 'Tambah Task',
+                    style: AppTextStyles.heading,
+                    textAlign: TextAlign.center,
                   ),
-                  validator: (value) => value == null || value.trim().isEmpty
-                      ? 'Nama task wajib diisi'
-                      : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _subjectController,
-                  style: AppTextStyles.body,
-                  decoration: const InputDecoration(
-                    hintText: 'Mata pelajaran (opsional)',
-                    prefixIcon: Icon(Icons.book_outlined),
+                  const SizedBox(height: 18),
+                  TextFormField(
+                    controller: _nameController,
+                    style: AppTextStyles.body,
+                    decoration: const InputDecoration(
+                      hintText: 'Nama task',
+                      prefixIcon: Icon(Icons.assignment_outlined),
+                    ),
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? 'Nama task wajib diisi'
+                        : null,
                   ),
-                ),
-                const SizedBox(height: 12),
-                _SectionLabel('Deadline'),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _PickerTile(
-                        icon: Icons.calendar_today_outlined,
-                        label:
-                            '${_deadline.day}/${_deadline.month}/${_deadline.year}',
-                        onTap: _pickDate,
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _subjectController,
+                    style: AppTextStyles.body,
+                    decoration: const InputDecoration(
+                      hintText: 'Mata pelajaran (opsional)',
+                      prefixIcon: Icon(Icons.book_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _SectionLabel('Deadline'),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _PickerTile(
+                          icon: Icons.calendar_today_outlined,
+                          label:
+                              '${_deadline.day}/${_deadline.month}/${_deadline.year}',
+                          onTap: _pickDate,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _PickerTile(
+                          icon: Icons.access_time_outlined,
+                          label:
+                              '${_deadlineTime.hour.toString().padLeft(2, '0')}:${_deadlineTime.minute.toString().padLeft(2, '0')}',
+                          onTap: _pickTime,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _detailsController,
+                    style: AppTextStyles.body,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      hintText: 'Detail (opsional)',
+                      prefixIcon: Icon(Icons.notes_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _SectionLabel('Warna'),
+                  const SizedBox(height: 8),
+                  _ColorChoices(
+                    colors: _colors,
+                    selectedColor: _selectedColor,
+                    onSelected: (color) =>
+                        setState(() => _selectedColor = color),
+                  ),
+                  const SizedBox(height: 16),
+                  _SectionLabel('Ikon'),
+                  const SizedBox(height: 8),
+                  _IconChoices(
+                    icons: _icons,
+                    selectedIcon: _selectedIcon,
+                    selectedColor: _selectedColor,
+                    onSelected: (icon) => setState(() => _selectedIcon = icon),
+                  ),
+                  const SizedBox(height: 22),
+                  SizedBox(
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () => _save(formContext),
+                      child: Text(
+                        _isEditing ? 'Simpan Perubahan' : 'Tambah Task',
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _PickerTile(
-                        icon: Icons.access_time_outlined,
-                        label:
-                            '${_deadlineTime.hour.toString().padLeft(2, '0')}:${_deadlineTime.minute.toString().padLeft(2, '0')}',
-                        onTap: _pickTime,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _detailsController,
-                  style: AppTextStyles.body,
-                  maxLines: 3,
-                  decoration: const InputDecoration(
-                    hintText: 'Detail (opsional)',
-                    prefixIcon: Icon(Icons.notes_outlined),
                   ),
-                ),
-                const SizedBox(height: 16),
-                _SectionLabel('Warna'),
-                const SizedBox(height: 8),
-                _ColorChoices(
-                  colors: _colors,
-                  selectedColor: _selectedColor,
-                  onSelected: (color) => setState(() => _selectedColor = color),
-                ),
-                const SizedBox(height: 16),
-                _SectionLabel('Ikon'),
-                const SizedBox(height: 8),
-                _IconChoices(
-                  icons: _icons,
-                  selectedIcon: _selectedIcon,
-                  selectedColor: _selectedColor,
-                  onSelected: (icon) => setState(() => _selectedIcon = icon),
-                ),
-                const SizedBox(height: 22),
-                SizedBox(
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _save,
-                    child: Text(
-                      _isEditing ? 'Simpan Perubahan' : 'Tambah Task',
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

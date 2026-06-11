@@ -48,17 +48,19 @@ export async function unlockUserAchievement({ userId, achievementId }) {
     throw httpError(404, 'Achievement tidak ditemukan.');
   }
 
-  const { data: existing, error: existingError } = await supabaseAdmin
+  const { data: existingRows, error: existingError } = await supabaseAdmin
     .from('user_achievements')
     .select('id, user_id, achievement_id, unlocked_at')
     .eq('user_id', userId)
     .eq('achievement_id', achievementId)
-    .maybeSingle();
+    .order('unlocked_at', { ascending: true })
+    .limit(1);
 
   if (existingError) {
     throw httpError(500, existingError.message);
   }
 
+  const existing = existingRows?.[0];
   if (existing) {
     return existing;
   }
@@ -74,13 +76,15 @@ export async function unlockUserAchievement({ userId, achievementId }) {
 
   if (error) {
     if (error.code === '23505') {
-      const { data: duplicate, error: duplicateError } = await supabaseAdmin
+      const { data: duplicateRows, error: duplicateError } = await supabaseAdmin
         .from('user_achievements')
         .select('id, user_id, achievement_id, unlocked_at')
         .eq('user_id', userId)
         .eq('achievement_id', achievementId)
-        .maybeSingle();
+        .order('unlocked_at', { ascending: true })
+        .limit(1);
       if (duplicateError) throw httpError(500, duplicateError.message);
+      const duplicate = duplicateRows?.[0];
       if (duplicate) return duplicate;
     }
     throw httpError(500, error.message);
