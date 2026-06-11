@@ -46,7 +46,10 @@ class _AuthPageState extends State<AuthPage> {
     _isNavigatingToHome = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, AppRoutes.home);
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.home,
+        (route) => false,
+      );
     });
   }
 
@@ -120,14 +123,7 @@ class _AuthPageState extends State<AuthPage> {
         if (state is Authenticated) {
           _refreshBiometricAvailability();
           if (_isBiometricLoginSheetOpen) return;
-          if (state.user.biometricEnabled) {
-            _navigateToHome();
-          } else {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!mounted) return;
-              _showBiometricActivationSheet(onSkipped: _navigateToHome);
-            });
-          }
+          _navigateToHome();
         } else if (state is BiometricEnabled) {
           _refreshBiometricAvailability();
           _navigateToHome();
