@@ -2,7 +2,6 @@ class ActivityEntity {
   final String id;
   final String userId;
   final String text;
-  final String? location;
   final String? achievementId;
   final List<String> imageUrls;
   final int likeCount;
@@ -18,7 +17,6 @@ class ActivityEntity {
     required this.id,
     required this.userId,
     required this.text,
-    this.location,
     this.achievementId,
     required this.imageUrls,
     required this.likeCount,

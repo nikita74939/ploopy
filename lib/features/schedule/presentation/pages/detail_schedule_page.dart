@@ -116,13 +116,6 @@ class DetailSchedulePage extends StatelessWidget {
                   '${DateFormat('HH:mm').format(schedule.startTime)} – ${DateFormat('HH:mm').format(schedule.endTime)}  (${_getDuration()})',
               color: AppColors.primary,
             ),
-            if (schedule.location?.isNotEmpty == true)
-              _DetailRow(
-                icon: Icons.location_on_outlined,
-                label: 'Lokasi',
-                value: schedule.location!,
-                color: const Color(0xFFE53935),
-              ),
             if (schedule.description?.isNotEmpty == true)
               _DetailRow(
                 icon: Icons.notes_outlined,

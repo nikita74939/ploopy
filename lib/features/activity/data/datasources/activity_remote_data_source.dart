@@ -14,7 +14,6 @@ abstract class ActivityRemoteDataSource {
   Future<ActivityModel> createActivity({
     required String userId,
     required String text,
-    String? location,
     String? achievementId,
     List<String>? imageUrls,
   });
@@ -76,7 +75,6 @@ class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
   Future<ActivityModel> createActivity({
     required String userId,
     required String text,
-    String? location,
     String? achievementId,
     List<String>? imageUrls,
   }) async {
@@ -86,8 +84,6 @@ class ActivityRemoteDataSourceImpl implements ActivityRemoteDataSource {
           headers: await _jsonHeaders(),
           body: jsonEncode({
             'text': text,
-            if (location != null && location.trim().isNotEmpty)
-              'location': location.trim(),
             if (achievementId != null) 'achievementId': achievementId,
             if (imageUrls != null && imageUrls.isNotEmpty) 'images': imageUrls,
           }),

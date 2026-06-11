@@ -207,7 +207,6 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
       schedule.name.trim().toLowerCase(),
       schedule.startTime.toUtc().toIso8601String(),
       schedule.endTime.toUtc().toIso8601String(),
-      schedule.location?.trim().toLowerCase() ?? '',
     ].join('|');
   }
 }

@@ -6,7 +6,6 @@ class ScheduleEntity {
   final DateTime endTime;
   final String recurrence; // none | daily | weekly | monthly
   final DateTime? recurrenceEnd;
-  final String? location;
   final int color; // stored as int (ARGB), same as ScheduleModel
   final String? description;
   final String? url; // maps to ScheduleModel.link
@@ -21,7 +20,6 @@ class ScheduleEntity {
     required this.endTime,
     this.recurrence = 'None',
     this.recurrenceEnd,
-    this.location,
     required this.color,
     this.description,
     this.url,
@@ -37,7 +35,6 @@ class ScheduleEntity {
     DateTime? endTime,
     String? recurrence,
     DateTime? recurrenceEnd,
-    String? location,
     int? color,
     String? description,
     String? url,
@@ -52,7 +49,6 @@ class ScheduleEntity {
       endTime: endTime ?? this.endTime,
       recurrence: recurrence ?? this.recurrence,
       recurrenceEnd: recurrenceEnd ?? this.recurrenceEnd,
-      location: location ?? this.location,
       color: color ?? this.color,
       description: description ?? this.description,
       url: url ?? this.url,

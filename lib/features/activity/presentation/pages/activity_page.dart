@@ -292,10 +292,6 @@ class _ActivityCard extends StatelessWidget {
           const SizedBox(height: 12),
           _buildImageGrid(activity.imageUrls),
         ],
-        if (activity.location != null) ...[
-          const SizedBox(height: 12),
-          _buildInfoBox(),
-        ],
         const SizedBox(height: 12),
         _buildActions(context),
       ],
@@ -473,33 +469,6 @@ class _ActivityCard extends StatelessWidget {
           color: Colors.grey.shade400,
           size: 28,
         ),
-      ),
-    );
-  }
-
-  Widget _buildInfoBox() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.location_on_rounded,
-            size: 14,
-            color: Colors.grey.shade500,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            activity.location!,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: Colors.grey.shade700,
-            ),
-          ),
-        ],
       ),
     );
   }

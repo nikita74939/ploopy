@@ -32,7 +32,6 @@ class ScheduleFormSheet extends StatefulWidget {
 class _ScheduleFormSheetState extends State<ScheduleFormSheet> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _locationController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _linkController = TextEditingController();
 
@@ -76,7 +75,6 @@ class _ScheduleFormSheetState extends State<ScheduleFormSheet> {
     }
 
     _nameController.text = schedule.name;
-    _locationController.text = schedule.location ?? '';
     _descriptionController.text = schedule.description ?? '';
     _linkController.text = schedule.url ?? '';
     _startDate = schedule.startTime;
@@ -93,7 +91,6 @@ class _ScheduleFormSheetState extends State<ScheduleFormSheet> {
   @override
   void dispose() {
     _nameController.dispose();
-    _locationController.dispose();
     _descriptionController.dispose();
     _linkController.dispose();
     super.dispose();
@@ -132,7 +129,6 @@ class _ScheduleFormSheetState extends State<ScheduleFormSheet> {
       endTime: end,
       recurrence: _selectedRecurrence,
       recurrenceEnd: _selectedRecurrence == 'None' ? null : _recurrenceEnd,
-      location: _nullableText(_locationController.text),
       color: int.parse(_selectedColor),
       description: _nullableText(_descriptionController.text),
       url: _nullableText(_linkController.text),
@@ -212,15 +208,6 @@ class _ScheduleFormSheetState extends State<ScheduleFormSheet> {
                   onTimeTap: () => _pickTime(isStart: false),
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _locationController,
-                  style: AppTextStyles.body,
-                  decoration: const InputDecoration(
-                    hintText: 'Lokasi (opsional)',
-                    prefixIcon: Icon(Icons.location_on_outlined),
-                  ),
-                ),
-                const SizedBox(height: 12),
                 TextFormField(
                   controller: _descriptionController,
                   style: AppTextStyles.body,

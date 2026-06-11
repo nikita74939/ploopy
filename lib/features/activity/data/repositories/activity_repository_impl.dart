@@ -30,14 +30,12 @@ class ActivityRepositoryImpl implements ActivityRepository {
   Future<ActivityEntity> createActivity({
     required String userId,
     required String text,
-    String? location,
     String? achievementId,
     List<String>? imageUrls,
   }) async {
     final activity = await remoteDataSource.createActivity(
       userId: userId,
       text: text,
-      location: location,
       achievementId: achievementId,
       imageUrls: imageUrls,
     );

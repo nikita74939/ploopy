@@ -10,7 +10,6 @@ class ScheduleModel {
   late String name;
   late DateTime startTime;
   late DateTime endTime;
-  String? location;
   String? description;
   String? link;
   late int color;
@@ -33,7 +32,6 @@ class ScheduleModel {
     required String name,
     required DateTime startTime,
     required DateTime endTime,
-    String? location,
     String? description,
     String? link,
     int? color,
@@ -46,7 +44,6 @@ class ScheduleModel {
       ..name = name
       ..startTime = startTime
       ..endTime = endTime
-      ..location = location
       ..description = description
       ..link = link
       ..color = color ?? 0xFF6C63FF
@@ -96,7 +93,6 @@ class ScheduleModel {
       endTime: endTime,
       recurrence: _repeatTypeToString(repeatType),
       recurrenceEnd: repeatUntil,
-      location: location,
       color: color,
       description: description,
       url: link,
@@ -114,7 +110,6 @@ class ScheduleModel {
       ..name = json['name'] as String
       ..startTime = DateTime.parse(json['start_time'] as String).toLocal()
       ..endTime = DateTime.parse(json['end_time'] as String).toLocal()
-      ..location = json['location'] as String?
       ..description = json['description'] as String?
       ..link = json['link'] as String?
       ..color = (json['color'] as num?)?.toInt() ?? 0xFFFF7600
@@ -135,7 +130,6 @@ class ScheduleModel {
       'name': name,
       'startTime': startTime.toUtc().toIso8601String(),
       'endTime': endTime.toUtc().toIso8601String(),
-      'location': location,
       'description': description,
       'link': link,
       'color': color,
@@ -152,7 +146,6 @@ class ScheduleModel {
       ..name = entity.name
       ..startTime = entity.startTime
       ..endTime = entity.endTime
-      ..location = entity.location
       ..description = entity.description
       ..link = entity.url
       ..color = entity.color

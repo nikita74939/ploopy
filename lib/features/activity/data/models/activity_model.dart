@@ -6,7 +6,6 @@ class ActivityModel {
   final String id;
   final String userId;
   final String text;
-  final String? location;
   final String? achievementId;
   final DateTime createdAt;
 
@@ -26,7 +25,6 @@ class ActivityModel {
     required this.id,
     required this.userId,
     required this.text,
-    this.location,
     this.achievementId,
     required this.createdAt,
     this.imageUrls = const [],
@@ -48,7 +46,6 @@ class ActivityModel {
       id: json['id'] as String,
       userId: json['user_id'] as String,
       text: json['text'] as String,
-      location: json['location'] as String?,
       achievementId: json['achievement_id'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       imageUrls: imageUrls,
@@ -63,7 +60,6 @@ class ActivityModel {
   Map<String, dynamic> toInsertJson() => {
     'user_id': userId,
     'text': text,
-    if (location != null) 'location': location,
     if (achievementId != null) 'achievement_id': achievementId,
   };
 
@@ -71,7 +67,6 @@ class ActivityModel {
     id: id,
     userId: userId,
     text: text,
-    location: location,
     achievementId: achievementId,
     imageUrls: imageUrls,
     likeCount: likeCount,
@@ -86,7 +81,6 @@ class ActivityModel {
     id: id,
     userId: userId,
     text: text,
-    location: location,
     achievementId: achievementId,
     createdAt: createdAt,
     imageUrls: imageUrls,

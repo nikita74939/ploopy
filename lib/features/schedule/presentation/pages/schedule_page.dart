@@ -284,26 +284,6 @@ class _SchedulePageState extends State<SchedulePage> {
                           '${DateTimeUtils.formatTime(schedule.startTime)} - ${DateTimeUtils.formatTime(schedule.endTime)}',
                           style: AppTextStyles.bodySmall,
                         ),
-                        if (schedule.location?.isNotEmpty == true) ...[
-                          const SizedBox(height: 5),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.location_on_outlined,
-                                size: 14,
-                                color: AppColors.textSecondary,
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  schedule.location!,
-                                  style: AppTextStyles.caption,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
                         if (schedule.recurrence != 'None') ...[
                           const SizedBox(height: 5),
                           Row(

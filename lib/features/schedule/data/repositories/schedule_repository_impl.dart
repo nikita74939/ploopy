@@ -268,9 +268,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   String _notificationBody(ScheduleModel schedule, DateTime fireTime) {
     final hour = fireTime.hour.toString().padLeft(2, '0');
     final minute = fireTime.minute.toString().padLeft(2, '0');
-    final location = schedule.location?.trim();
-    final place = location == null || location.isEmpty ? '' : ' di $location';
-    return '${schedule.name} mulai pukul $hour:$minute$place.';
+    return '${schedule.name} mulai pukul $hour:$minute.';
   }
 
   int _notificationIdFor(ScheduleModel schedule) {
@@ -280,7 +278,6 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         schedule.userId,
         schedule.name.trim().toLowerCase(),
         schedule.startTime.toUtc().toIso8601String(),
-        schedule.location?.trim().toLowerCase() ?? '',
       ].join('|'),
     );
   }

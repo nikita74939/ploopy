@@ -317,11 +317,7 @@ class _ProfilePageState extends State<ProfilePage> {
       'fullDate': activity.createdAt.toString(),
       'achievements': const [],
       'images': activity.imageUrls,
-      'info': activity.location == null
-          ? const []
-          : [
-              {'icon': '', 'text': activity.location},
-            ],
+      'info': const [],
       'content': activity.text,
     };
   }

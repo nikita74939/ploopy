@@ -28,20 +28,18 @@ class LoadActivitiesByUser extends ActivityEvent {
 class CreateActivity extends ActivityEvent {
   final String userId;
   final String text;
-  final String? location;
   final String? achievementId;
   final List<String>? imageUrls;
 
   CreateActivity({
     required this.userId,
     required this.text,
-    this.location,
     this.achievementId,
     this.imageUrls,
   });
 
   @override
-  List<Object?> get props => [userId, text, location, achievementId, imageUrls];
+  List<Object?> get props => [userId, text, achievementId, imageUrls];
 }
 
 class DeleteActivity extends ActivityEvent {
@@ -189,7 +187,6 @@ class ActivityBloc extends Bloc<ActivityEvent, ActivityState> {
       await repository.createActivity(
         userId: event.userId,
         text: event.text,
-        location: event.location,
         achievementId: event.achievementId,
         imageUrls: event.imageUrls,
       );

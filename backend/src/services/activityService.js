@@ -6,7 +6,7 @@ import { unlockEligibleAchievements } from './achievementService.js';
 import { createNotification } from './notificationService.js';
 
 const activitySelect = `
-  id, user_id, text, location, achievement_id, created_at,
+  id, user_id, text, achievement_id, created_at,
   users(id, name, avatar_url),
   achievements(id, name, badge_icon),
   activity_images(id, image_url, order_index),
@@ -72,9 +72,8 @@ export async function createActivity({ userId, input }) {
   const { data, error } = await supabaseAdmin.from('activities').insert({
     user_id: userId,
     text: String(input.text).trim(),
-    location: input.location ?? null,
     achievement_id: input.achievementId ?? input.achievement_id ?? null,
-  }).select('id, user_id, text, location, achievement_id, created_at').single();
+  }).select('id, user_id, text, achievement_id, created_at').single();
   if (error) throw httpError(500, error.message);
   const images = input.images ?? [];
   if (Array.isArray(images) && images.length) {

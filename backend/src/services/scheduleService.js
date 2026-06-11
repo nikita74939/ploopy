@@ -2,7 +2,7 @@ import { supabaseAdmin } from '../config/supabase.js';
 import { httpError } from '../utils/httpError.js';
 
 const scheduleSelect =
-  'id, user_id, name, start_time, end_time, location, description, link, color, icon_name, repeat_type, repeat_until, created_at';
+  'id, user_id, name, start_time, end_time, description, link, color, icon_name, repeat_type, repeat_until, created_at';
 
 function has(input, key) {
   return Object.prototype.hasOwnProperty.call(input, key);
@@ -18,7 +18,6 @@ function toSchedulePayload(input, userId, { partial = false } = {}) {
   if (!partial || has(input, 'endTime') || has(input, 'end_time')) {
     payload.end_time = input.endTime ?? input.end_time;
   }
-  if (!partial || has(input, 'location')) payload.location = input.location ?? null;
   if (!partial || has(input, 'description')) {
     payload.description = input.description ?? null;
   }

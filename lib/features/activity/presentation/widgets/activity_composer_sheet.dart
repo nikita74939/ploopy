@@ -20,7 +20,6 @@ class ActivityComposerSheet extends StatefulWidget {
 
 class _ActivityComposerSheetState extends State<ActivityComposerSheet> {
   final _textController = TextEditingController();
-  final _locationController = TextEditingController();
   final _picker = ImagePicker();
   XFile? _image;
   Uint8List? _previewBytes;
@@ -29,7 +28,6 @@ class _ActivityComposerSheetState extends State<ActivityComposerSheet> {
   @override
   void dispose() {
     _textController.dispose();
-    _locationController.dispose();
     super.dispose();
   }
 
@@ -69,9 +67,6 @@ class _ActivityComposerSheetState extends State<ActivityComposerSheet> {
       await repository.createActivity(
         userId: widget.userId,
         text: text,
-        location: _locationController.text.trim().isEmpty
-            ? null
-            : _locationController.text.trim(),
         imageUrls: imageUrls,
       );
       if (!mounted) return;
@@ -132,14 +127,6 @@ class _ActivityComposerSheetState extends State<ActivityComposerSheet> {
                 decoration: const InputDecoration(
                   hintText: 'Ceritakan aktivitasmu...',
                   prefixIcon: Icon(Icons.edit_note_rounded),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _locationController,
-                decoration: const InputDecoration(
-                  hintText: 'Lokasi (opsional)',
-                  prefixIcon: Icon(Icons.location_on_outlined),
                 ),
               ),
               const SizedBox(height: 12),

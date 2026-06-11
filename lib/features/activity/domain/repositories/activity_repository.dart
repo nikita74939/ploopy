@@ -8,7 +8,6 @@ abstract class ActivityRepository {
   Future<ActivityEntity> createActivity({
     required String userId,
     required String text,
-    String? location,
     String? achievementId,
     List<String>? imageUrls,
   });

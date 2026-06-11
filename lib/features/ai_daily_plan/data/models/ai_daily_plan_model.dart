@@ -50,7 +50,6 @@ class AiDailyPlanRequestModel {
       'description': schedule.description,
       'start_time': schedule.startTime.toIso8601String(),
       'end_time': schedule.endTime.toIso8601String(),
-      'location': schedule.location,
     };
   }
 }

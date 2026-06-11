@@ -52,44 +52,39 @@ const ScheduleModelSchema = CollectionSchema(
       name: r'link',
       type: IsarType.string,
     ),
-    r'location': PropertySchema(
-      id: 7,
-      name: r'location',
-      type: IsarType.string,
-    ),
     r'name': PropertySchema(
-      id: 8,
+      id: 7,
       name: r'name',
       type: IsarType.string,
     ),
     r'remoteId': PropertySchema(
-      id: 9,
+      id: 8,
       name: r'remoteId',
       type: IsarType.long,
     ),
     r'repeatType': PropertySchema(
-      id: 10,
+      id: 9,
       name: r'repeatType',
       type: IsarType.byte,
       enumMap: _ScheduleModelrepeatTypeEnumValueMap,
     ),
     r'repeatUntil': PropertySchema(
-      id: 11,
+      id: 10,
       name: r'repeatUntil',
       type: IsarType.dateTime,
     ),
     r'startTime': PropertySchema(
-      id: 12,
+      id: 11,
       name: r'startTime',
       type: IsarType.dateTime,
     ),
     r'syncState': PropertySchema(
-      id: 13,
+      id: 12,
       name: r'syncState',
       type: IsarType.string,
     ),
     r'userId': PropertySchema(
-      id: 14,
+      id: 13,
       name: r'userId',
       type: IsarType.string,
     )
@@ -132,12 +127,6 @@ int _scheduleModelEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
-  {
-    final value = object.location;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
   bytesCount += 3 + object.name.length * 3;
   bytesCount += 3 + object.syncState.length * 3;
   bytesCount += 3 + object.userId.length * 3;
@@ -157,14 +146,13 @@ void _scheduleModelSerialize(
   writer.writeDateTime(offsets[4], object.endTime);
   writer.writeString(offsets[5], object.iconName);
   writer.writeString(offsets[6], object.link);
-  writer.writeString(offsets[7], object.location);
-  writer.writeString(offsets[8], object.name);
-  writer.writeLong(offsets[9], object.remoteId);
-  writer.writeByte(offsets[10], object.repeatType.index);
-  writer.writeDateTime(offsets[11], object.repeatUntil);
-  writer.writeDateTime(offsets[12], object.startTime);
-  writer.writeString(offsets[13], object.syncState);
-  writer.writeString(offsets[14], object.userId);
+  writer.writeString(offsets[7], object.name);
+  writer.writeLong(offsets[8], object.remoteId);
+  writer.writeByte(offsets[9], object.repeatType.index);
+  writer.writeDateTime(offsets[10], object.repeatUntil);
+  writer.writeDateTime(offsets[11], object.startTime);
+  writer.writeString(offsets[12], object.syncState);
+  writer.writeString(offsets[13], object.userId);
 }
 
 ScheduleModel _scheduleModelDeserialize(
@@ -182,16 +170,15 @@ ScheduleModel _scheduleModelDeserialize(
   object.iconName = reader.readStringOrNull(offsets[5]);
   object.id = id;
   object.link = reader.readStringOrNull(offsets[6]);
-  object.location = reader.readStringOrNull(offsets[7]);
-  object.name = reader.readString(offsets[8]);
-  object.remoteId = reader.readLongOrNull(offsets[9]);
-  object.repeatType = _ScheduleModelrepeatTypeValueEnumMap[
-          reader.readByteOrNull(offsets[10])] ??
-      RepeatType.none;
-  object.repeatUntil = reader.readDateTimeOrNull(offsets[11]);
-  object.startTime = reader.readDateTime(offsets[12]);
-  object.syncState = reader.readString(offsets[13]);
-  object.userId = reader.readString(offsets[14]);
+  object.name = reader.readString(offsets[7]);
+  object.remoteId = reader.readLongOrNull(offsets[8]);
+  object.repeatType =
+      _ScheduleModelrepeatTypeValueEnumMap[reader.readByteOrNull(offsets[9])] ??
+          RepeatType.none;
+  object.repeatUntil = reader.readDateTimeOrNull(offsets[10]);
+  object.startTime = reader.readDateTime(offsets[11]);
+  object.syncState = reader.readString(offsets[12]);
+  object.userId = reader.readString(offsets[13]);
   return object;
 }
 
@@ -217,22 +204,20 @@ P _scheduleModelDeserializeProp<P>(
     case 6:
       return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
-    case 8:
       return (reader.readString(offset)) as P;
-    case 9:
+    case 8:
       return (reader.readLongOrNull(offset)) as P;
-    case 10:
+    case 9:
       return (_ScheduleModelrepeatTypeValueEnumMap[
               reader.readByteOrNull(offset)] ??
           RepeatType.none) as P;
-    case 11:
+    case 10:
       return (reader.readDateTimeOrNull(offset)) as P;
-    case 12:
+    case 11:
       return (reader.readDateTime(offset)) as P;
-    case 13:
+    case 12:
       return (reader.readString(offset)) as P;
-    case 14:
+    case 13:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1105,160 +1090,6 @@ extension ScheduleModelQueryFilter
     });
   }
 
-  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
-      locationIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'location',
-      ));
-    });
-  }
-
-  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
-      locationIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'location',
-      ));
-    });
-  }
-
-  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
-      locationEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'location',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
-      locationGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'location',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
-      locationLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'location',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
-      locationBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'location',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
-      locationStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'location',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
-      locationEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'location',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
-      locationContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'location',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
-      locationMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'location',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
-      locationIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'location',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition>
-      locationIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'location',
-        value: '',
-      ));
-    });
-  }
-
   QueryBuilder<ScheduleModel, ScheduleModel, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -2023,19 +1854,6 @@ extension ScheduleModelQuerySortBy
     });
   }
 
-  QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy> sortByLocation() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'location', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy>
-      sortByLocationDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'location', Sort.desc);
-    });
-  }
-
   QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -2228,19 +2046,6 @@ extension ScheduleModelQuerySortThenBy
     });
   }
 
-  QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy> thenByLocation() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'location', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy>
-      thenByLocationDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'location', Sort.desc);
-    });
-  }
-
   QueryBuilder<ScheduleModel, ScheduleModel, QAfterSortBy> thenByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -2378,13 +2183,6 @@ extension ScheduleModelQueryWhereDistinct
     });
   }
 
-  QueryBuilder<ScheduleModel, ScheduleModel, QDistinct> distinctByLocation(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'location', caseSensitive: caseSensitive);
-    });
-  }
-
   QueryBuilder<ScheduleModel, ScheduleModel, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2479,12 +2277,6 @@ extension ScheduleModelQueryProperty
   QueryBuilder<ScheduleModel, String?, QQueryOperations> linkProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'link');
-    });
-  }
-
-  QueryBuilder<ScheduleModel, String?, QQueryOperations> locationProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'location');
     });
   }
 

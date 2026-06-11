@@ -79,7 +79,6 @@ class AiDailyPlanRepositoryImpl implements AiDailyPlanRepository {
           startTime: item.startTime,
           endTime: item.endTime,
           recurrence: 'None',
-          location: item.type == 'break' ? 'Istirahat' : null,
           color: AppColors.primary.toARGB32(),
           description: _aiDescription(item),
           url: 'ploopy://ai-daily-plan',
