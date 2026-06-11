@@ -9,6 +9,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/event_entity.dart';
 import '../bloc/event_bloc.dart';
 import 'event_detail_page.dart';
+import 'event_form_page.dart';
 
 class EventPage extends StatefulWidget {
   const EventPage({super.key});
@@ -142,12 +143,26 @@ class _EventPageState extends State<EventPage>
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: _openCreateEvent,
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
         shape: const CircleBorder(),
         child: const Icon(Icons.add_rounded),
       ),
+    );
+  }
+
+  void _openCreateEvent() {
+    final userId = _currentUserId;
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Silakan login ulang terlebih dahulu.')),
+      );
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => EventFormPage(currentUserId: userId)),
     );
   }
 }
@@ -443,9 +458,7 @@ class _EventCard extends StatelessWidget {
                     icon: event.isOnline
                         ? Icons.videocam_rounded
                         : Icons.location_on_rounded,
-                    label: event.isOnline
-                        ? 'Online'
-                        : (event.location ?? 'TBD'),
+                    label: event.isOnline ? 'Online' : event.displayLocation,
                   ),
                   if (event.maxParticipants != null &&
                       event.maxParticipants! > 0)

@@ -35,6 +35,8 @@ SUPABASE_URL=https://xxxx.supabase.co
 SUPABASE_ANON_KEY=xxxx
 SUPABASE_SERVICE_ROLE_KEY=xxxx
 JWT_SECRET=isi-random-panjang
+GROQ_API_KEY=gsk_xxxx
+GROQ_MODEL=llama-3.3-70b-versatile
 ```
 
 ## Database

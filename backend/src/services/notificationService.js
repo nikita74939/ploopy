@@ -18,11 +18,20 @@ export async function createNotification({ userId, input }) {
     title: input.title,
     description: input.description ?? null,
     tag: input.tag ?? null,
-    ref_id: input.refId ?? input.ref_id ?? null,
+    ref_id: normalizeUuid(input.refId ?? input.ref_id),
     ref_type: input.refType ?? input.ref_type ?? null,
   }).select(select).single();
   if (error) throw httpError(500, error.message);
   return data;
+}
+
+function normalizeUuid(value) {
+  if (value == null) return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(raw)
+    ? raw
+    : null;
 }
 
 export async function markNotificationRead({ userId, notificationId, read = true }) {

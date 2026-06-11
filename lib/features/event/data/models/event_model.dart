@@ -8,6 +8,10 @@ class EventModel {
   final String color;
   final DateTime eventDate;
   final String? location;
+  final double? latitude;
+  final double? longitude;
+  final String? placeId;
+  final String? address;
   final bool isOnline;
   final int? maxParticipants;
   final int currentParticipants;
@@ -28,6 +32,10 @@ class EventModel {
     required this.color,
     required this.eventDate,
     this.location,
+    this.latitude,
+    this.longitude,
+    this.placeId,
+    this.address,
     required this.isOnline,
     this.maxParticipants,
     this.currentParticipants = 0,
@@ -55,6 +63,10 @@ class EventModel {
           : '#FF7600',
       eventDate: _parseDate(json['event_date']) ?? createdAt,
       location: json['location'] as String?,
+      latitude: _parseDouble(json['latitude']),
+      longitude: _parseDouble(json['longitude']),
+      placeId: json['place_id'] as String?,
+      address: json['address'] as String?,
       isOnline: json['is_online'] as bool? ?? false,
       maxParticipants: json['max_participants'] as int?,
       currentParticipants:
@@ -75,6 +87,12 @@ class EventModel {
     return DateTime.tryParse(raw);
   }
 
+  static double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString());
+  }
+
   factory EventModel.fromEntity(EventEntity entity) {
     return EventModel(
       id: entity.id,
@@ -84,6 +102,10 @@ class EventModel {
       color: entity.color,
       eventDate: entity.eventDate,
       location: entity.location,
+      latitude: entity.latitude,
+      longitude: entity.longitude,
+      placeId: entity.placeId,
+      address: entity.address,
       isOnline: entity.isOnline,
       maxParticipants: entity.maxParticipants,
       currentParticipants: entity.currentParticipants,
@@ -102,6 +124,10 @@ class EventModel {
     'color': color,
     'eventDate': eventDate.toIso8601String(),
     if (location != null) 'location': location,
+    'latitude': latitude,
+    'longitude': longitude,
+    if (placeId != null) 'placeId': placeId,
+    if (address != null) 'address': address,
     'isOnline': isOnline,
     if (maxParticipants != null) 'maxParticipants': maxParticipants,
     if (description != null) 'description': description,
@@ -119,6 +145,10 @@ class EventModel {
     'color': color,
     'event_date': eventDate.toIso8601String(),
     if (location != null) 'location': location,
+    'latitude': latitude,
+    'longitude': longitude,
+    if (placeId != null) 'place_id': placeId,
+    if (address != null) 'address': address,
     'is_online': isOnline,
     if (maxParticipants != null) 'max_participants': maxParticipants,
     if (description != null) 'description': description,
@@ -133,6 +163,10 @@ class EventModel {
     color: color,
     eventDate: eventDate,
     location: location,
+    latitude: latitude,
+    longitude: longitude,
+    placeId: placeId,
+    address: address,
     isOnline: isOnline,
     maxParticipants: maxParticipants,
     currentParticipants: currentParticipants,
@@ -153,6 +187,10 @@ class EventModel {
         color: color,
         eventDate: eventDate,
         location: location,
+        latitude: latitude,
+        longitude: longitude,
+        placeId: placeId,
+        address: address,
         isOnline: isOnline,
         maxParticipants: maxParticipants,
         currentParticipants: currentParticipants ?? this.currentParticipants,
@@ -168,4 +206,5 @@ class EventModel {
   bool get isFull =>
       maxParticipants != null && currentParticipants >= maxParticipants!;
   bool get isUpcoming => eventDate.isAfter(DateTime.now());
+  bool get hasCoordinates => latitude != null && longitude != null;
 }

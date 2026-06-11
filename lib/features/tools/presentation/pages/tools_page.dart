@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/tools_data.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../ai_daily_plan/presentation/pages/ai_daily_plan_page.dart';
 import '../../../memory_game/presentation/pages/memory_game_page.dart';
 import '../../../ocr/presentation/pages/ocr_home_page.dart';
 import '../../../scanner/presentation/pages/scanner_home_page.dart';
@@ -108,6 +109,12 @@ class ToolsPage extends StatelessWidget {
     }
 
     switch (route) {
+      case 'ai_daily_plan':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AiDailyPlanPage()),
+        );
+        break;
       case 'currency': // ⭐ ADD
         Navigator.push(
           context,

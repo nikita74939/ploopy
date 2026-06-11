@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../../../core/services/currency_service.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/event_entity.dart';
 import '../bloc/event_bloc.dart';
+import 'event_form_page.dart';
+import 'event_route_page.dart';
 
 class EventDetailPage extends StatefulWidget {
   final EventEntity event;
@@ -89,6 +93,10 @@ class _EventDetailPageState extends State<EventDetailPage> {
           ),
           const SizedBox(height: 14),
           _InfoSection(event: event, accent: accent),
+          if (!event.isOnline && event.hasCoordinates) ...[
+            const SizedBox(height: 14),
+            _EventLocationSection(event: event, accent: accent),
+          ],
           if (event.description?.isNotEmpty == true) ...[
             const SizedBox(height: 14),
             _DescriptionSection(description: event.description!),
@@ -109,7 +117,22 @@ class _EventDetailPageState extends State<EventDetailPage> {
                       label: 'Edit Event',
                       color: accent,
                       icon: Icons.edit_rounded,
-                      onPressed: () {},
+                      onPressed: () async {
+                        final userId = _currentUserId;
+                        if (userId == null) return;
+                        final updated = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => EventFormPage(
+                              currentUserId: userId,
+                              event: event,
+                            ),
+                          ),
+                        );
+                        if (updated == true && context.mounted) {
+                          Navigator.pop(context);
+                        }
+                      },
                     )
                   : event.isJoinedByMe
                   ? _SecondaryActionButton(
@@ -278,7 +301,7 @@ class _HeroCard extends StatelessWidget {
             icon: event.isOnline
                 ? Icons.videocam_rounded
                 : Icons.location_on_rounded,
-            label: event.isOnline ? 'Online' : (event.location ?? 'TBD'),
+            label: event.isOnline ? 'Online' : event.displayLocation,
           ),
         ],
       ),
@@ -430,6 +453,99 @@ class _DescriptionSection extends StatelessWidget {
           Text(
             description,
             style: AppTextStyles.bodySmall.copyWith(height: 1.5),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EventLocationSection extends StatelessWidget {
+  final EventEntity event;
+  final Color accent;
+
+  const _EventLocationSection({required this.event, required this.accent});
+
+  @override
+  Widget build(BuildContext context) {
+    final point = LatLng(event.latitude!, event.longitude!);
+    return _SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.location_on_rounded, color: accent),
+              const SizedBox(width: 8),
+              Text('Lokasi Event', style: AppTextStyles.title),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: SizedBox(
+              height: 170,
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(target: point, zoom: 15),
+                zoomControlsEnabled: false,
+                myLocationButtonEnabled: false,
+                scrollGesturesEnabled: false,
+                rotateGesturesEnabled: false,
+                tiltGesturesEnabled: false,
+                markers: {
+                  Marker(
+                    markerId: const MarkerId('event_location'),
+                    position: point,
+                    infoWindow: InfoWindow(title: event.name),
+                  ),
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(event.displayLocation, style: AppTextStyles.bodySmall),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => EventRoutePage(event: event),
+                    ),
+                  ),
+                  icon: const Icon(Icons.route_rounded, size: 18),
+                  label: const Text('Lihat Rute'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    try {
+                      await DependencyInjection.eventLocationService
+                          .openGoogleMapsNavigation(point);
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(e.toString())));
+                    }
+                  },
+                  icon: const Icon(Icons.navigation_rounded, size: 18),
+                  label: Text(
+                    'Mulai Navigasi',
+                    style: AppTextStyles.buttonPrimary.copyWith(fontSize: 12),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: accent,
+                    foregroundColor: AppColors.white,
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

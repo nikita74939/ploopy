@@ -7,6 +7,14 @@ class ToolsData {
       'description': 'Alat bantu produktivitas',
       'tools': [
         {
+          'icon': Icons.auto_awesome_rounded,
+          'label': 'AI Daily Plan',
+          'description': 'Susun jadwal harian otomatis',
+          'color': Color(0xFFFF7600),
+          'route': 'ai_daily_plan',
+          'available': true,
+        },
+        {
           'icon': Icons.document_scanner_rounded,
           'label': 'Scanner',
           'description': 'Scan dokumen ke teks',

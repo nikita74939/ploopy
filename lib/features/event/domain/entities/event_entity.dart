@@ -6,6 +6,10 @@ class EventEntity {
   final String color;
   final DateTime eventDate;
   final String? location;
+  final double? latitude;
+  final double? longitude;
+  final String? placeId;
+  final String? address;
   final bool isOnline;
   final int? maxParticipants;
   final int currentParticipants;
@@ -26,6 +30,10 @@ class EventEntity {
     required this.color,
     required this.eventDate,
     this.location,
+    this.latitude,
+    this.longitude,
+    this.placeId,
+    this.address,
     required this.isOnline,
     this.maxParticipants,
     required this.currentParticipants,
@@ -41,4 +49,9 @@ class EventEntity {
   bool get isFull =>
       maxParticipants != null && currentParticipants >= maxParticipants!;
   bool get isUpcoming => eventDate.isAfter(DateTime.now());
+  bool get hasCoordinates => latitude != null && longitude != null;
+  String get displayLocation {
+    final value = address ?? location;
+    return value == null || value.trim().isEmpty ? 'TBD' : value.trim();
+  }
 }

@@ -15,6 +15,12 @@ import 'package:local_auth/local_auth.dart';
 
 import '../config/api_config.dart';
 
+// AI Daily Plan
+import '../../../features/ai_daily_plan/data/datasources/groq_ai_service.dart';
+import '../../../features/ai_daily_plan/data/repositories/ai_daily_plan_repository_impl.dart';
+import '../../../features/ai_daily_plan/domain/repositories/ai_daily_plan_repository.dart';
+import '../../../features/ai_daily_plan/presentation/bloc/ai_daily_plan_bloc.dart';
+
 // Auth
 import '../../../features/auth/data/datasources/auth_local_data_source.dart';
 import '../../../features/auth/data/datasources/auth_remote_data_source.dart';
@@ -62,10 +68,12 @@ import '../../../features/activity/domain/repositories/activity_repository.dart'
 import '../../../features/activity/presentation/bloc/activity_bloc.dart';
 
 // Event
+import '../../../features/event/data/datasources/event_location_service.dart';
 import '../../../features/event/data/datasources/event_remote_data_source.dart';
 import '../../../features/event/data/repositories/event_repository_impl.dart';
 import '../../../features/event/domain/repositories/event_repository.dart';
 import '../../../features/event/presentation/bloc/event_bloc.dart';
+import '../../../features/event/presentation/bloc/event_route_bloc.dart';
 
 // Profile
 import '../../../features/profile/data/datasources/profile_local_data_source.dart';
@@ -108,6 +116,22 @@ class DependencyInjection {
 
   /// Dipanggil sekali dari main.dart setelah IsarService.getInstance()
   static void setIsar(Isar isar) => _isar = isar;
+
+  static GroqAiService get groqAiService => GroqAiService(
+    client: _httpClient,
+    baseUrl: ApiConfig.baseUrl,
+    secureStorage: _secureStorage,
+  );
+
+  static AiDailyPlanRepository get aiDailyPlanRepository =>
+      AiDailyPlanRepositoryImpl(
+        taskRepository: taskRepository,
+        scheduleRepository: scheduleRepository,
+        aiService: groqAiService,
+      );
+
+  static AiDailyPlanBloc get aiDailyPlanBloc =>
+      AiDailyPlanBloc(repository: aiDailyPlanRepository);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // AUTH
@@ -271,6 +295,12 @@ class DependencyInjection {
       EventRepositoryImpl(remoteDataSource: eventRemoteDataSource);
 
   static EventBloc get eventBloc => EventBloc(repository: eventRepository);
+
+  static EventLocationService get eventLocationService =>
+      EventLocationService(client: _httpClient);
+
+  static EventRouteBloc get eventRouteBloc =>
+      EventRouteBloc(locationService: eventLocationService);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // PROFILE

@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../ai_daily_plan/presentation/pages/ai_daily_plan_page.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../notification/presentation/bloc/notification_bloc.dart';
 import '../../../notification/presentation/pages/notification_page.dart';
@@ -274,8 +275,12 @@ class _HomePageState extends State<HomePage> {
 
                       // ── Banner Belajar ────────────────────────────────────
                       LearnNowBanner(
-                        onTap: () =>
-                            Navigator.pushNamed(context, AppRoutes.study),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AiDailyPlanPage(),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 16),
 

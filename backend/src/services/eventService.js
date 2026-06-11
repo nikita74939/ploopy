@@ -1,7 +1,7 @@
 import { supabaseAdmin } from '../config/supabase.js';
 import { httpError } from '../utils/httpError.js';
 
-const eventSelect = `id, creator_id, name, icon, color, event_date, location, is_online, max_participants, description, created_at, price,
+const eventSelect = `id, creator_id, name, icon, color, event_date, location, latitude, longitude, place_id, address, is_online, max_participants, description, created_at, price,
   creator:users!events_creator_id_fkey(id, name, avatar_url),
   event_participants(id, user_id, joined_at, users(id, name, avatar_url))`;
 
@@ -38,6 +38,10 @@ export async function getEventById(eventId, userId = null) {
 export async function createEvent({ userId, input }) {
   if (!input.name || !String(input.name).trim()) throw httpError(400, 'Nama event wajib diisi.');
   if (input.eventDate && Number.isNaN(Date.parse(input.eventDate))) throw httpError(400, 'Tanggal event tidak valid.');
+  const isOnline = input.isOnline ?? input.is_online ?? false;
+  const latitude = normalizeCoordinate(input.latitude);
+  const longitude = normalizeCoordinate(input.longitude);
+  validateLocation({ isOnline, latitude, longitude });
   const { data, error } = await supabaseAdmin.from('events').insert({
     creator_id: userId,
     name: String(input.name).trim(),
@@ -45,11 +49,15 @@ export async function createEvent({ userId, input }) {
     color: input.color ?? '#FF7600',
     event_date: input.eventDate ?? input.event_date ?? null,
     location: input.location ?? null,
-    is_online: input.isOnline ?? input.is_online ?? false,
+    latitude,
+    longitude,
+    place_id: input.placeId ?? input.place_id ?? null,
+    address: input.address ?? null,
+    is_online: isOnline,
     max_participants: input.maxParticipants ?? input.max_participants ?? null,
     description: input.description ?? null,
     price: input.price ?? 0,
-  }).select('id, creator_id, name, icon, color, event_date, location, is_online, max_participants, description, created_at, price').single();
+  }).select(eventSelect).single();
   if (error) throw httpError(500, error.message);
   return data;
 }
@@ -58,16 +66,40 @@ export async function updateEvent({ userId, eventId, input }) {
   const event = await getEventById(eventId);
   if (event.creator_id !== userId) throw httpError(403, 'Tidak boleh mengubah event orang lain.');
   const payload = {};
-  for (const [apiKey, dbKey] of [['name','name'],['icon','icon'],['color','color'],['location','location'],['description','description'],['price','price']]) {
+  for (const [apiKey, dbKey] of [['name','name'],['icon','icon'],['color','color'],['location','location'],['description','description'],['price','price'],['address','address']]) {
     if (Object.hasOwn(input, apiKey)) payload[dbKey] = input[apiKey];
   }
+  if (Object.hasOwn(input, 'placeId') || Object.hasOwn(input, 'place_id')) payload.place_id = input.placeId ?? input.place_id;
+  if (Object.hasOwn(input, 'latitude')) payload.latitude = normalizeCoordinate(input.latitude);
+  if (Object.hasOwn(input, 'longitude')) payload.longitude = normalizeCoordinate(input.longitude);
   if (Object.hasOwn(input, 'eventDate') || Object.hasOwn(input, 'event_date')) payload.event_date = input.eventDate ?? input.event_date;
   if (Object.hasOwn(input, 'isOnline') || Object.hasOwn(input, 'is_online')) payload.is_online = input.isOnline ?? input.is_online;
   if (Object.hasOwn(input, 'maxParticipants') || Object.hasOwn(input, 'max_participants')) payload.max_participants = input.maxParticipants ?? input.max_participants;
+  validateLocation({
+    isOnline: payload.is_online ?? event.is_online,
+    latitude: Object.hasOwn(payload, 'latitude') ? payload.latitude : event.latitude,
+    longitude: Object.hasOwn(payload, 'longitude') ? payload.longitude : event.longitude,
+  });
 
-  const { data, error } = await supabaseAdmin.from('events').update(payload).eq('id', eventId).select('id, creator_id, name, icon, color, event_date, location, is_online, max_participants, description, created_at, price').single();
+  const { data, error } = await supabaseAdmin.from('events').update(payload).eq('id', eventId).select(eventSelect).single();
   if (error) throw httpError(500, error.message);
   return data;
+}
+
+function normalizeCoordinate(value) {
+  if (value == null || value === '') return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function validateLocation({ isOnline, latitude, longitude }) {
+  if (isOnline) return;
+  if (latitude == null || longitude == null) {
+    throw httpError(400, 'Event offline wajib memiliki titik lokasi di peta.');
+  }
+  if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+    throw httpError(400, 'Koordinat lokasi event tidak valid.');
+  }
 }
 
 export async function deleteEvent({ userId, eventId }) {

@@ -541,16 +541,8 @@ class _NotificationDetailSheetState extends State<_NotificationDetailSheet> {
               runSpacing: 8,
               children: [
                 _TagPill(label: notification.tag, color: tagColor),
-                if (notification.refType != null)
-                  _DetailPill(
-                    icon: Icons.link_rounded,
-                    label: notification.refType!,
-                  ),
-                if (notification.refId != null)
-                  _DetailPill(
-                    icon: Icons.tag_rounded,
-                    label: notification.refId!,
-                  ),
+                if (_relatedLabel != null)
+                  _DetailPill(icon: Icons.link_rounded, label: _relatedLabel!),
               ],
             ),
             const SizedBox(height: 18),
@@ -632,6 +624,38 @@ class _NotificationDetailSheetState extends State<_NotificationDetailSheet> {
   String _cleanError(Object error) {
     final message = error.toString();
     return message.startsWith('Exception: ') ? message.substring(11) : message;
+  }
+
+  String? get _relatedLabel {
+    switch (notification.tag) {
+      case 'friend_request':
+        return 'Permintaan pertemanan';
+      case 'friend_accepted':
+        return 'Pertemanan';
+      case 'friend_rejected':
+        return 'Permintaan pertemanan';
+      case 'task':
+        return 'Tugas terkait';
+      case 'schedule':
+        return 'Jadwal terkait';
+      case 'study':
+        return 'Sesi belajar';
+      case 'achievement':
+        return 'Achievement';
+      case 'activity':
+      case 'social':
+        return 'Aktivitas sosial';
+      default:
+        return switch (notification.refType) {
+          'friendship' => 'Pertemanan',
+          'task' => 'Tugas terkait',
+          'schedule' => 'Jadwal terkait',
+          'study' => 'Sesi belajar',
+          'achievement' => 'Achievement',
+          'activity' => 'Aktivitas sosial',
+          _ => null,
+        };
+    }
   }
 
   Color _tagColor(String tag) {

@@ -11,4 +11,7 @@ class ApiConfig {
 
     return 'http://10.0.2.2:3000';
   }
+
+  static String get googleMapsApiKey =>
+      dotenv.env['GOOGLE_MAPS_API_KEY']?.trim() ?? '';
 }

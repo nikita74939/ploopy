@@ -47,5 +47,9 @@
 	<true/>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Gunakan Face ID untuk login cepat dan aman ke Ploopy.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Ploopy menggunakan lokasi kamu untuk menampilkan rute menuju event.</string>
+	<key>GoogleMapsApiKey</key>
+	<string>$(GOOGLE_MAPS_API_KEY)</string>
 </dict>
 </plist>
