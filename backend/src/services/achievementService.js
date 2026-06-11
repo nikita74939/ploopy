@@ -111,7 +111,16 @@ export async function unlockEligibleAchievements({ userId, metrics }) {
 
 function achievementMetricValue(conditionType, metrics) {
   switch (conditionType) {
+    case 'activity_count':
+    case 'activity_created':
+    case 'post_count':
+    case 'social_post_count':
+      return metrics.activityCount ?? metrics.postCount ?? 0;
+    case 'first_activity':
+    case 'first_post':
+      return metrics.activityCount ?? metrics.postCount ?? 0;
     case 'streak_day':
+    case 'streak_days':
       return metrics.currentStreak ?? 0;
     case 'study_minutes':
     case 'total_study_minutes':

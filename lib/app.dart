@@ -10,7 +10,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/data/latest.dart' as tzdata;
+import 'package:timezone/timezone.dart' as tz;
 
 import 'core/constants/app_routes.dart';
 import 'core/di/injection_container.dart';
@@ -34,7 +35,8 @@ class PloopyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Inisialisasi data timezone (diperlukan untuk fitur jadwal & kalender)
-    tz.initializeTimeZones();
+    tzdata.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
 
     // Atur tampilan status bar & navigation bar agar transparan/terang
     SystemChrome.setSystemUIOverlayStyle(

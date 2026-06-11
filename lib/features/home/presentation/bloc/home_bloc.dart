@@ -78,6 +78,8 @@ class HomeError extends HomeState {
 // BLoC
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final HomeRepository repository;
+  String? _loadingUserId;
+  String? _loadedUserId;
 
   HomeBloc({required this.repository}) : super(HomeInitial()) {
     on<LoadHomeData>(_onLoadHomeData);
@@ -88,29 +90,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     LoadHomeData event,
     Emitter<HomeState> emit,
   ) async {
+    if (_loadingUserId == event.userId) return;
+    if (state is HomeLoaded && _loadedUserId == event.userId) return;
+    _loadingUserId = event.userId;
     emit(HomeLoading());
     try {
-      final schedules = await repository.getTodaySchedules(event.userId);
-      final tasks = await repository.getTasksOrderedByDeadline(event.userId);
-      final nextSchedule = await repository.getNextSchedule(event.userId);
-      final nearestTask = await repository.getNearestTask(event.userId);
-      final studyMinutes = await repository.getTodayStudyMinutes(event.userId);
-      final weeklyStudyMinutes = await repository.getCurrentWeekStudyMinutes(
-        event.userId,
-      );
-
-      emit(
-        HomeLoaded(
-          todaySchedules: schedules,
-          tasks: tasks,
-          nextSchedule: nextSchedule,
-          nearestTask: nearestTask,
-          todayStudyMinutes: studyMinutes,
-          weeklyStudyMinutes: weeklyStudyMinutes,
-        ),
-      );
+      emit(await _loadHomeData(event.userId));
+      _loadedUserId = event.userId;
     } catch (e) {
       emit(HomeError(message: e.toString()));
+    } finally {
+      _loadingUserId = null;
     }
   }
 
@@ -118,28 +108,35 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     RefreshHomeData event,
     Emitter<HomeState> emit,
   ) async {
+    if (_loadingUserId == event.userId) return;
+    _loadingUserId = event.userId;
     try {
-      final schedules = await repository.getTodaySchedules(event.userId);
-      final tasks = await repository.getTasksOrderedByDeadline(event.userId);
-      final nextSchedule = await repository.getNextSchedule(event.userId);
-      final nearestTask = await repository.getNearestTask(event.userId);
-      final studyMinutes = await repository.getTodayStudyMinutes(event.userId);
-      final weeklyStudyMinutes = await repository.getCurrentWeekStudyMinutes(
-        event.userId,
-      );
-
-      emit(
-        HomeLoaded(
-          todaySchedules: schedules,
-          tasks: tasks,
-          nextSchedule: nextSchedule,
-          nearestTask: nearestTask,
-          todayStudyMinutes: studyMinutes,
-          weeklyStudyMinutes: weeklyStudyMinutes,
-        ),
-      );
+      emit(await _loadHomeData(event.userId));
+      _loadedUserId = event.userId;
     } catch (e) {
       emit(HomeError(message: e.toString()));
+    } finally {
+      _loadingUserId = null;
     }
+  }
+
+  Future<HomeLoaded> _loadHomeData(String userId) async {
+    final results = await Future.wait<Object?>([
+      repository.getTodaySchedules(userId),
+      repository.getTasksOrderedByDeadline(userId),
+      repository.getNextSchedule(userId),
+      repository.getNearestTask(userId),
+      repository.getTodayStudyMinutes(userId),
+      repository.getCurrentWeekStudyMinutes(userId),
+    ]);
+
+    return HomeLoaded(
+      todaySchedules: results[0] as List<ScheduleEntity>,
+      tasks: results[1] as List<TaskEntity>,
+      nextSchedule: results[2] as ScheduleEntity?,
+      nearestTask: results[3] as TaskEntity?,
+      todayStudyMinutes: results[4] as int,
+      weeklyStudyMinutes: results[5] as Map<int, int>,
+    );
   }
 }

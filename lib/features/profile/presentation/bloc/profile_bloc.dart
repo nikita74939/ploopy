@@ -165,6 +165,8 @@ class ProfileError extends ProfileState {
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final ProfileRepository repository;
+  String? _loadingUserId;
+  String? _loadedUserId;
 
   ProfileBloc({required this.repository}) : super(ProfileInitial()) {
     on<LoadProfile>(_onLoadProfile);
@@ -183,42 +185,49 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     LoadProfile event,
     Emitter<ProfileState> emit,
   ) async {
+    if (_loadingUserId == event.userId) return;
+    if (state is ProfileLoaded && _loadedUserId == event.userId) return;
+    _loadingUserId = event.userId;
     emit(ProfileLoading());
     try {
-      final user = await repository.getUserById(event.userId);
+      final userFuture = repository.getUserById(event.userId);
+      final achievementsFuture = repository.getAllAchievements().catchError(
+        (_) => <AchievementEntity>[],
+      );
+      final userAchievementsFuture = repository
+          .getUserAchievements(event.userId)
+          .catchError((_) => <UserAchievementEntity>[]);
+      final friendsFuture = repository
+          .getFriends(event.userId)
+          .catchError((_) => <ProfileFriendshipEntity>[]);
+      final streakFuture = repository
+          .getStreak(event.userId)
+          .catchError((_) => ProfileStreakEntity.defaultFor(event.userId));
+      final settingsFuture = repository
+          .getAppSettings(event.userId)
+          .catchError((_) => ProfileAppSettingsEntity.defaultFor(event.userId));
+
+      final user = await userFuture;
       if (user == null) {
         emit(ProfileError(message: 'User tidak ditemukan'));
         return;
       }
 
-      final achievements = await repository.getAllAchievements().catchError(
-        (_) => <AchievementEntity>[],
-      );
-      final userAchievements = await repository
-          .getUserAchievements(event.userId)
-          .catchError((_) => <UserAchievementEntity>[]);
-      final friends = await repository
-          .getFriends(event.userId)
-          .catchError((_) => <ProfileFriendshipEntity>[]);
-      final streak = await repository
-          .getStreak(event.userId)
-          .catchError((_) => ProfileStreakEntity.defaultFor(event.userId));
-      final settings = await repository
-          .getAppSettings(event.userId)
-          .catchError((_) => ProfileAppSettingsEntity.defaultFor(event.userId));
-
       emit(
         ProfileLoaded(
           user: user,
-          achievements: achievements,
-          userAchievements: userAchievements,
-          friends: friends,
-          streak: streak,
-          settings: settings,
+          achievements: await achievementsFuture,
+          userAchievements: await userAchievementsFuture,
+          friends: await friendsFuture,
+          streak: await streakFuture,
+          settings: await settingsFuture,
         ),
       );
+      _loadedUserId = event.userId;
     } catch (e) {
       emit(ProfileError(message: _cleanError(e)));
+    } finally {
+      _loadingUserId = null;
     }
   }
 
@@ -230,6 +239,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     try {
       await repository.updateUser(event.user);
       // Reload profile agar data segar
+      _loadedUserId = null;
       add(LoadProfile(userId: event.user.userId));
     } catch (e) {
       // Kembalikan state sebelumnya jika ada error

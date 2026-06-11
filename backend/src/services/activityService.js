@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 
 import { supabaseAdmin } from '../config/supabase.js';
 import { httpError } from '../utils/httpError.js';
+import { unlockEligibleAchievements } from './achievementService.js';
 import { createNotification } from './notificationService.js';
 
 const activitySelect = `
@@ -91,6 +92,9 @@ export async function createActivity({ userId, input }) {
       refType: 'activity',
     },
   });
+
+  await unlockActivityAchievements(userId);
+
   return data;
 }
 
@@ -162,4 +166,29 @@ function normalizeActivities(rows, currentUserId) {
       ? (row.activity_likes ?? []).some((like) => like.user_id === currentUserId)
       : false,
   }));
+}
+
+async function unlockActivityAchievements(userId) {
+  try {
+    const activityCount = await getActivityCount(userId);
+    await unlockEligibleAchievements({
+      userId,
+      metrics: {
+        activityCount,
+        postCount: activityCount,
+      },
+    });
+  } catch (err) {
+    console.error('Failed to unlock activity achievements:', err);
+  }
+}
+
+async function getActivityCount(userId) {
+  const { count, error } = await supabaseAdmin
+    .from('activities')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId);
+
+  if (error) throw httpError(500, error.message);
+  return count ?? 0;
 }

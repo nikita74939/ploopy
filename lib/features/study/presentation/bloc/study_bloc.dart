@@ -130,6 +130,7 @@ class StudyBloc extends Bloc<StudyEvent, StudyState> {
   int _todayMinutes = 0;
   int _streak = 0;
   String? _currentUserId;
+  String? _loadingUserId;
 
   StudyBloc({required this.repository}) : super(StudyInitial()) {
     on<LoadStudyData>(_onLoadStudyData);
@@ -150,24 +151,30 @@ class StudyBloc extends Bloc<StudyEvent, StudyState> {
     LoadStudyData event,
     Emitter<StudyState> emit,
   ) async {
+    if (_loadingUserId == event.userId) return;
+    if (_currentUserId == event.userId && state is StudyIdle) return;
+    _loadingUserId = event.userId;
     emit(StudyLoading());
     try {
       _currentUserId = event.userId;
-      _todayMinutes = await repository.getTodayStudyMinutes(event.userId);
-      _streak = await repository.getStreak(event.userId);
-      final sessions = await repository.getSessionsByDate(
-        event.userId,
-        DateTime.now(),
-      );
+      final results = await Future.wait<Object>([
+        repository.getTodayStudyMinutes(event.userId),
+        repository.getStreak(event.userId),
+        repository.getSessionsByDate(event.userId, DateTime.now()),
+      ]);
+      _todayMinutes = results[0] as int;
+      _streak = results[1] as int;
       emit(
         StudyIdle(
           todayStudyMinutes: _todayMinutes,
           streak: _streak,
-          sessions: sessions,
+          sessions: results[2] as List<StudySessionModel>,
         ),
       );
     } catch (e) {
       emit(StudyError(message: e.toString()));
+    } finally {
+      _loadingUserId = null;
     }
   }
 

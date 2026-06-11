@@ -9,6 +9,8 @@ class HomeRepositoryImpl implements HomeRepository {
   final ScheduleRepository scheduleRepository;
   final TaskRepository taskRepository;
   final StudyRepository studyRepository;
+  Future<List<TaskEntity>>? _inFlightTasks;
+  String? _inFlightTasksUserId;
 
   HomeRepositoryImpl({
     required this.scheduleRepository,
@@ -23,7 +25,7 @@ class HomeRepositoryImpl implements HomeRepository {
 
   @override
   Future<List<TaskEntity>> getTasksOrderedByDeadline(String userId) async {
-    final tasks = await taskRepository.getAllTasks(userId);
+    final tasks = await _getDashboardTasks(userId);
     final urgentTasks = tasks.where((task) => !task.isCompleted).toList();
     return urgentTasks..sort((a, b) => a.deadline.compareTo(b.deadline));
   }
@@ -37,7 +39,7 @@ class HomeRepositoryImpl implements HomeRepository {
 
   @override
   Future<TaskEntity?> getNearestTask(String userId) async {
-    final tasks = await taskRepository.getAllTasks(userId);
+    final tasks = await _getDashboardTasks(userId);
     final incompleteTasks = tasks.where((t) => !t.isCompleted).toList();
     if (incompleteTasks.isEmpty) return null;
     incompleteTasks.sort((a, b) => a.deadline.compareTo(b.deadline));
@@ -92,5 +94,21 @@ class HomeRepositoryImpl implements HomeRepository {
   @override
   Future<List<TaskEntity>> getTasksByDate(String userId, DateTime date) async {
     return await taskRepository.getTasksByDate(date, userId);
+  }
+
+  Future<List<TaskEntity>> _getDashboardTasks(String userId) {
+    if (_inFlightTasks != null && _inFlightTasksUserId == userId) {
+      return _inFlightTasks!;
+    }
+
+    final future = taskRepository.getAllTasks(userId);
+    _inFlightTasks = future;
+    _inFlightTasksUserId = userId;
+    return future.whenComplete(() {
+      if (identical(_inFlightTasks, future)) {
+        _inFlightTasks = null;
+        _inFlightTasksUserId = null;
+      }
+    });
   }
 }

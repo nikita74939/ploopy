@@ -11,6 +11,8 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   final ScheduleLocalDataSource localDataSource;
   final ScheduleRemoteDataSource remoteDataSource;
   final NotificationLocalDataSource? notificationLocalDataSource;
+  Future<List<ScheduleModel>>? _inFlightRemoteSchedules;
+  String? _inFlightRemoteSchedulesUserId;
 
   ScheduleRepositoryImpl({
     required this.localDataSource,
@@ -76,7 +78,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Future<List<ScheduleEntity>> getUpcomingSchedules(String userId) async {
     await _syncPending(userId);
     try {
-      final remoteSchedules = await remoteDataSource.getAllSchedules();
+      final remoteSchedules = await _getRemoteSchedulesOnce(userId);
       await localDataSource.cacheRemoteSchedules(userId, remoteSchedules);
     } catch (_) {
       // Offline: use cached schedules.
@@ -117,7 +119,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     await _syncPending(userId);
 
     try {
-      final remoteSchedules = await remoteDataSource.getAllSchedules();
+      final remoteSchedules = await _getRemoteSchedulesOnce(userId);
       await localDataSource.cacheRemoteSchedules(userId, remoteSchedules);
     } catch (_) {
       // Offline or backend unavailable.
@@ -125,6 +127,23 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     final models = await localDataSource.getSchedulesByDate(userId, date);
     await _syncScheduleNotifications(models);
     return models;
+  }
+
+  Future<List<ScheduleModel>> _getRemoteSchedulesOnce(String userId) {
+    if (_inFlightRemoteSchedules != null &&
+        _inFlightRemoteSchedulesUserId == userId) {
+      return _inFlightRemoteSchedules!;
+    }
+
+    final future = remoteDataSource.getAllSchedules();
+    _inFlightRemoteSchedules = future;
+    _inFlightRemoteSchedulesUserId = userId;
+    return future.whenComplete(() {
+      if (identical(_inFlightRemoteSchedules, future)) {
+        _inFlightRemoteSchedules = null;
+        _inFlightRemoteSchedulesUserId = null;
+      }
+    });
   }
 
   Future<void> _syncPending(String userId) async {
@@ -235,7 +254,13 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         break;
     }
 
-    if (!next.isAfter(now)) return null;
+    if (!next.isAfter(now)) {
+      final justStarted = now.difference(next) < const Duration(minutes: 1);
+      if (schedule.repeatType == RepeatType.none && justStarted) {
+        return now.add(const Duration(seconds: 2));
+      }
+      return null;
+    }
     if (repeatUntil != null && next.isAfter(repeatUntil)) return null;
     return next;
   }

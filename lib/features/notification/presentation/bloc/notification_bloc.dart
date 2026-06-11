@@ -87,13 +87,14 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     emit(NotificationLoading());
     try {
       final all = await repository.getAllNotifications();
-      final unread = await repository.getUnreadNotifications();
-      final count = await repository.getUnreadCount();
+      final unread = all
+          .where((notification) => !notification.isRead)
+          .toList(growable: false);
       emit(
         NotificationLoaded(
           allNotifications: all,
           unreadNotifications: unread,
-          unreadCount: count,
+          unreadCount: unread.length,
         ),
       );
     } catch (e) {

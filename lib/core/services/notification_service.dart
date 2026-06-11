@@ -6,6 +6,8 @@ class NotificationService {
   static final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
   static bool _timezoneReady = false;
+  static const String _defaultChannelId = 'ploopy_general_v2';
+  static const String _scheduleChannelId = 'ploopy_schedule_alerts_v2';
 
   static Future<void> initialize() async {
     _ensureTimezoneReady();
@@ -35,11 +37,14 @@ class NotificationService {
     String? payload,
   }) async {
     const androidDetails = AndroidNotificationDetails(
-      'ploopy_channel',
+      _defaultChannelId,
       'Ploopy Notifications',
       channelDescription: 'Notifications from Ploopy app',
-      importance: Importance.high,
-      priority: Priority.high,
+      importance: Importance.max,
+      priority: Priority.max,
+      playSound: true,
+      enableVibration: true,
+      visibility: NotificationVisibility.public,
     );
 
     const iosDetails = DarwinNotificationDetails(
@@ -64,11 +69,15 @@ class NotificationService {
     String? payload,
   }) async {
     const androidDetails = AndroidNotificationDetails(
-      'ploopy_channel',
-      'Ploopy Notifications',
-      channelDescription: 'Notifications from Ploopy app',
-      importance: Importance.high,
-      priority: Priority.high,
+      _scheduleChannelId,
+      'Ploopy Schedule Alerts',
+      channelDescription: 'Reminders when your schedules start',
+      importance: Importance.max,
+      priority: Priority.max,
+      playSound: true,
+      enableVibration: true,
+      visibility: NotificationVisibility.public,
+      category: AndroidNotificationCategory.reminder,
     );
 
     const iosDetails = DarwinNotificationDetails(
@@ -82,13 +91,15 @@ class NotificationService {
       iOS: iosDetails,
     );
 
+    final scheduleMode = await _scheduleMode();
+
     await _notifications.zonedSchedule(
       id,
       title,
       body,
       _toLocalTzDateTime(scheduledTime),
       details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: scheduleMode,
       payload: payload,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
@@ -131,5 +142,18 @@ class NotificationService {
     if (androidPlugin == null) return;
     await androidPlugin.requestNotificationsPermission();
     await androidPlugin.requestExactAlarmsPermission();
+  }
+
+  static Future<AndroidScheduleMode> _scheduleMode() async {
+    final androidPlugin = _notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    final canScheduleExact = await androidPlugin
+        ?.canScheduleExactNotifications();
+    if (canScheduleExact == false) {
+      return AndroidScheduleMode.inexactAllowWhileIdle;
+    }
+    return AndroidScheduleMode.exactAllowWhileIdle;
   }
 }
