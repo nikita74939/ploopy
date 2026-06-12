@@ -237,9 +237,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
         _joiningFromShake = false;
       });
       context.read<EventBloc>().add(LoadEvents());
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Berhasil join event')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Berhasil join event')));
     } catch (e) {
       if (!mounted) return;
       setState(() => _joiningFromShake = false);
@@ -649,18 +649,10 @@ class _CreatorSection extends StatelessWidget {
     return _SectionCard(
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 22,
-            backgroundColor: accent.withValues(alpha: 0.14),
-            backgroundImage: event.creatorPhoto != null
-                ? NetworkImage(event.creatorPhoto!)
-                : null,
-            child: event.creatorPhoto == null
-                ? Text(
-                    event.creatorName![0].toUpperCase(),
-                    style: AppTextStyles.title.copyWith(color: accent),
-                  )
-                : null,
+          _EventCreatorAvatar(
+            name: event.creatorName!,
+            photoUrl: event.creatorPhoto,
+            color: accent,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -679,6 +671,65 @@ class _CreatorSection extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _EventCreatorAvatar extends StatelessWidget {
+  final String name;
+  final String? photoUrl;
+  final Color color;
+
+  const _EventCreatorAvatar({
+    required this.name,
+    required this.photoUrl,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final initial = name.isEmpty ? '?' : name[0].toUpperCase();
+
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        shape: BoxShape.circle,
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
+      ),
+      alignment: Alignment.center,
+      child: photoUrl != null && photoUrl!.trim().isNotEmpty
+          ? ClipOval(
+              child: Image.network(
+                photoUrl!,
+                width: 50,
+                height: 50,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) =>
+                    _EventCreatorInitial(initial: initial, color: color),
+              ),
+            )
+          : _EventCreatorInitial(initial: initial, color: color),
+    );
+  }
+}
+
+class _EventCreatorInitial extends StatelessWidget {
+  final String initial;
+  final Color color;
+
+  const _EventCreatorInitial({required this.initial, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      initial,
+      style: AppTextStyles.title.copyWith(
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+        color: color,
       ),
     );
   }

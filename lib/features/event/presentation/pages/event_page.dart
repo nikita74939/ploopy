@@ -190,10 +190,7 @@ class _EventPageState extends State<EventPage>
                 );
                 await Future<void>.delayed(const Duration(milliseconds: 450));
               },
-              child: _EventList(
-                events: events,
-                currentUserId: _currentUserId,
-              ),
+              child: _EventList(events: events, currentUserId: _currentUserId),
             );
           }
 
@@ -227,16 +224,18 @@ class _EventPageState extends State<EventPage>
   List<EventEntity> _filterEvents(List<EventEntity> events) {
     final keyword = _searchQuery.trim().toLowerCase();
     if (keyword.isEmpty) return events;
-    return events.where((event) {
-      final haystack = [
-        event.name,
-        event.description,
-        event.location,
-        event.address,
-        event.creatorName,
-      ].whereType<String>().join(' ').toLowerCase();
-      return haystack.contains(keyword);
-    }).toList(growable: false);
+    return events
+        .where((event) {
+          final haystack = [
+            event.name,
+            event.description,
+            event.location,
+            event.address,
+            event.creatorName,
+          ].whereType<String>().join(' ').toLowerCase();
+          return haystack.contains(keyword);
+        })
+        .toList(growable: false);
   }
 }
 
@@ -435,6 +434,20 @@ class _EventCard extends StatelessWidget {
 
   const _EventCard({required this.event, this.currentUserId});
 
+  Color get _creatorColor {
+    const colors = [
+      Color(0xFF6C63FF),
+      Color(0xFF43B89C),
+      Color(0xFFFF6584),
+      Color(0xFFFFB347),
+      Color(0xFF4FC3F7),
+      Color(0xFFBA68C8),
+    ];
+    final name = event.creatorName ?? '';
+    final index = name.isEmpty ? 0 : name.codeUnitAt(0) % colors.length;
+    return colors[index];
+  }
+
   @override
   Widget build(BuildContext context) {
     final accent = _themeAccent(event);
@@ -558,23 +571,12 @@ class _EventCard extends StatelessWidget {
                           )
                         : Row(
                             children: [
-                              CircleAvatar(
-                                radius: 15,
-                                backgroundColor: AppColors.primaryLight,
-                                backgroundImage: event.creatorPhoto != null
-                                    ? NetworkImage(event.creatorPhoto!)
-                                    : null,
-                                child: event.creatorPhoto == null
-                                    ? Text(
-                                        event.creatorName![0].toUpperCase(),
-                                        style: AppTextStyles.small.copyWith(
-                                          color: AppColors.primary,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      )
-                                    : null,
+                              _EventCreatorAvatar(
+                                name: event.creatorName!,
+                                photoUrl: event.creatorPhoto,
+                                color: _creatorColor,
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
                                   event.creatorName!,
@@ -667,6 +669,65 @@ class _EventCard extends StatelessWidget {
       default:
         return Icons.event_rounded;
     }
+  }
+}
+
+class _EventCreatorAvatar extends StatelessWidget {
+  final String name;
+  final String? photoUrl;
+  final Color color;
+
+  const _EventCreatorAvatar({
+    required this.name,
+    required this.photoUrl,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final initial = name.isEmpty ? '?' : name[0].toUpperCase();
+
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        shape: BoxShape.circle,
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
+      ),
+      alignment: Alignment.center,
+      child: photoUrl != null && photoUrl!.trim().isNotEmpty
+          ? ClipOval(
+              child: Image.network(
+                photoUrl!,
+                width: 50,
+                height: 50,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) =>
+                    _EventCreatorInitial(initial: initial, color: color),
+              ),
+            )
+          : _EventCreatorInitial(initial: initial, color: color),
+    );
+  }
+}
+
+class _EventCreatorInitial extends StatelessWidget {
+  final String initial;
+  final Color color;
+
+  const _EventCreatorInitial({required this.initial, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      initial,
+      style: AppTextStyles.title.copyWith(
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+        color: color,
+      ),
+    );
   }
 }
 

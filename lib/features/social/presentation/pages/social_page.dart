@@ -83,9 +83,7 @@ class _SocialPageState extends State<SocialPage>
             : Text('Social', style: AppTextStyles.title),
         actions: [
           _SocialIconButton(
-            icon: _searchActive
-                ? Icons.close_rounded
-                : Icons.search_rounded,
+            icon: _searchActive ? Icons.close_rounded : Icons.search_rounded,
             onPressed: () {
               setState(() {
                 if (_searchActive) {
@@ -327,14 +325,16 @@ class _ActivityTab extends StatelessWidget {
   ) {
     final keyword = rawQuery.trim().toLowerCase();
     if (keyword.isEmpty) return activities;
-    return activities.where((activity) {
-      final haystack = [
-        activity.text,
-        activity.userName,
-        activity.achievementId,
-      ].whereType<String>().join(' ').toLowerCase();
-      return haystack.contains(keyword);
-    }).toList(growable: false);
+    return activities
+        .where((activity) {
+          final haystack = [
+            activity.text,
+            activity.userName,
+            activity.achievementId,
+          ].whereType<String>().join(' ').toLowerCase();
+          return haystack.contains(keyword);
+        })
+        .toList(growable: false);
   }
 }
 
@@ -1043,16 +1043,16 @@ class _EventTab extends StatelessWidget {
           if (events.isEmpty) {
             return _buildEmptyState(
               icon: Icons.event_outlined,
-              label: query.trim().isEmpty ? 'No events yet' : 'Event tidak ditemukan',
+              label: query.trim().isEmpty
+                  ? 'No events yet'
+                  : 'Event tidak ditemukan',
             );
           }
           return ListView.builder(
             padding: const EdgeInsets.all(AppStyle.paddingMedium),
             itemCount: events.length,
-            itemBuilder: (context, index) => _EventCard(
-              event: events[index],
-              currentUserId: currentUserId,
-            ),
+            itemBuilder: (context, index) =>
+                _EventCard(event: events[index], currentUserId: currentUserId),
           );
         }
 
@@ -1064,16 +1064,18 @@ class _EventTab extends StatelessWidget {
   List<EventEntity> _filterEvents(List<EventEntity> events, String rawQuery) {
     final keyword = rawQuery.trim().toLowerCase();
     if (keyword.isEmpty) return events;
-    return events.where((event) {
-      final haystack = [
-        event.name,
-        event.description,
-        event.location,
-        event.address,
-        event.creatorName,
-      ].whereType<String>().join(' ').toLowerCase();
-      return haystack.contains(keyword);
-    }).toList(growable: false);
+    return events
+        .where((event) {
+          final haystack = [
+            event.name,
+            event.description,
+            event.location,
+            event.address,
+            event.creatorName,
+          ].whereType<String>().join(' ').toLowerCase();
+          return haystack.contains(keyword);
+        })
+        .toList(growable: false);
   }
 }
 
@@ -1090,6 +1092,20 @@ class _EventCard extends StatelessWidget {
     } catch (_) {
       return AppColors.primary;
     }
+  }
+
+  Color get _creatorColor {
+    const colors = [
+      Color(0xFF6C63FF),
+      Color(0xFF43B89C),
+      Color(0xFFFF6584),
+      Color(0xFFFFB347),
+      Color(0xFF4FC3F7),
+      Color(0xFFBA68C8),
+    ];
+    final name = event.creatorName ?? '';
+    final index = name.isEmpty ? 0 : name.codeUnitAt(0) % colors.length;
+    return colors[index];
   }
 
   IconData get _icon {
@@ -1301,33 +1317,25 @@ class _EventCard extends StatelessWidget {
                 Row(
                   children: [
                     if (event.creatorName != null) ...[
-                      CircleAvatar(
-                        radius: 12,
-                        backgroundColor: accent.withValues(alpha: 0.2),
-                        child: event.creatorPhoto != null
-                            ? ClipOval(
-                                child: Image.network(
-                                  event.creatorPhoto!,
-                                  width: 24,
-                                  height: 24,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            : Text(
-                                event.creatorName![0].toUpperCase(),
-                                style: TextStyle(fontSize: 10, color: accent),
-                              ),
+                      _EventCreatorAvatar(
+                        name: event.creatorName!,
+                        photoUrl: event.creatorPhoto,
+                        color: _creatorColor,
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        event.creatorName!,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: AppColors.greyText,
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          event.creatorName!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: AppColors.greyText,
+                          ),
                         ),
                       ),
                     ],
-                    const Spacer(),
+                    if (event.creatorName == null) const Spacer(),
                     if (isCreator)
                       OutlinedButton(
                         onPressed: () {},
@@ -1406,6 +1414,65 @@ class _EventCard extends StatelessWidget {
 // ─────────────────────────────────────────
 // Shared helper
 // ─────────────────────────────────────────
+
+class _EventCreatorAvatar extends StatelessWidget {
+  final String name;
+  final String? photoUrl;
+  final Color color;
+
+  const _EventCreatorAvatar({
+    required this.name,
+    required this.photoUrl,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final initial = name.isEmpty ? '?' : name[0].toUpperCase();
+
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        shape: BoxShape.circle,
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
+      ),
+      alignment: Alignment.center,
+      child: photoUrl != null && photoUrl!.trim().isNotEmpty
+          ? ClipOval(
+              child: Image.network(
+                photoUrl!,
+                width: 50,
+                height: 50,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) =>
+                    _EventCreatorInitial(initial: initial, color: color),
+              ),
+            )
+          : _EventCreatorInitial(initial: initial, color: color),
+    );
+  }
+}
+
+class _EventCreatorInitial extends StatelessWidget {
+  final String initial;
+  final Color color;
+
+  const _EventCreatorInitial({required this.initial, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      initial,
+      style: GoogleFonts.poppins(
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+        color: color,
+      ),
+    );
+  }
+}
 
 Widget _buildEmptyState({required IconData icon, required String label}) {
   return Center(
