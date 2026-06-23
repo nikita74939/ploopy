@@ -103,6 +103,17 @@ class _SettingsPageState extends State<SettingsPage> {
               _SettingsCard(
                 children: [
                   _MenuRow(
+                    icon: Icons.rate_review_rounded,
+                    title: 'Kesan dan Pesan',
+                    subtitle: 'Teknologi Pemrograman Mobile',
+                    onTap: _showCourseReflection,
+                  ),
+                  const Divider(
+                    height: 1,
+                    color: AppColors.greyBorder,
+                    indent: 58,
+                  ),
+                  _MenuRow(
                     icon: Icons.info_outline_rounded,
                     title: 'Tentang Ploopy',
                     subtitle: 'Versi 1.0.0',
@@ -126,6 +137,15 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showCourseReflection() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.transparent,
+      isScrollControlled: true,
+      builder: (context) => const _CourseReflectionSheet(),
     );
   }
 
@@ -156,6 +176,108 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CourseReflectionSheet extends StatelessWidget {
+  const _CourseReflectionSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Container(
+        margin: const EdgeInsets.all(12),
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.greyBorder),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 42,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.greyBorder,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                const _IconBubble(icon: Icons.rate_review_rounded),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text('Kesan dan Pesan', style: AppTextStyles.title),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Mata Kuliah Teknologi Pemrograman Mobile',
+              style: AppTextStyles.caption,
+            ),
+            const SizedBox(height: 18),
+            _ReflectionBlock(
+              title: 'Kesan',
+              body:
+                  'Mata kuliah ini memberikan pengalaman yang menarik karena kami belajar membangun aplikasi mobile secara langsung dari proses perancangan, implementasi fitur, integrasi data, sampai pengujian aplikasi.',
+            ),
+            const SizedBox(height: 12),
+            _ReflectionBlock(
+              title: 'Pesan',
+              body:
+                  'Semoga mata kuliah ini terus dikembangkan dengan lebih banyak praktik, studi kasus nyata, dan pembahasan best practice agar mahasiswa semakin siap membuat aplikasi mobile yang bermanfaat.',
+            ),
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              height: 46,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Tutup'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReflectionBlock extends StatelessWidget {
+  final String title;
+  final String body;
+
+  const _ReflectionBlock({required this.title, required this.body});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.greyBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 6),
+          Text(body, style: AppTextStyles.bodySmall.copyWith(height: 1.45)),
         ],
       ),
     );
